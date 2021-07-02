@@ -21,8 +21,8 @@ Currently a work in progress. To be compeleted before intial release:
 Future work:
  - Timoshenko beams
  - Nonlinear beams analysis
- - One way Slabs?
- - Two way Slabs?
+ - One-way Slabs?
+ - Two-way Slabs?
  - Orthtropic Slabs?
  - Basic simple frame analysis?
  - Basic Nonlinear frame analysis?
