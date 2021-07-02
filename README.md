@@ -1,6 +1,6 @@
 # planesections
 A lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
-I noticed there was no package for beam bending in python that worked to my satisfaction.
+There was no package for beam bending in python that worked to my satisfaction, hence this package.
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
 While OpenSees can analyze nearly anything, the emphasis is on providing a quick way to analyze beams.
 
