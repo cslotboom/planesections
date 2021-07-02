@@ -121,17 +121,38 @@ class RecordOutput():
         # dispOut = np.zeros((Nnodes,3))
         # reactOut = 
         
-        endNode = beam.Nnodes
+        self.Nnodes = beam.Nnodes
+        # self.Nele = beam.Nnodes - 1
+        
+        # endNode = beam.Nnodes
         for ii, node in enumerate(beam.nodes):
             ID = node.ID
             node.disps = np.array(op.nodeDisp(ID))
-            node.react = np.array(op.nodeReaction(ID))
+            node.rFrc  = np.array(op.nodeReaction(ID))
+            node.Fint = self.getEleInteralForce(ID)
+
+
             
-            # If we aren't the last entry
-            if  ii + 1 != endNode:
-                node.internalForce = np.array(op.eleForce(ID)[:3])
-            else:
-                node.internalForce = -np.array(op.eleForce(ID-1)[:3])
+    def getEleInteralForce(self, nodeID):
+        """
+         N-1  L R  N
+        .------.------.
+        N-1    N      N+1
+        """
+        
+        Fint = np.zeros(6)
+        if nodeID == 1: # Left side node
+            Fint[3:] = op.eleForce(nodeID)[:3] # Right side forces
+            Fint[:3] = Fint[3:]                # Left side forces
+        elif nodeID == self.Nnodes: # right side node
+            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # Right side forces
+            Fint[3:] = Fint[:3]                               # Left side forces
+        else: # center nodes
+            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # left entries
+            Fint[3:] =  np.array(op.eleForce(nodeID)[:3]) # right entries
+        
+        return Fint
+        
             
+
             
-    

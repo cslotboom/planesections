@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 #  - Timoshenko beams
 #  - Mass for dynamic analysis
 #  - web interface
+#  - beam summary?
 # =============================================================================
 
 
@@ -46,6 +47,11 @@ class beamBuilder():
         for ii, node in enumerate(self.nodes):
             node.ID = int(ii + 1)
     
+    
+    def _addedNodeMessage(self, x):
+        print(f'New node added at: {x}')
+    
+    
     def addNode(self, x, fixity = np.array([0.,0.,0.]), pointLoad = np.array([0.,0.,0.]), ID = None):
         """
         Adds a new node to the model builder.
@@ -53,7 +59,7 @@ class beamBuilder():
         Parameters
         ----------
         x : flaot
-            DESCRIPTION.
+            The x coordinate of the node.
         fixity : np.array
             The fixity array. Contains 3 values, one for each dof in order
             x, y, rotation. 1 means the system is fixed at said node, 
@@ -82,55 +88,117 @@ class beamBuilder():
         self.nodeCoords.add(x)
         
         self.sortNodes()
+        
+    def addNodes(self, xCoords, fixities = None, pointLoads = None ):
+        
+        newNoads = len(xCoords)
+        if fixities == None:
+            fixities = [np.array([0.,0.,0.])]*newNoads
+            
+        if pointLoads == None:
+            pointLoads = [np.array([0.,0.,0.])]*newNoads
+            
+        for ii in range(newNoads):
+            self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])    
+    
+    
+    
+    
+    
+    
+    def _checkfixityInput(self, fixity):
+        
+        """
+        Confirm that the appropriate input has been supplied to the fixity
+        vector
+        """
+                
+        if set(fixity).issubset({0,1}) != True:
+            raise ValueError("Fixity must be a list of zeros and ones.")
+        if len(fixity) == 2 or len(fixity) > 3:
+            raise ValueError("Fixity must be a integer or vector of length 3")
+       
+        
+    def _convertFixityInput(self, fixity):
+        """
+        If an integer is supplied, convert the input to a list.
+        """
+        
+        if isinstance(fixity,int):
+            return [fixity]*3
+        else:
+            return fixity
+
+        
     
     
     def setFixity(self, x, fixity):
-        index = self._findNode(x)
+        """
+        Sets the node fixity. If the node exists, update it. If the node doesn't
+        exist, then a new node will be added
+
+        Parameters
+        ----------
+        x : TYPE
+            The x coordinant of the noded to be modified/added.
+        fixity : int/list/array
+            Either the integer 0/1, or a list of zeros/ones. If equal to 0, 
+            that DOF is considered Free. Otherwise it is considered fixed.
+
+        """
+
+        fixity = self._convertFixityInput(fixity)
+        self._checkfixityInput(fixity)
+        
         
         if x in self.nodeCoords:
             index = self._findNode(x)
             self.nodes[index].fixity = fixity
         else:
             self.addNode(x, fixity)        
-        
+                 
     
-    
-    def addNodes(self, xCoords, fixities = [], pointLoads = [] ):
-        
-        newNoads = len(xCoords)
-        if fixities == []:
-            fixities = [np.array([0.,0.,0.])]*newNoads
-            
-        if pointLoads == []:
-            pointLoads = [np.array([0.,0.,0.])]*newNoads
-            
-        for ii in range(newNoads):
-            self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])
-                            
-    
-    def addPointLoads(self, x, pointLoad):
+    def addPointLoad(self, x, pointLoad):
         """
         Adds a load ot the model at location x.
-        Old loads are deleted
+        Old loads are deleted.
         """
         # Check if the node is in the list of coordinates used
         if x in self.nodeCoords:
             index = self._findNode(x)
             self.nodes[index].pointLoad = pointLoad
-            
         else:
             fixity = np.array([0,0,0], int)
             self.addNode(x, fixity, pointLoad)
-            
+     
+    def addPointLoads(self, x, pointLoad):
+        pass
+
+        
+        
     def addVerticalLoad(self, x, Py):
+        """
+        Adds a vertical load to the model at location x.
+        Old loads are deleted.
+        """        
+
         pointLoads = np.array([0., Py, 0.])
         self.addPointLoads(x, pointLoads)
         
     def addMoment(self, x, M):
+        """
+        Adds a Moment ot the model at location x.
+        Old loads are deleted.
+        """        
         pointLoads = np.array([0.,0., M])
         self.addPointLoads(x, pointLoads)     
         
     def addHorizontalLoad(self, x, Px):
+        """
+        Adds a horizontal point load at the model at location x.
+        Old loads are deleted.
+        """       
+        
         pointLoads = np.array([Px, 0., 0.])
         self.addPointLoads(x, pointLoads)            
              
@@ -140,14 +208,14 @@ class beamBuilder():
             if xInput == node.x:
                 return ii
             
-    def addDistLoads(self, x1, x2, distLoad):
+    def addDistLoad(self, x1, x2, distLoad):
         """
         
         Parameters
         ----------
-        x1 : float
+        x1 : start point of distributed load
             DESCRIPTION.
-        x2 : float
+        x2 : end point of distributed load
             DESCRIPTION.
         distLoad : 2D array
             DESCRIPTION.
@@ -159,7 +227,7 @@ class beamBuilder():
         """
         
         genericFixity = np.array([0,0,0], int)
-        genericPointLoad = np.array([0,0,0], int)
+        genericPointLoad = np.array([0.,0.,0.], float)
         
         if x1 not in self.nodeCoords:
             self.addNode(x1, genericFixity, genericPointLoad)        
@@ -173,13 +241,13 @@ class beamBuilder():
 
         distLoad = np.array([0., qy])
         
-        self.addDistLoads(self, x1, x2, distLoad)
+        self.addDistLoad(self, x1, x2, distLoad)
 
     def addDistLoadHorizontal(self, x1, x2, qx):
 
         distLoad = np.array([qx, 0.])
         genericFixity = np.array([0,0,0], int)
-        genericPointLoad = np.array([0,0,0], int)
+        genericPointLoad = np.array([0,0,0], float)
         
         if x1 not in self.nodeCoords:
             self.addNode(x1, genericFixity, genericPointLoad)        
@@ -201,19 +269,14 @@ class beamBuilder():
 
 
 
-
-
-
-
 class EulerBeam(beamBuilder):
 
-    def __init__(self, E = 1., A=1., I=1., xcoords = [], fixities = [], geomTransform = 'Linear'):
+    def __init__(self, xcoords = [], fixities = [], E = 1., A=1., I=1., geomTransform = 'Linear'):
         
         # geomTransform has values 'Linear' or 'PDelta'
         self.nodes = []
         self.eleLoads = []
         self.nodeCoords = set()
-        
         self.materialPropreties = [E, A, I]  
             
         self.Nnodes = 0
@@ -237,8 +300,9 @@ class Node():
         self.ID = ID
         
         self.disp = None
-        self.reaction = None
-        self.internalForce = None
+        self.rFrc = None
+        self.Fint = None
+
 
 
 # class Element():
@@ -286,10 +350,7 @@ class PlotBeam():
 
 def plotMoment(beam):
     
-    
     # Plotbeam....
-    
-    
     xcoords = np.zeros(beam.Nnodes)
     moment = np.zeros(beam.Nnodes)
     for ii, node in enumerate(beam.nodes):
@@ -298,15 +359,14 @@ def plotMoment(beam):
         # moment[ii] = 
     
     fig, ax = plt.subplots()
-    plt.plot(xcoords,moment)
+    line = plt.plot(xcoords,moment, '.')
+    return fig, ax, line
         
         
 def plotShear(beam):
     
     
-    # Plotbeam....
-    
-    
+    # Plotbeam....  
     xcoords = np.zeros(beam.Nnodes)
     moment = np.zeros(beam.Nnodes)
     for ii, node in enumerate(beam.nodes):
@@ -315,9 +375,10 @@ def plotShear(beam):
         # moment[ii] = 
     
     fig, ax = plt.subplots()
-    plt.plot(xcoords,moment)     
+    line = plt.plot(xcoords,moment)     
     
-    
+    return fig, ax, line
+
     
     
     
