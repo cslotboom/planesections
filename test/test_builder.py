@@ -9,18 +9,12 @@ Created on Sun May 23 01:00:41 2021
 from planesections import EulerBeam
 # import planesections as ps
 import numpy as np
+import pytest
+
 
 x = np.array([0,5])
 fixities = [np.array([1,1,1]), np.array([1,1,1])]
 
-# class Test:
-#     count = 1
-#     def __init__(self):
-#         self.count+=1
-# # ps.EulerBeam(1, 2)
-# t1 = Test()
-# t2 = Test()
-# print(t2.count)
 
 def test_init():
     
@@ -38,7 +32,7 @@ def test_addPointLoad_new():
     
     xload = 3
     pointLoad = np.array([1,1,1])
-    beam.addPointLoads(xload, pointLoad)
+    beam.addPointLoad(xload, pointLoad)
     
     newNode = beam.nodes[1]
     
@@ -52,7 +46,7 @@ def test_addPointLoad_existing():
     
     xload = 5
     pointLoad = np.array([1,1,1])
-    beam.addPointLoads(xload, pointLoad)
+    beam.addPointLoad(xload, pointLoad)
     
     check1 = len(beam.nodes) == 2
     check2 = np.all(beam.nodes[1].pointLoad == pointLoad) 
@@ -61,16 +55,16 @@ def test_addPointLoad_existing():
 
 
 
-def addDistLoad(x1, x2):
+def makeBeamDist(x1, x2):
     beam = EulerBeam(x, fixities)
     
     distLoad = np.array([1.,1.])
     beam.addDistLoad(x1, x2, distLoad)
     return beam
 
-def test_addDistLoad_new_nodes():
+def test_makeBeamDist_new_nodes():
 
-    beam = addDistLoad(1,4)
+    beam = makeBeamDist(1,4)
 
     # beam.add(xload, pointLoad)
     
@@ -79,9 +73,9 @@ def test_addDistLoad_new_nodes():
         
     assert(np.all([check1,check2]))
     
-def test_addDistLoad_new():
+def test_makeBeamDist_new():
 
-    beam = addDistLoad(1,4)
+    beam = makeBeamDist(1,4)
    
     check1 = len(beam.eleLoads) == 1
     # check1 = True
@@ -92,9 +86,9 @@ def test_addDistLoad_new():
     assert(np.all([check1,check2]))
 
 
-def test_addDistLoad_existing_nodes():
+def test_makeBeamDist_existing_nodes():
 
-    beam = addDistLoad(1,5)
+    beam = makeBeamDist(1,5)
     
     check1 = len(beam.nodes) == 3
     check2 = beam.nodes[2].x == 5
@@ -102,15 +96,71 @@ def test_addDistLoad_existing_nodes():
         
     assert(np.all([check1,check2]))
     
-def test_addDistLoad_existing():
+def test_makeBeamDist_existing():
 
-    beam = addDistLoad(1,5)
+    beam = makeBeamDist(1,5)
    
     check1 = len(beam.eleLoads) == 1
     check2 = np.all(beam.eleLoads[0].load  == np.array([1.,1.]))
     # check2 = np.all(beam.nodes[1].distLoad == distLoad) 
         
     assert(np.all([check1,check2]))
+
+
+def test_setFixity_existing():
+    beam = EulerBeam(x, fixities)
+    
+    newFixity = np.array([0,0,0])
+    beam.setFixity(0, newFixity)
+    
+    check  = np.all(newFixity == beam.nodes[0].fixity)
+    assert check
+    
+    
+def test_setFixity_new():
+    beam = EulerBeam(x, fixities)
+    
+    newFixity = np.array([0,1,0])
+    beam.setFixity(10, newFixity)
+    
+    check  = np.all(newFixity == beam.nodes[2].fixity)
+    assert check    
+    
+def test_setFixity_input_size():
+    with pytest.raises(ValueError):
+        beam = EulerBeam(x, fixities)
+        
+        newFixity = np.array([0,1])
+        assert beam.setFixity(10, newFixity)
+ 
+        
+def test_setFixity_input_vals():
+    with pytest.raises(ValueError):
+        beam = EulerBeam(x, fixities)
+        
+        newFixity = np.array([0,0,10])
+        assert beam.setFixity(10, newFixity)
+
+def test_setFixity_int():
+    beam = EulerBeam(x, fixities)
+    
+    newFixity = 0
+    beam.setFixity(0, newFixity)
+    
+    check  = np.all(np.array([0,0,0]) == beam.nodes[0].fixity)
+    assert check        
+ 
+    #     check  = np.all(newFixity == beam.nodes[2].fixity)
+    # assert check    
+    
+    # raise ValueError('value must be 0 or None')
+    
+    # beam.
+    
+    
+    # beam = 
+
+
 
 
 
@@ -121,10 +171,15 @@ def test_addDistLoad_existing():
 #     beam.addPointLoad(x, pointLoad)
 #     pass
 
-test_init()
-test_addPointLoad_new()
-test_addPointLoad_existing()
-test_addDistLoad_new_nodes()
-test_addDistLoad_new()
-test_addDistLoad_existing_nodes()
-test_addDistLoad_existing()
+# test_init()
+# test_addPointLoad_new()
+# test_addPointLoad_existing()
+# test_makeBeamDist_new_nodes()
+# test_makeBeamDist_new()
+# test_makeBeamDist_existing_nodes()
+# test_makeBeamDist_existing()
+
+# test_setFixity_existing()
+# test_setFixity_new()
+# test_setFixity_int()
+

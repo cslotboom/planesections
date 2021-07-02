@@ -16,21 +16,22 @@ fixities = [np.array([1,1,1], int), np.array([1,1,1], int)]
 
 pointBeam = EulerBeam(x, fixities)
 P = np.array([0.,1000.,0.])
-pointBeam.addPointLoads(2.5, -P)
-pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
+pointBeam.addPointLoad(2.5, -P)
+
 
 q = np.array([0.,-1000.])
+q = np.array([0.,-1000.])
 distBeam = EulerBeam(x, fixities)
-distBeam.addDistLoads(0,5,q)
+distBeam.addDistLoad(0.,5.,q)
 distBeamAnalysis  = OpenSeesAnalyzer(distBeam)
 
 beam = EulerBeam(x, fixities) 
-beam.addDistLoads(0,5,q) 
-beam.addPointLoads(2.5, -P)
+beam.addDistLoad(0.,5.,q) 
+beam.addPointLoad(2.5, -P)
 analysis = OpenSeesAnalyzer(beam)
 
 def test_nodes():
-    
+    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     out = op.nodeCoord(1)[0]
@@ -40,6 +41,7 @@ def test_nodes():
 
 
 def test_EulerElements():
+    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     pointBeamAnalysis.buildEulerBeams()
@@ -49,14 +51,14 @@ def test_EulerElements():
     
     
 def test_node_loads():
-    
+    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
+    pointBeamAnalysis.buildEulerBeams()    
     pointBeamAnalysis.buildPointLoads()   
-    pointBeamAnalysis.buildEulerBeams()
     pointBeamAnalysis.buildAnalysisPropreties()
     pointBeamAnalysis.analyze()
-    
+
     assert op.nodeReaction(3) == [0,500,-625]
 
 def test_ele_loads():
