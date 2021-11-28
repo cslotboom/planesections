@@ -5,7 +5,7 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, RecordOutput
+from planesections import EulerBeam, OpenSeesAnalyzer
 # from planesections import EulerBeam
 import numpy as np
 
@@ -87,7 +87,7 @@ def test_full_beam():
 
 def test_record_output():
     analysis.runAnalysis()
-    RecordOutput(beam)
+    # OutputRecorder(beam)
 
 
 test_nodes()
