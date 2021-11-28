@@ -89,15 +89,29 @@ class beamBuilder():
         
     def addNodes(self, xCoords, fixities = None, pointLoads = None ):
         
+        
+        
         newNoads = len(xCoords)
+        self.Nnodes += newNoads
+        
         if fixities == None:
             fixities = [np.array([0.,0.,0.])]*newNoads
             
-        if pointLoads == None:
+        if pointLoads is None:
             pointLoads = [np.array([0.,0.,0.])]*newNoads
             
+        # for ii in range(newNoads):
+        #     self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])    
         for ii in range(newNoads):
-            self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])    
+            newNode = Node(xCoords[ii], fixities[ii], pointLoads[ii], ii)
+            self.nodes.append(newNode)
+            self.nodeCoords.add(xCoords[ii])
+            # self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])        
+    
+    
+    
+        self.sortNodes()
+    
     
     def _checkfixityInput(self, fixity):
         
@@ -144,6 +158,7 @@ class beamBuilder():
         if x in self.nodeCoords:
             index = self._findNode(x)
             self.nodes[index].fixity = fixity
+            self.nodes[index].hasReaction = True 
         else:
             self.addNode(x, fixity)        
                  
@@ -151,6 +166,14 @@ class beamBuilder():
         """
         Adds a load ot the model at location x.
         Old loads are deleted.
+        
+        Parameters
+        ----------
+        x : float
+            The loaciton of the load.
+        pointLoad : list
+            A list of the forces in [Fx, Fy, M].
+
         """
         # Check if the node is in the list of coordinates used
         if x in self.nodeCoords:
@@ -170,16 +193,16 @@ class beamBuilder():
         Old loads are deleted.
         """        
 
-        pointLoads = np.array([0., Py, 0.])
-        self.addPointLoads(x, pointLoads)
+        pointLoad = np.array([0., Py, 0.])
+        self.addPointLoad(x, pointLoad)
         
     def addMoment(self, x, M):
         """
         Adds a Moment ot the model at location x.
         Old loads are deleted.
         """        
-        pointLoads = np.array([0.,0., M])
-        self.addPointLoads(x, pointLoads)     
+        pointLoad = np.array([0.,0., M])
+        self.addPointLoad(x, pointLoad)     
         
     def addHorizontalLoad(self, x, Px):
         """
@@ -188,7 +211,7 @@ class beamBuilder():
         """       
         
         pointLoads = np.array([Px, 0., 0.])
-        self.addPointLoads(x, pointLoads)            
+        self.addPointLoad(x, pointLoads)            
              
     def _findNode(self, xInput):
         
@@ -251,6 +274,49 @@ class beamBuilder():
         plt.plot(xcoords, y)
         plt.plot(xcoords, y, '.')
 
+
+    @property
+    def Mmax(self):
+        return self.Fmax(2)
+
+
+    @property
+    def reactions(self):
+        reactions = []
+        for node in self.nodes:
+            # print(node.hasReaction)
+            if node.hasReaction:
+                reactions.append(node.rFrc)
+                
+            # F1 = node.Reactions[index]
+            # F2 = node.Fint[index + 3]
+            
+            # if F1 < Fmin or F2 < Fmin:
+            #     Fmin = min(F1, F2)
+            
+            # if Fmax < F1 or Fmax < F2:
+            #     Fmax = max(F1, F2)
+        return reactions
+
+    @property
+    def Vmax(self):
+        return self.Fmax(1)
+
+
+    def Fmax(self, index):
+        Fmax = 0
+        Fmin = 0
+        for node in self.nodes:
+            F1 = node.Fint[index]
+            F2 = node.Fint[index + 3]
+            
+            if F1 < Fmin or F2 < Fmin:
+                Fmin = min(F1, F2)
+            
+            if Fmax < F1 or Fmax < F2:
+                Fmax = max(F1, F2)
+        return Fmin, Fmax
+
 # =============================================================================
 # 
 # =============================================================================
@@ -268,15 +334,28 @@ class EulerBeam(beamBuilder):
         self.materialPropreties = [E, A, I]  
             
         self.Nnodes = 0
-        newNoads = len(xcoords)
+        NnewLoad = len(xcoords)
+        pointLoad = [np.array([0., 0., 0.])] * NnewLoad
+        
+        
+        if len(fixities) == 0:
+            fixities = [np.array([0., 0., 0.])] * NnewLoad
+        self.addNodes(xcoords, fixities, pointLoad)
+        
         pointLoad = np.array([0., 0., 0.])
-        for ii in range(newNoads):
-            self.addNode(xcoords[ii], fixities[ii], pointLoad)
+        # for ii in range(NnewLoad):
+        #     self.addNode(xcoords[ii], fixities[ii], pointLoad)
         
         self.plotter = None
         
         self.geomTransform = geomTransform
         self.EleType = 'elasticBeamColumn'
+    
+    # def setReactionNodes:
+        
+    #     self.reactionNodes = []
+    #     for node in self.nodes:
+    #         if node.fixity !=
 
 
 class Node():
@@ -290,7 +369,10 @@ class Node():
         self.disp = None
         self.rFrc = None
         self.Fint = None
-
+        
+        self.hasReaction = False
+        if np.any(fixity != [0,0,0]):
+            self.hasReaction = True
 
 
 # class Element():
@@ -337,22 +419,38 @@ class PlotBeam():
 
 
 def plotMoment(beam):
-    
-    # Plotbeam....
-    xcoords = np.zeros(beam.Nnodes)
-    moment = np.zeros(beam.Nnodes)
-    for ii, node in enumerate(beam.nodes):
-        xcoords[ii] = node.x
-        moment[ii] = node.internalForce[2]
-        # moment[ii] = 
-    
-    fig, ax = plt.subplots()
-    # line = plt.plot(xcoords,moment, '.')
-    line = plt.plot(xcoords, moment)
-    return fig, ax, line
-        
+    return plotInternalForce(beam, 2)
         
 def plotShear(beam):
+    return plotInternalForce(beam, 1)
+
+def plotInternalForce(beam, index):
+      
+    xcoords = np.zeros(beam.Nnodes*2)
+    moment = np.zeros(beam.Nnodes*2)
+    for ii, node in enumerate(beam.nodes):
+        xcoords[ii*2]       = node.x
+        moment[ii*2]        = node.internalForce[index]
+        xcoords[ii*2 + 1]   = node.x
+        moment[ii*2 + 1]    = node.internalForce[index + 3]
+        
+        
+    fig, ax = plt.subplots()
+    line = plt.plot(xcoords, moment)     
+    
+    return fig, ax, line
+  
+         
+        
+def plotVertDisp(beam):
+    return plotDisp(beam) 
+
+
+# def plotVertDisp(beam):
+#     return plotDisp() 
+
+
+def plotDisp(beam, index=1):
     
     
     # Plotbeam....  
@@ -360,15 +458,11 @@ def plotShear(beam):
     moment = np.zeros(beam.Nnodes)
     for ii, node in enumerate(beam.nodes):
         xcoords[ii] = node.x
-        moment[ii] = node.internalForce[1]
+        moment[ii] = node.disps[index]
         # moment[ii] = 
     
     fig, ax = plt.subplots()
     line = plt.plot(xcoords,moment)     
     
-    return fig, ax, line
-
-    
-    
-    
+    return fig, ax, line   
         

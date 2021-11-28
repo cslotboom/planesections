@@ -4,12 +4,57 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+
+
+        
+class OutputRecorder():
+    
+    def __init__(self, beam):
+        # Nnodes = beam.Nnodes
+        # dispOut = np.zeros((Nnodes,3))
+        # reactOut = 
+        
+        self.Nnodes = beam.Nnodes
+        # self.Nele = beam.Nnodes - 1
+        
+        # endNode = beam.Nnodes
+        for ii, node in enumerate(beam.nodes):
+            ID = node.ID
+            node.disps = np.array(op.nodeDisp(ID))
+            node.rFrc  = np.array(op.nodeReaction(ID))
+            node.Fint = self.getEleInteralForce(ID)
+
+    def getEleInteralForce(self, nodeID):
+        """
+         N-1  L R  N
+        .------.------.
+        N-1    N      N+1
+        """
+        
+        Fint = np.zeros(6)
+        if nodeID == 1: # Left most node
+            Fint[:3] =  0                                   # Left side forces
+            Fint[3:] =  op.eleForce(nodeID)[:3]             # Right side forces
+            # Fint[3:] = op.eleForce(nodeID)[:3] # Right side forces
+            # Fint[:3] = Fint[3:]                # Left side forces
+        elif nodeID == self.Nnodes: # right side node
+            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # Right side forces
+            # Fint[3:] = Fint[:3]                               # Left side forces
+            Fint[3:] = 0                               # Left side forces
+        else: # center nodes
+            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # left entries
+            Fint[3:] =  np.array(op.eleForce(nodeID)[:3]) # right entries
+        
+        return Fint
+        
+            
+
         
 class OpenSeesAnalyzer():
     """
     Builds the beam in OpenSees
     """
-    def __init__(self, beam):
+    def __init__(self, beam, recorder = OutputRecorder):
         """
         
         Parameters
@@ -26,6 +71,7 @@ class OpenSeesAnalyzer():
         
         self.Nnode = beam.Nnodes
         self.Nele = self.Nnode - 1
+        self.recorder = OutputRecorder
         
     def initModel(self):
         op.wipe()
@@ -95,7 +141,7 @@ class OpenSeesAnalyzer():
                 op.eleLoad('-ele', int(ii), '-type', '-beamUniform', load[1], load[0])
     
     
-    def runAnalysis(self):
+    def runAnalysis(self, recordOutput = True):
         """
         Makes the beam in OpenSees.
 
@@ -114,45 +160,8 @@ class OpenSeesAnalyzer():
         self.analyze()
         
         
-class RecordOutput():
-    
-    def __init__(self, beam):
-        # Nnodes = beam.Nnodes
-        # dispOut = np.zeros((Nnodes,3))
-        # reactOut = 
-        
-        self.Nnodes = beam.Nnodes
-        # self.Nele = beam.Nnodes - 1
-        
-        # endNode = beam.Nnodes
-        for ii, node in enumerate(beam.nodes):
-            ID = node.ID
-            node.disps = np.array(op.nodeDisp(ID))
-            node.rFrc  = np.array(op.nodeReaction(ID))
-            node.Fint = self.getEleInteralForce(ID)
+        if recordOutput == True:
+            self.recorder(self.beam)
 
-
-            
-    def getEleInteralForce(self, nodeID):
-        """
-         N-1  L R  N
-        .------.------.
-        N-1    N      N+1
-        """
-        
-        Fint = np.zeros(6)
-        if nodeID == 1: # Left side node
-            Fint[3:] = op.eleForce(nodeID)[:3] # Right side forces
-            Fint[:3] = Fint[3:]                # Left side forces
-        elif nodeID == self.Nnodes: # right side node
-            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # Right side forces
-            Fint[3:] = Fint[:3]                               # Left side forces
-        else: # center nodes
-            Fint[:3] = -np.array(op.eleForce(nodeID - 1)[3:]) # left entries
-            Fint[3:] =  np.array(op.eleForce(nodeID)[:3]) # right entries
-        
-        return Fint
-        
-            
 
             
