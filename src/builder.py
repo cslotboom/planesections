@@ -47,10 +47,8 @@ class beamBuilder():
         for ii, node in enumerate(self.nodes):
             node.ID = int(ii + 1)
     
-    
     def _addedNodeMessage(self, x):
         print(f'New node added at: {x}')
-    
     
     def addNode(self, x, fixity = np.array([0.,0.,0.]), pointLoad = np.array([0.,0.,0.]), ID = None):
         """
@@ -101,11 +99,6 @@ class beamBuilder():
         for ii in range(newNoads):
             self.addNode(xCoords[ii], fixities[ii], pointLoads[ii])    
     
-    
-    
-    
-    
-    
     def _checkfixityInput(self, fixity):
         
         """
@@ -129,9 +122,6 @@ class beamBuilder():
         else:
             return fixity
 
-        
-    
-    
     def setFixity(self, x, fixity):
         """
         Sets the node fixity. If the node exists, update it. If the node doesn't
@@ -157,7 +147,6 @@ class beamBuilder():
         else:
             self.addNode(x, fixity)        
                  
-    
     def addPointLoad(self, x, pointLoad):
         """
         Adds a load ot the model at location x.
@@ -174,8 +163,7 @@ class beamBuilder():
     def addPointLoads(self, x, pointLoad):
         pass
 
-        
-        
+    
     def addVerticalLoad(self, x, Py):
         """
         Adds a vertical load to the model at location x.
@@ -241,7 +229,7 @@ class beamBuilder():
 
         distLoad = np.array([0., qy])
         
-        self.addDistLoad(self, x1, x2, distLoad)
+        self.addDistLoad(x1, x2, distLoad)
 
     def addDistLoadHorizontal(self, x1, x2, qx):
 
@@ -268,7 +256,7 @@ class beamBuilder():
 # =============================================================================
 
 
-
+#TODO: make intiail mesh
 class EulerBeam(beamBuilder):
 
     def __init__(self, xcoords = [], fixities = [], E = 1., A=1., I=1., geomTransform = 'Linear'):
@@ -359,7 +347,8 @@ def plotMoment(beam):
         # moment[ii] = 
     
     fig, ax = plt.subplots()
-    line = plt.plot(xcoords,moment, '.')
+    # line = plt.plot(xcoords,moment, '.')
+    line = plt.plot(xcoords, moment)
     return fig, ax, line
         
         
