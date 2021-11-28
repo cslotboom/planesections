@@ -14,7 +14,7 @@ import openseespy.opensees as op
 
 x1 = 0
 x2 = 5
-offset = 0
+offset = 0.2
 
 x = np.linspace(0,5,80)
 fixed = np.array([1,1,0.])
@@ -25,6 +25,7 @@ q = np.array([0.,-1000.])
 beam = EulerBeam(x)
 beam.setFixity(x1 + offset, fixed)
 beam.setFixity(x2 - offset, fixed)
+beam.setFixity(x2 - offset*2, fixed)
 
 beam.addVerticalLoad(0, -1000.)
 beam.addVerticalLoad(2.5, -1000.)
@@ -41,6 +42,7 @@ plotShear(beam)
 
 Mmin, Mmax = beam.Mmax
 print(beam.Mmax)
+print(beam.reactions)
 
 # print(beam.nodes[3].Fint)
 
