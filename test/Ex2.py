@@ -5,38 +5,47 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, OutputRecorder, plotMoment,plotShear
+from planesections import EulerBeam, OpenSeesAnalyzer, plotMoment,plotShear,plotVertDisp
 # from planesections import EulerBeam
 import numpy as np
 
 import openseespy.opensees as op
 
+
+x1 = 0
+x2 = 5
+offset = 0.2
+
 x = np.linspace(0,5,80)
 fixed = np.array([1,1,0.])
-# fixities = [np.array([1,1,1], int), np.array([1,1,1], int)]
+fixed = [1,1,0.]
 
 P = np.array([0.,1000.,0.])
 q = np.array([0.,-1000.])
 
+beam = EulerBeam(x)
+beam.setFixity(x1 + offset, fixed)
+beam.setFixity(x2 - offset, fixed)
+beam.setFixity(x2 - offset*2, fixed)
 
-beam = EulerBeam()
-beam.addNodes(x)
-beam.setFixity(0.4, fixed)
-beam.setFixity(4.6, fixed)
-# beam.plot()
 beam.addVerticalLoad(0, -1000.)
 beam.addVerticalLoad(2.5, -1000.)
 beam.addVerticalLoad(5, -1000.)
-beam.addDistLoad(0,5, q) 
-beam.addDistLoad(1,2, q*4) 
+beam.addDistLoad(0,5,q) 
 beam.plot()
+beam.addNode(0, label='A') 
+# beam.addNode(0.) 
 
 
 analysis = OpenSeesAnalyzer(beam)
-
-
 analysis.runAnalysis()
-OutputRecorder(beam)
+
 plotMoment(beam)
 plotShear(beam)
+
+# Mmin, Mmax = beam.Mmax
+# print(beam.Mmax)
+# print(beam.reactions)
+
+# print(beam.nodes[3].Fint)
 

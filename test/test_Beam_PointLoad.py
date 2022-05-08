@@ -5,7 +5,7 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer
+from planesections import EulerBeam2D, OpenSeesAnalyzer2D
 import numpy as np
 
 x1 = 0
@@ -17,13 +17,13 @@ fixed = np.array([1, 1, 0.])
 q = np.array([0., -5000., 0.])
 
 
-beam = EulerBeam(x)
+beam = EulerBeam2D(x)
 # beam.addNodes(x)
 beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.addPointLoad(x3, q)
 
-analysis = OpenSeesAnalyzer(beam)
+analysis = OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
 Mmin, Mmax = beam.Mmax
@@ -44,3 +44,4 @@ def test_Vmax():
     
     assert(np.all([check1,check2]))
 
+    # assert(np.all([check1,check2]))
