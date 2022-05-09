@@ -13,11 +13,11 @@ import pytest
 
 
 x = np.array([0,5])
-fixities = [np.array([1,1,1]), np.array([1,1,1])]
+fixities = [np.array([1,1,1])]*2
 
 
 def test_init():
-    
+        
     beam = EulerBeam2D(x, fixities)
     check1 = beam.nodes[0].x = 0
     
@@ -35,23 +35,29 @@ def test_addPointLoad_new():
     beam.addPointLoad(xload, pointLoad)
     
     newNode = beam.nodes[1]
-    
-    # newNode.x = 3
+   
     
     assert(newNode.x  == 3)
 
 def test_addPointLoad_existing():
+    """
+    Note that one must be subtracted from the point load ID to get the index.
+    IDs start from 1.
+
+    """
 
     beam = EulerBeam2D(x, fixities)
-    
+
+    # add a node to the existing location.
     xload = 5
-    pointLoad = np.array([1,1,1])
-    beam.addPointLoad(xload, pointLoad)
+    P = np.array([1,1,1])
+    beam.addPointLoad(xload, P)
     
     check1 = len(beam.nodes) == 2
-    check2 = np.all(beam.nodes[1].pointLoad == pointLoad) 
-        
-    assert(np.all([check1,check2]))
+    pointLoad  = beam.pointLoads[beam.nodes[1].pointLoadIDs[0] - 1]
+    check2 = np.all(pointLoad.P == P) 
+
+    assert(np.all([check1, check2]))
 
 
 

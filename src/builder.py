@@ -88,7 +88,8 @@ class Beam2D():
         self.nodeLabels = {}
         self.nodes = []
         self.pointLoads = []
-        self.distLoads = []    
+        self.distLoads = []
+        self.nodeCoords = set()
     
     def sortNodes(self):
         """
@@ -135,12 +136,12 @@ class Beam2D():
 
     def remapPointLoads(self, oldIDs, sortedInd):
         """
-        We don't know where the position is because of the newly added node'
+        We don't know where the position is because of the newly added node,
+        so we have to search each node and find the position.
         """        
         sortedIDs = np.array(oldIDs)[sortedInd]
-        # print(sortedIDs)
         for pointLoad in self.pointLoads:
-            newInd = np.where( sortedIDs == pointLoad.nodeID)[0][0]
+            newInd = np.where(sortedIDs == pointLoad.nodeID)[0][0] + 1
             pointLoad.nodeID = newInd
         
     def remapLabels(self, sortedInd):
@@ -165,9 +166,6 @@ class Beam2D():
             The fixity array. Contains 3 values, one for each dof in order
             x, y, rotation. 1 means the system is fixed in the DOF of question, 
             0 means the node is free in the DOF.
-        pointLoad : np.array
-            The array of loads applied ot the system. Contains 3 values, 
-            one for each dof in order Px, Py, Moment.
         label : int, optional
             The unique label of the node in question. 
 
@@ -179,11 +177,16 @@ class Beam2D():
 
         """
         newNode = Node2D(x, fixity, label)
-        # newNode.pointLoadIDs.append(pointLoadID)
         if x in self.nodeCoords:
+            """
+            ???
+            Potential problem, the new node will not have any unique propreties 
+            the old node had. That's why we have to reset the label.
+            """
             index = self._findNode(x)
+            nodeID = self.nodes[index].ID
+            newNode.setID(nodeID)
             self.nodes[index] = newNode
-            
             return 0
         else:
             # print(newNode)
@@ -302,12 +305,13 @@ class Beam2D():
         Parameters
         ----------
         x : float
-            The loaciton of the load.
+            The location of the load.
         pointLoad : list
             A list of the forces in [Fx, Fy, M].
 
         """
         
+        # loadID = len(self.pointLoads)
         loadID = len(self.pointLoads) + 1
         
         # Add the load ID to the node in question. Make a node if no ID.
@@ -320,7 +324,7 @@ class Beam2D():
         # print(nodeID)
             
         self.nodes[nodeIndex].pointLoadIDs.append(loadID) 
-        newLoad = PointLoad(pointLoad, nodeID)
+        newLoad = PointLoad(pointLoad, x, nodeID)
         self.pointLoads.append(newLoad)                
          
     def addVerticalLoad(self, x, Py):
@@ -466,7 +470,7 @@ class EulerBeam2D(Beam2D):
         # geomTransform has values 'Linear' or 'PDelta'
         self.nodes = []
         self.eleLoads = []
-        self.nodeCoords = set()
+        
         self.materialPropreties = [E, A, I]  
             
         self.Nnodes = 0
@@ -539,8 +543,9 @@ class PointLoad:
     P = np.array([0.,0.,0.])
     nodeID = None
     
-    def __init__(self, P, nodeID):
+    def __init__(self, P, x, nodeID = None):
         self.P = P
+        self.x = x
         self.nodeID = nodeID
         
     def setID(self, newID):

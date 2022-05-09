@@ -134,7 +134,7 @@ class OpenSeesAnalyzer2D():
         op.timeSeries('Linear',1)
         op.pattern('Plain', 1, 1)
         for load in self.beam.pointLoads:
-            op.load(load.nodeID, *load.P)            
+            op.load(int(load.nodeID), *load.P)            
             
     
     def buildAnalysisPropreties(self):

@@ -23,37 +23,36 @@ beam = EulerBeam2D()
 beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.addPointLoad(x3, q)
-# beam.addPointLoad(x3/6, q)
-# beam.addPointLoad(x3/2, q/2)
-# beam.setFixity(x2/5, fixed)
-# beam.setFixity(x2/6, fixed)
-
 
 def test_ID_matches():
+    """
+    Tests if the ID of a node matches the ID of the force applied
+    """
     force = beam.pointLoads[0]
-    nodeID = beam.nodes[force.nodeID].ID
+    nodeID = beam.nodes[force.nodeID - 1].ID
     assert nodeID == force.nodeID
 
 for node in beam.nodes:
     print(node.x)
     
 def test_ID_updates():
+    """
+    Checks if the node ID is updating correctly when a point load is added.
+    """
+    
     
     preAdditionID = beam.pointLoads[0].nodeID
-    preAdditionSolution = 1
+    preAdditionSolution = 2
+    
+    # Add a point load at half the distance.
     beam.addPointLoad(x4, q)
     
     postAdditionID = beam.pointLoads[0].nodeID
-    postAdditionSolution = 2
-    print(postAdditionID)
-    
-    print(beam.nodes[postAdditionID].x)
-    # for load in beam.pointLoads:
-    #     print(load.nodeID)
-    #     print(beam.nodes[load.nodeID].x)
-        
-    # assert (preAdditionID == preAdditionSolution) and (postAdditionID == postAdditionSolution)
+    postAdditionSolution = 3
 
-test_ID_updates()
+    assert (preAdditionID == preAdditionSolution) and (postAdditionID == postAdditionSolution)
+# test_ID_matches()
+# test_ID_updates()
 
 
+# preAdditionID = beam.pointLoads[0].nodeID

@@ -6,12 +6,9 @@ Created on Sun May 23 01:00:41 2021
 Tests if node labels are being set and re-ordered correctly.
 """
 
-
 from planesections import EulerBeam2D
-# import planesections as ps
 import numpy as np
-import pytest
-
+# import pytest
 
 x = np.array([0,5])
 labels = ['A', 'B']
@@ -86,11 +83,21 @@ def test_labels_new_Existing():
        
     assert np.all(check)
 
+def test_relabel():
 
-
+    x1 = 0
+    x2 = 5
+    x = [x1,x2]
+    beam = EulerBeam2D(x)
+    beam.addNode(0.,label='A') 
+    
+    check1 = beam.nodes[0].ID == 1
+    check2 = beam.nodes[0].label == 'A'
+    assert np.all([check1, check2])
 
 # test_labels_new()
 # test_labels_existing()
 # test_labels_new_node()
 # test_labels_new_Existing()
+# test_relabel()
 
