@@ -2,7 +2,7 @@ import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+from .archetypes import NodeArchetype
 
 # =============================================================================
 # Future additons:
@@ -29,8 +29,7 @@ class Section():
 
 
 
-class Node2D():
-       
+class Node2D(NodeArchetype):
     def __init__(self, x, fixity, label = None):
         """
         Represents a node.
@@ -78,6 +77,33 @@ class Node2D():
     def __repr__(self):
         return f'Node object at {self.x}'
 
+    def getFixityType(self):
+        """
+        ???
+        This isn't great
+        """
+        if list(self.fixity) == [0,0,0]:
+            return 'free'
+        elif list(self.fixity) == [0,1,0]:
+            return 'roller'    
+        elif list(self.fixity) == [1,1,0]:
+            return 'pinned'    
+        elif list(self.fixity) == [1,1,1]:
+            return 'fixed'
+        else:
+            return 'unsupported'
+
+        
+    def getLabel(self):
+        return self.label
+    
+    def getPosition(self):
+        return self.x
+    
+    
+
+
+
 class Beam2D():
     """
     A representation of a beam object, that can be used to define information
@@ -90,6 +116,11 @@ class Beam2D():
         self.pointLoads = []
         self.distLoads = []
         self.nodeCoords = set()
+        
+    def getLength(self):
+        return self.nodes[-1].x - self.nodes[0].x
+    def getxLims(self):
+        return self.nodes[0].x, self.nodes[-1].x
     
     def sortNodes(self):
         """
@@ -462,7 +493,7 @@ class Beam2D():
 class EulerBeam2D(Beam2D):
 
     def __init__(self, xcoords = [], fixities = [], labels = [], 
-                 E = 1., A=1., I=1., geomTransform = 'Linear'):
+                 E = 1., A=1., I=1., d=1., geomTransform = 'Linear'):
         
         # print(self.nodeLabels)
         #
@@ -484,9 +515,8 @@ class EulerBeam2D(Beam2D):
         if len(xcoords) != 0:
             self.addNodes(xcoords, fixities, labels)
         
-        # pointLoad = np.array([0., 0., 0.])
-        # for ii in range(NnewLoad):
-        #     self.addNode(xcoords[ii], fixities[ii], pointLoad)
+        self.d = d        
+        # self.d = d
         
         self.plotter = None
         
