@@ -324,6 +324,12 @@ class BasicBeamDiagram(BeamDiagram):
     """
     
     def __init__(self, scale=1):
+        
+        
+        
+        self.lw = 1 * scale
+        plt.rc("hatch", linewidth=self.lw)
+        
         self.scale = scale
         self.r = 0.1*scale
         self.hTriSup = 0.3*scale
@@ -334,39 +340,30 @@ class BasicBeamDiagram(BeamDiagram):
         self.hatch = '/'* int((3/scale))
         self.wRect   = self.wTriSup + self.marginFixedSup
         
-        self.hRollerGap = self.hFixedRect / 8
+        self.hRollerGap = self.hFixedRect / 4
 
         self.fig = None
         self.ax = None
         
         self.y0 = 0
 
-
-
         self.supportPlotOptions = {'fixed':self.plotFixed, 
                                  'pinned':self.plotPinned,
                                  'roller':self.plotRoller,
                                  'free':self.plotFree}
 
-
-
-    def _initPlot(self, figSize, xlims = [], dpi = 300):
-        self.fig, self.ax = plt.subplots(constrained_layout=True, figsize=(figSize, 3.2), dpi=300)
+    def _initPlot(self, figSize, xlims, ylims, dpi = 300):
+        
+        dy = ylims[-1] - ylims[0]
+        self.fig, self.ax = plt.subplots(constrained_layout=True, figsize=(figSize, dy), dpi=300)
         self.ax.axis('equal')
-        self.ax.axis('off')
-        
-        if not xlims:
-            xlims = [-figSize/2, figSize/2]
-        
-        ylims = [-1.6, 1.6]        
-        
+        self.ax.axis('off')        
         self.ax.set_xlim(xlims)
         self.ax.set_ylim(ylims)
-        # fig, ax
         
         
-    def plotBeam(self, xy0, xy1, lw=1):
-        self.ax.plot([xy0[0], xy1[0]], [xy0[1], xy1[1]], lw = lw)
+    def plotBeam(self, xy0, xy1):
+        self.ax.plot([xy0[0], xy1[0]], [xy0[1], xy1[1]], lw = self.lw*2, c='black')
 
     def returnCurrentPlot(self):
         """
@@ -405,10 +402,11 @@ class BasicBeamDiagram(BeamDiagram):
             a circle
 
         """
-        self.ax.add_patch(Polygon(xyTri, fill=False))
-        self.ax.add_patch(Rectangle(xy0Rect, self.wRect, self.hFixedRect, ec='black', fc='white', hatch=self.hatch))
-        self.ax.plot(xyLine[0], xyLine[1], c = 'white')
-        self.ax.add_patch(Circle(xy0, self.r, facecolor='w', ec = 'black'))
+        self.ax.add_patch(Polygon(xyTri, fill=False, lw = self.lw))
+        self.ax.add_patch(Rectangle(xy0Rect, self.wRect, self.hFixedRect, ec='black', fc='white', hatch=self.hatch, lw = self.lw))
+        self.ax.plot(xyLine[0], xyLine[1], c = 'white', lw = self.lw)
+        # self.ax.add_patch(Circle(xy0, self.r, facecolor='w', ec = 'black'))
+        self.ax.add_patch(Circle(xy0, self.r, facecolor='white', ec = 'black', fill=True, zorder=2, lw = self.lw))
                 
     def plotPinned(self, xy0, **kwargs):
         """
@@ -430,7 +428,7 @@ class BasicBeamDiagram(BeamDiagram):
         
         """
         # 
-        lineOffset = self.hFixedRect/20 
+        lineOffset = self.hFixedRect/10 
         
         # The gap starts a the botom-left surface of the roller
         xy0gap = [xy0[0] - self.wRect/2, xy0[1] - self.hTriSup + lineOffset]
@@ -443,8 +441,8 @@ class BasicBeamDiagram(BeamDiagram):
         return xy0gap, xyRollerLine
     
     def _addRollerGeom(self, xy0gap, xyRollerLine):
-        self.ax.add_patch(Rectangle(xy0gap, self.wRect, self.hRollerGap, color='white'))
-        self.ax.plot(xyRollerLine[0], xyRollerLine[1], color = 'black')
+        self.ax.add_patch(Rectangle(xy0gap, self.wRect, self.hRollerGap, color='white', lw = self.lw))
+        self.ax.plot(xyRollerLine[0], xyRollerLine[1], color = 'black', lw = self.lw)
 
     def plotRoller(self, xy0, **kwargs):
         """
@@ -454,7 +452,7 @@ class BasicBeamDiagram(BeamDiagram):
         fixed base rectangle, a triangle support, and the
 
         """
-        print(self)
+        # print(self)
         xyTri, xy0Rect, xyLine = self._getPinSupportCords(xy0, self.scale)
         self._plotPinGeom(xy0, xyTri, xy0Rect, xyLine)
         xy0gap, xyRollerLine = self._getRollerSupportCords(xy0, self.scale)
@@ -475,9 +473,7 @@ class BasicBeamDiagram(BeamDiagram):
             xyLine = [[xy0[0], xy0[0] - self.hFixedRect, xy0[0] - self.hFixedRect, xy0[0]],
                       [xy0[1] + self.wRect/2, xy0[1] + self.wRect/2,
                        xy0[1] - self.wRect/2, xy0[1] - self.wRect/2]]
-            # print(2)
         else:
-            # print(1)
             xy0Rect = [xy0[0], xy0[1] - self.wRect/2]
     
             # xy0Rect = [xy0[0] - self.hFixedRect, xy0[1] - self.wRect/2]
@@ -496,8 +492,8 @@ class BasicBeamDiagram(BeamDiagram):
         """
         xy0Rect, xyLine = self._getFixedSupportCords(xy0, isLeft)
         # print(isLeft)
-        self.ax.add_patch(Rectangle(xy0Rect, self.hFixedRect, self.wRect, ec='black', fc='white', hatch=self.hatch))
-        self.ax.plot(xyLine[0], xyLine[1], c = 'white')
+        self.ax.add_patch(Rectangle(xy0Rect, self.hFixedRect, self.wRect, ec='black', fc='white', hatch=self.hatch, lw = self.lw))
+        self.ax.plot(xyLine[0], xyLine[1], c = 'white', lw = self.lw)
 
     def plotFree(self, xy0, **kwargs):
         pass
@@ -510,9 +506,6 @@ class BasicBeamDiagram(BeamDiagram):
         
     def plotLineLoad(self, x1, x2, q):
         pass
-
-
-
 
 
 
@@ -529,36 +522,34 @@ class BeamPlotter:
     level plotting.
     """
         
-    def __init__(self, beam, beamPlotter = BasicBeamDiagram(0.5)):
+    def __init__(self, beam):
+        L = beam.getLength()
         
         self.beam = beam
-        self.plotter = beamPlotter
+        self.plotter = BasicBeamDiagram(L / 10)
         self.nodes = beam.getNodes()
         figsize = beam.getLength()
         xlims = beam.getxLims()
-        self.plotter._initPlot(figsize,xlims)
+        xlims = [xlims[0] - L/20, xlims[1] + L/20]
+        ylims = [-L/10, L/10]
+        
+        self.plotter._initPlot(figsize, xlims, ylims)
         
     def plotBeam(self):
         xlims = self.beam.getxLims()
         xy0 = [xlims[0], 0]
         xy1 = [xlims[1], 0]
-        # ylims = [0,0]
         
         d = self.beam.d
-        
-        self.plotter.plotBeam(xy0, xy1, d)
-        
-        
-        
+        # print(xy0, xy1, d)
+        self.plotter.plotBeam(xy0, xy1)
+               
     def plotSupports(self):
         
         for node in self.nodes:
             
             fixityType  = node.getFixityType()
-            print(fixityType)
             x = node.getPosition()
-            print(x)
-            
             """
             This makes some big assumptions about the shape of the system.
             """
@@ -571,6 +562,7 @@ class BeamPlotter:
             
             xy = [x,0]
             # plot the appropriate option without an if statement!
+            
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
     def plot(self):

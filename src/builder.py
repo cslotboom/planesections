@@ -352,7 +352,6 @@ class Beam2D():
             self.addNode(x)
             nodeIndex = self._findNode(x)
         nodeID = nodeIndex + 1
-        # print(nodeID)
             
         self.nodes[nodeIndex].pointLoadIDs.append(loadID) 
         newLoad = PointLoad(pointLoad, x, nodeID)
@@ -515,9 +514,7 @@ class EulerBeam2D(Beam2D):
         if len(xcoords) != 0:
             self.addNodes(xcoords, fixities, labels)
         
-        self.d = d        
-        # self.d = d
-        
+        self.d = d               
         self.plotter = None
         
         self.geomTransform = geomTransform
