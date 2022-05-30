@@ -5,11 +5,9 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, OutputRecorder, plotMoment,plotShear
+from planesections import EulerBeam2D, OpenSeesAnalyzer2D, OutputRecorder2D, plotMoment2D,plotShear2D
 # from planesections import EulerBeam
 import numpy as np
-
-import openseespy.opensees as op
 
 x = np.linspace(0,5,80)
 fixed = np.array([1,1,0.])
@@ -19,7 +17,7 @@ P = np.array([0.,1000.,0.])
 q = np.array([0.,-1000.])
 
 
-beam = EulerBeam()
+beam = EulerBeam2D()
 beam.addNodes(x)
 beam.setFixity(0.4, fixed)
 beam.setFixity(4.6, fixed)
@@ -32,11 +30,9 @@ beam.addDistLoad(1,2, q*4)
 beam.plot()
 
 
-analysis = OpenSeesAnalyzer(beam)
-
-
+analysis = OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
-OutputRecorder(beam)
-plotMoment(beam)
-plotShear(beam)
+OutputRecorder2D(beam)
+plotMoment2D(beam)
+plotShear2D(beam)
 

@@ -5,7 +5,7 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, plotMoment,plotShear,plotVertDisp
+from planesections import EulerBeam2D, OpenSeesAnalyzer2D, OutputRecorder2D, plotMoment2D,plotShear2D, plotDisp2D, plotRotation2D
 # from planesections import EulerBeam
 import numpy as np
 
@@ -23,7 +23,7 @@ fixed = [1,1,0.]
 P = np.array([0.,1000.,0.])
 q = np.array([0.,-1000.])
 
-beam = EulerBeam(x)
+beam = EulerBeam2D(x)
 beam.setFixity(x1 + offset, fixed)
 beam.setFixity(x2 - offset, fixed)
 beam.setFixity(x2 - offset*2, fixed)
@@ -37,11 +37,13 @@ beam.addNode(0, label='A')
 # beam.addNode(0.) 
 
 
-analysis = OpenSeesAnalyzer(beam)
+analysis = OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
-plotMoment(beam)
-plotShear(beam)
+plotMoment2D(beam)
+plotShear2D(beam)
+plotDisp2D(beam)
+plotRotation2D(beam)
 
 # Mmin, Mmax = beam.Mmax
 # print(beam.Mmax)

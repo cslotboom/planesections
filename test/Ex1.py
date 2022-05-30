@@ -15,7 +15,7 @@ import openseespy.opensees as op
 
 
 x1 = 0
-x2 = 2
+x2 = 3
 offset = x2/20
 
 x = np.linspace(0,x2,80)
