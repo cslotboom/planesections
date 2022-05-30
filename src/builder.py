@@ -2,7 +2,9 @@ import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .archetypes import NodeArchetype
+from planesections.archetypes import NodeArchetype
+from dataclasses import dataclass
+from abc import ABC, abstractproperty
 
 # =============================================================================
 # Future additons:
@@ -23,12 +25,41 @@ from .archetypes import NodeArchetype
 # Summarize Loads?
 
 
-class Section():
-    pass
+# @dataclass
+class Section2D():
+    E:None
+    A:None
+    Ixx:None
+    
 
 
+# Section()
+class SectionBasic2D(Section2D):
+    """
+    A basic section that contains the global propreties of the beam section,
+    without any geometry.
+    """
+    E:float = 1
+    A:float = 1
+    Ixx:float = 1
 
 
+@dataclass
+class SectionRectangle(Section2D):
+    """
+    Represents a Rectangular section.
+    """
+    
+    E:float = 200*10**9
+    d:float = 1
+    w:float = 1
+    units:str='m'
+    
+    def __post_init__(self):
+        self.A = self.d*self.w
+        self.Ixx = self.d**3*self.w / 12
+
+        
 class Node2D(NodeArchetype):
     def __init__(self, x, fixity, label = None):
         """
@@ -55,12 +86,9 @@ class Node2D(NodeArchetype):
         
         
         self.x = x
-
         self.fixity = fixity
-        self.ID = None
-        
+        self.ID = None        
         self.label = label
-        
         self.pointLoadIDs = []
         
         self.disp = None
@@ -80,7 +108,8 @@ class Node2D(NodeArchetype):
     def getFixityType(self):
         """
         ???
-        This isn't great
+        This isn't great, but we can't hash lists so I'm not sure how to 
+        improve it.
         """
         if list(self.fixity) == [0,0,0]:
             return 'free'
@@ -93,7 +122,6 @@ class Node2D(NodeArchetype):
         else:
             return 'unsupported'
 
-        
     def getLabel(self):
         return self.label
     
@@ -101,8 +129,6 @@ class Node2D(NodeArchetype):
         return self.x
     
     
-
-
 
 class Beam2D():
     """
@@ -253,20 +279,11 @@ class Beam2D():
             [[1,1,0], [0,0,0]]
             New node 1: fixed in x, fixed in y, free in rotation.
             New node 2: free in all DOF.
-        pointLoads : list of lists, optional
-            Adds fixity to each of the new nodes. Fixity is given in a list 
-            of boolean, where true means that the node if fixed in that DOF.
-            The default is None, which results in all nodes being free.
-            Ex.
-           [[0,10.,0], [0,0,13]]
-           New node 1: A vertical load of 10 is applied in beam units.
-           New node 2: A moment of 13 is applied in beam units.
+
 
         """
                
-        newNoads = len(xCoords)
-        # self.Nnodes += newNoads
-        
+        newNoads = len(xCoords)       
         if fixities == None:
             fixities = [np.array([0.,0.,0.])]*newNoads
                         
@@ -319,7 +336,6 @@ class Beam2D():
         fixity = self._convertFixityInput(fixity)
         self._checkfixityInput(fixity)
         
-        
         if x in self.nodeCoords:
             index = self._findNode(x)
             self.nodes[index].fixity = fixity
@@ -339,10 +355,12 @@ class Beam2D():
             The location of the load.
         pointLoad : list
             A list of the forces in [Fx, Fy, M].
-
+           [0., 10., 0.]
+           New node 1: A vertical load of 10 is applied in beam units.
+           [0., 0., 13]
+           New node 2: A moment of 13 is applied in beam units.
         """
         
-        # loadID = len(self.pointLoads)
         loadID = len(self.pointLoads) + 1
         
         # Add the load ID to the node in question. Make a node if no ID.
@@ -366,8 +384,8 @@ class Beam2D():
         ----------
         x : float
             The x location to add a moment at.
-        M : float
-            The magnitude of the moment to be added at x.
+        Py : float
+            The magnitude of the vertical load to be added at x.
         """   
 
         pointLoad = np.array([0., Py, 0.])
@@ -397,27 +415,47 @@ class Beam2D():
         pointLoads = np.array([Px, 0., 0.])
         self.addPointLoad(x, pointLoads)            
              
-    def _findNode(self, xInput):
+    def _findNode(self, xInput:float):
+        """
+        Searches through all nodes, and returns the index of the node that has
+        the input x-coordinant, if it exists.
+
+        Parameters
+        ----------
+        xInput : float
+            The x coordinant of the node being searched for.
+
+        Returns
+        -------
+        ii : int
+            The index of the node at the target location.
+
+        """
+        
         
         for ii, node in enumerate(self.nodes):
             if xInput == node.x:
                 return ii
+        return None
             
     def addDistLoad(self, x1, x2, distLoad):
         """
+        Adds a distributed load to the model. The load is defined
+        between two locations, x1 and x2, in the model. If nodes exist at these
+        locations, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
         
         Parameters
         ----------
-        x1 : start point of distributed load
-            DESCRIPTION.
-        x2 : end point of distributed load
-            DESCRIPTION.
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
         distLoad : 2D array
-            DESCRIPTION.
-
-        Returns
-        -------
-        None.
+            The distributed load in the form of 
+            [Axial force, shear force]
 
         """
         
@@ -433,24 +471,49 @@ class Beam2D():
         self.eleLoads.append(newEleLoad)
 
     def addDistLoadVertical(self, x1, x2, qy):
+        """
+        Adds a distributed load to the model. The load is defined
+        between two locations, x1 and x2, in the model. If nodes exist at these
+        locations, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qy : float
+            A constantly distributed axial force.
+
+        """
 
         distLoad = np.array([0., qy])
-        
         self.addDistLoad(x1, x2, distLoad)
 
     def addDistLoadHorizontal(self, x1, x2, qx):
-
+        """
+        Adds a distributed load to the model. The load is defined
+        between two locations, x1 and x2, in the model. If nodes exist at these
+        locations, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qx : float
+            A constantly distributed axial force.
+        """
         distLoad = np.array([qx, 0.])
-        genericFixity = np.array([0,0,0], int)
-        genericPointLoad = np.array([0,0,0], float)
         
-        if x1 not in self.nodeCoords:
-            self.addNode(x1, genericFixity, genericPointLoad)        
-        if x2 not in self.nodeCoords:
-            self.addNode(x2, genericFixity, genericPointLoad)
-        
-        newEleLoad = EleLoad(x1, x2, distLoad)
-        self.eleLoads.append(newEleLoad)
+        self.addDistLoad(x1, x2, distLoad)
 
     
     def plot(self):
@@ -478,7 +541,6 @@ class Beam2D():
     def getNodes(self):
         return self.nodes
     
-    
     def getForces():
         pass
     
@@ -489,10 +551,12 @@ class Beam2D():
 # 
 # =============================================================================
 
+
+
 class EulerBeam2D(Beam2D):
 
     def __init__(self, xcoords = [], fixities = [], labels = [], 
-                 E = 1., A=1., I=1., d=1., geomTransform = 'Linear'):
+                 section = SectionBasic2D(), geomTransform = 'Linear'):
         
         # print(self.nodeLabels)
         #
@@ -500,9 +564,7 @@ class EulerBeam2D(Beam2D):
         # geomTransform has values 'Linear' or 'PDelta'
         self.nodes = []
         self.eleLoads = []
-        
-        self.materialPropreties = [E, A, I]  
-            
+                   
         self.Nnodes = 0
         NnewNodes = len(xcoords)
        
@@ -514,7 +576,9 @@ class EulerBeam2D(Beam2D):
         if len(xcoords) != 0:
             self.addNodes(xcoords, fixities, labels)
         
-        self.d = d               
+        self.section = section
+        self.d = section.d
+        self.materialPropreties = [section.A, section.E, section.Ixx]        
         self.plotter = None
         
         self.geomTransform = geomTransform
@@ -523,6 +587,10 @@ class EulerBeam2D(Beam2D):
     @property
     def Mmax(self):
         return self.Fmax(2)
+
+    @property
+    def Vmax(self):
+        return self.Fmax(1)
 
     @property
     def reactions(self):
@@ -541,10 +609,6 @@ class EulerBeam2D(Beam2D):
             # if Fmax < F1 or Fmax < F2:
             #     Fmax = max(F1, F2)
         return reactions
-
-    @property
-    def Vmax(self):
-        return self.Fmax(1)
 
 
 
@@ -599,51 +663,3 @@ class PlotBeam():
     
 
 
-def plotMoment(beam):
-    return plotInternalForce(beam, 2)
-        
-def plotShear(beam):
-    return plotInternalForce(beam, 1)
-
-def plotInternalForce(beam, index):
-      
-    xcoords = np.zeros(beam.Nnodes*2)
-    moment = np.zeros(beam.Nnodes*2)
-    for ii, node in enumerate(beam.nodes):
-        xcoords[ii*2]       = node.x
-        moment[ii*2]        = node.internalForce[index]
-        xcoords[ii*2 + 1]   = node.x
-        moment[ii*2 + 1]    = node.internalForce[index + 3]
-        
-        
-    fig, ax = plt.subplots()
-    line = plt.plot(xcoords, moment)     
-    
-    return fig, ax, line
-  
-         
-        
-def plotVertDisp(beam):
-    return plotDisp(beam) 
-
-
-# def plotVertDisp(beam):
-#     return plotDisp() 
-
-
-def plotDisp(beam, index=1):
-    
-    
-    # Plotbeam....  
-    xcoords = np.zeros(beam.Nnodes)
-    moment = np.zeros(beam.Nnodes)
-    for ii, node in enumerate(beam.nodes):
-        xcoords[ii] = node.x
-        moment[ii] = node.disps[index]
-        # moment[ii] = 
-    
-    fig, ax = plt.subplots()
-    line = plt.plot(xcoords,moment)     
-    
-    return fig, ax, line   
-        
