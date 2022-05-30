@@ -243,6 +243,10 @@ class Beam2D():
             index = self._findNode(x)
             nodeID = self.nodes[index].ID
             newNode.setID(nodeID)
+            
+            if label:
+                newNode.label = label
+            
             self.nodes[index] = newNode
             return 0
         else:
@@ -250,6 +254,42 @@ class Beam2D():
             self._addNewNode(newNode, sort)
             return 1
         return -1
+
+
+    def addLabel(self, x, label = None, sort = True):
+        """
+        Adds a new node to the model builder.
+
+        Parameters
+        ----------
+        x : float
+            The x coordinate of the node.
+        fixity : np.array
+            The fixity array. Contains 3 values, one for each dof in order
+            x, y, rotation. 1 means the system is fixed in the DOF of question, 
+            0 means the node is free in the DOF.
+        label : int, optional
+            The unique label of the node in question. 
+
+        Returns
+        -------
+        flag: int
+            returns 0 if a existing node has been updated, 1 if a new node is
+            added, and -1 if the process failed.
+
+        """
+
+        fixity = np.array([0.,0.,0.], int)
+        newNode = Node2D(x, fixity, label)
+        if x in self.nodeCoords:
+            index = self._findNode(x)
+            self.nodes[index].label = label
+            return 0
+        else:
+            self._addNewNode(newNode, sort)
+            return 1
+        return -1
+
 
 
     def _addNewNode(self, newNode:Node2D, sort=True):
@@ -318,7 +358,7 @@ class Beam2D():
         else:
             return fixity
 
-    def setFixity(self, x, fixity):
+    def setFixity(self, x, fixity, label = None):
         """
         Sets the node fixity. If the node exists, update it. If the node doesn't
         exist, then a new node will be added
@@ -340,10 +380,12 @@ class Beam2D():
             index = self._findNode(x)
             self.nodes[index].fixity = fixity
             self.nodes[index].hasReaction = True 
+            if label:
+                self.nodes[index].label = label 
         else:
-            self.addNode(x, fixity)        
+            self.addNode(x, fixity, label)        
                  
-    def addPointLoad(self, x, pointLoad):
+    def addPointLoad(self, x, pointLoad, label = None):
         """
         Adds a load ot the model at location x.
         If a node exists at the current location, the old load value is overwritten.
@@ -371,11 +413,14 @@ class Beam2D():
             nodeIndex = self._findNode(x)
         nodeID = nodeIndex + 1
             
-        self.nodes[nodeIndex].pointLoadIDs.append(loadID) 
+        self.nodes[nodeIndex].pointLoadIDs.append(loadID)
+        if label:
+            self.nodes[nodeIndex].label = label
+            
         newLoad = PointLoad(pointLoad, x, nodeID)
         self.pointLoads.append(newLoad)                
          
-    def addVerticalLoad(self, x, Py):
+    def addVerticalLoad(self, x, Py, label=None):
         """
         Adds a vertical load to the model at location x.
         Old loads at this point are deleted.
@@ -389,9 +434,9 @@ class Beam2D():
         """   
 
         pointLoad = np.array([0., Py, 0.])
-        self.addPointLoad(x, pointLoad)
+        self.addPointLoad(x, pointLoad, label)
         
-    def addMoment(self, x, M):
+    def addMoment(self, x, M, label=None):
         """
         Adds a moment ot the model at location x.
         Old loads at this point are deleted.
@@ -404,16 +449,16 @@ class Beam2D():
             The magnitude of the moment to be added at x.
         """        
         pointLoad = np.array([0.,0., M])
-        self.addPointLoad(x, pointLoad)     
+        self.addPointLoad(x, pointLoad, label)     
         
-    def addHorizontalLoad(self, x, Px):
+    def addHorizontalLoad(self, x, Px, label=None):
         """
         Adds a horizontal point load at the model at location x.
         Old loads are deleted.
         """       
         
         pointLoads = np.array([Px, 0., 0.])
-        self.addPointLoad(x, pointLoads)            
+        self.addPointLoad(x, pointLoads, label)            
              
     def _findNode(self, xInput:float):
         """
@@ -558,8 +603,9 @@ class EulerBeam2D(Beam2D):
     def __init__(self, xcoords = [], fixities = [], labels = [], 
                  section = SectionBasic2D(), geomTransform = 'Linear'):
         
-        # print(self.nodeLabels)
-        #
+        
+        
+        
         self._initArrays()
         # geomTransform has values 'Linear' or 'PDelta'
         self.nodes = []
@@ -577,7 +623,7 @@ class EulerBeam2D(Beam2D):
             self.addNodes(xcoords, fixities, labels)
         
         self.section = section
-        self.d = section.d
+        self.d = 1
         self.materialPropreties = [section.A, section.E, section.Ixx]        
         self.plotter = None
         

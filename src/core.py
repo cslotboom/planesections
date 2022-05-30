@@ -324,13 +324,15 @@ class BasicBeamDiagram(BeamDiagram):
     """
     
     def __init__(self, scale=1):
-        
-        
-        
+
         self.lw = 1 * scale
-        plt.rc("hatch", linewidth=self.lw)
+        # plt.rc("hatch", linewidth=self.lw)
         
         self.scale = scale
+        self.yScale = 1
+        
+        
+        self.labelOffset = 0.15*scale
         self.r = 0.1*scale
         self.hTriSup = 0.3*scale
         self.wTriSup = 2*self.hTriSup
@@ -381,7 +383,7 @@ class BasicBeamDiagram(BeamDiagram):
 
         xyTri1 = [xy0[0] - self.wTriSup/2, xy0[1] - self.hTriSup]
         xyTri2 = [xy0[0] + self.wTriSup/2, xy0[1] - self.hTriSup]
-        xyTri = [xyTri1, xyTri2, xy0]
+        xyTri  = [xyTri1, xyTri2, xy0]
         
         xy0Rect = [xy0[0] - self.wRect/2, xy0[1] - self.hTriSup - self.hFixedRect]
 
@@ -414,7 +416,6 @@ class BasicBeamDiagram(BeamDiagram):
         fixed base rectangle, a triangle support, and the
 
         """
-        
         xyTri, xy0Rect, xyLine = self._getPinSupportCords(xy0, self.scale)
         self._plotPinGeom(xy0, xyTri, xy0Rect, xyLine)
         
@@ -498,7 +499,7 @@ class BasicBeamDiagram(BeamDiagram):
     def plotFree(self, xy0, **kwargs):
         pass
 
-    def plotPointForce(self, x, P):
+    def plotPointForce(self, x, Pnorm):
         pass
 
     def plotPointMoment(self, x, M):
@@ -506,6 +507,13 @@ class BasicBeamDiagram(BeamDiagram):
         
     def plotLineLoad(self, x1, x2, q):
         pass
+
+        
+    def plotLabel(self, xy0, label):
+        x = xy0[0]*self.scale  + self.labelOffset
+        y = xy0[1]*self.yScale + self.labelOffset
+        self.ax.text(x, y, label, {'size':12*self.scale})
+        # self.labelOffset
 
 
 
@@ -522,26 +530,28 @@ class BeamPlotter:
     level plotting.
     """
         
-    def __init__(self, beam):
-        L = beam.getLength()
+    def __init__(self, beam, figsize = 8):
         
         self.beam = beam
-        self.plotter = BasicBeamDiagram(L / 10)
-        self.nodes = beam.getNodes()
-        figsize = beam.getLength()
-        xlims = beam.getxLims()
-        xlims = [xlims[0] - L/20, xlims[1] + L/20]
-        ylims = [-L/10, L/10]
+        self.figsize = figsize
         
-        self.plotter._initPlot(figsize, xlims, ylims)
+        L = beam.getLength()       
+        xscale = beam.getLength()  / self.figsize
+        
+        self.xscale = xscale
+        self.plotter = BasicBeamDiagram()
+        # self.plotter = BasicBeamDiagram(L / 10)
+        self.nodes = beam.getNodes()
+        xlims = beam.getxLims()
+        xlims = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
+        ylims = [-L/10 / xscale, L/10 / xscale]
+        self.plotter._initPlot(self.figsize, xlims, ylims)
         
     def plotBeam(self):
-        xlims = self.beam.getxLims()
-        xy0 = [xlims[0], 0]
-        xy1 = [xlims[1], 0]
-        
-        d = self.beam.d
-        # print(xy0, xy1, d)
+        xlims   = self.beam.getxLims()
+        xy0     = [xlims[0]  / self.xscale, 0]
+        xy1     = [xlims[1]  / self.xscale, 0]        
+        d       = self.beam.d
         self.plotter.plotBeam(xy0, xy1)
                
     def plotSupports(self):
@@ -560,15 +570,24 @@ class BeamPlotter:
             if fixityType == 'fixed' and x == self.xmin:
                 kwargs  = {'isLeft':False}                
             
-            xy = [x,0]
+            xy = [x / self.xscale, 0]
             # plot the appropriate option without an if statement!
-            
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
     def plot(self):
         self.plotBeam()
         self.plotSupports()
+        self.plotLabels()
         
+    def plotLabels(self):
+        for node in self.nodes:
+            label = node.label
+            if label:
+                x = node.getPosition()
+                xy = [x / self.xscale, 0]
+                self.plotter.plotLabel(xy, label)
+    
+                    
 
     def plotForce(self):
         pass
@@ -605,17 +624,14 @@ def plotBeam(beam, beamPlotter = BasicBeamDiagram):
 # xy0 = [-1.,0]
 # scale = .8
 
-
-
 # diagram = BasicBeamDiagram(scale)
 
-# diagram._initPlot(figSize)
+# diagram._initPlot(figSize, xlims, ylims)
 # # diagram.plotPin(fig, ax, xy0)
 # diagram.plotFixed([-1.5,0])
 # diagram.plotRoller([-.5,0])
 # diagram.plotPinned([0.5,0])
 # diagram.plotFixed([1.5,0], isLeft = False)
-
 
 
 # x1 = 0
