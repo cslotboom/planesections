@@ -354,7 +354,7 @@ class BasicBeamDiagram(BeamDiagram):
 
 
     def _initPlot(self, figsize, dpi = 300):
-        self.fig, self.ax = plt.subplots(constrained_layout=True, figsize=(figSize, 3.2), dpi=300)
+        self.fig, self.ax = plt.subplots(constrained_layout=True, figsize=(figsize, 3.2), dpi=300)
         self.ax.axis('equal')
         self.ax.axis('off')
         self.ax.set_xlim(xlims)

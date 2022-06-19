@@ -17,7 +17,6 @@ def getInternalForces2D(node:Node2D, ind):
     
 
 
-
 def plotMoment2D(beam:Beam2D, scale=1):
     """
     Plots the internal moment at each node in the beam. Note that internal 
@@ -84,59 +83,4 @@ def plotDisp2D(beam:Beam2D, index=1, scale=1):
     return fig, ax, line   
         
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def plotMoment(beam):
-    
-#     # Plotbeam....
-#     xcoords = np.zeros(beam.Nnodes*2)
-#     moment = np.zeros(beam.Nnodes*2)
-    
-#     plotInd = 2
-#     for ii, node in enumerate(beam.nodes):
-#         ind1 = 2*ii
-#         ind2 = ind1 + 2
-#         xcoords[ind1:ind2] = node.x
-#         moment[ind1:ind2] = getInternalForces(node, plotInd)
-#         # moment[ii] = 
-    
-#     fig, ax = plt.subplots()
-#     line = plt.plot(xcoords, moment, '.')
-#     return fig, ax, line
-        
-        
-# def plotShear(beam):
-    
-#     # Plotbeam....  
-#     xcoords = np.zeros(beam.Nnodes*2)
-#     moment = np.zeros(beam.Nnodes*2)
-    
-#     plotInd = 1
-#     for ii, node in enumerate(beam.nodes):
-#         ind1 = 2*ii
-#         ind2 = ind1 + 2
-#         xcoords[ind1:ind2] = node.x
-#         moment[ind1:ind2] = getInternalForces(node, plotInd)
-#         # moment[ii] = 
-    
-#     fig, ax = plt.subplots()
-#     line = plt.plot(xcoords,moment)     
-    
-#     return fig, ax, line
-
-    
-    
-    
-        
+     
