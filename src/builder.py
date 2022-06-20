@@ -25,7 +25,6 @@ from abc import ABC, abstractproperty
 # Summarize Loads?
 
 
-# @dataclass
 class Section2D():
     E:None
     A:None
@@ -33,7 +32,7 @@ class Section2D():
     
 
 
-# Section()
+@dataclass
 class SectionBasic2D(Section2D):
     """
     A basic section that contains the global propreties of the beam section,
@@ -128,6 +127,16 @@ class Node2D(NodeArchetype):
     def getPosition(self):
         return self.x
     
+    def getInternalForces(self, ind):
+        """
+        Returns the left and right internal forces each node has for the input
+        force type:
+            0: axial force
+            1: shear force
+            2: bending
+        """
+        
+        return self.Fint[[ind,ind+3]]
     
 
 class Beam2D():
@@ -158,6 +167,7 @@ class Beam2D():
         for ii, node in enumerate(self.nodes):
             xcoords[ii] = node.x
             labels[ii]  = node.label
+        # print(labels)
         
         # subtract 1 because the indexes are one less.
         oldInd = np.array(self.getNodeIDs())
@@ -244,7 +254,7 @@ class Beam2D():
             nodeID = self.nodes[index].ID
             newNode.setID(nodeID)
             
-            if label:
+            if label is not None:
                 newNode.label = label
             
             self.nodes[index] = newNode
@@ -504,13 +514,13 @@ class Beam2D():
 
         """
         
-        genericFixity = np.array([0,0,0], int)
-        genericPointLoad = np.array([0.,0.,0.], float)
+        defaultFixity = np.array([0,0,0], int)
+        # genericPointLoad = np.array([0.,0.,0.], float)
         
         if x1 not in self.nodeCoords:
-            self.addNode(x1, genericFixity, genericPointLoad)        
+            self.addNode(x1, defaultFixity)        
         if x2 not in self.nodeCoords:
-            self.addNode(x2, genericFixity, genericPointLoad)
+            self.addNode(x2, defaultFixity)
         
         newEleLoad = EleLoad(x1, x2, distLoad)
         self.eleLoads.append(newEleLoad)
@@ -586,6 +596,10 @@ class Beam2D():
     def getNodes(self):
         return self.nodes
     
+    
+    
+    
+    
     def getForces():
         pass
     
@@ -598,14 +612,12 @@ class Beam2D():
 
 
 
-class EulerBeam2D(Beam2D):
 
+class EulerBeam2D(Beam2D):
+    # TODO: this is somewhat problematic as beam references the same list..
     def __init__(self, xcoords = [], fixities = [], labels = [], 
                  section = SectionBasic2D(), geomTransform = 'Linear'):
-        
-        
-        
-        
+                
         self._initArrays()
         # geomTransform has values 'Linear' or 'PDelta'
         self.nodes = []
@@ -616,9 +628,12 @@ class EulerBeam2D(Beam2D):
        
         if len(fixities) == 0:
             fixities = [np.array([0., 0., 0.])] * NnewNodes
+        if len(fixities) != len(xcoords):
+            raise Exception('A fixity must be provided for each node.')
             
         if len(labels) == 0:
-            labels = [None] * NnewNodes            
+            labels = [None] * NnewNodes     
+            
         if len(xcoords) != 0:
             self.addNodes(xcoords, fixities, labels)
         
@@ -629,7 +644,72 @@ class EulerBeam2D(Beam2D):
         
         self.geomTransform = geomTransform
         self.EleType = 'elasticBeamColumn'
+           
     
+    def getMoment(self):
+        """
+        Returns the left and right bending moment at each node in the model. 
+        Because the diagram is discrete, left and right forces must be used to 
+        capture discontinuties.
+
+        Returns
+        -------
+        xcoords : array
+            the x coordinants, has vale for x and y.
+        Moment : array
+            the output left and right moment at each node
+        """
+        return self.getInternalForce(2)
+        
+    def getSFD(self):
+        """
+        Returns the left and right shear force at each node in the model. 
+        Because the diagram is discrete, left and right forces must be used to 
+        capture discontinuties.
+
+        Returns
+        -------
+        xcoords : array
+            the x coordinants, has vale for x and y.
+        Moment : array
+            the output left and right moment at each node
+        """
+        
+        return self.getInternalForce(1)
+
+
+
+    def getInternalForce(self, index):
+        """
+        Returns the left and right internal forces each node in the model 
+        for the input force type. Because the diagram is discrete, left and right
+        forces must be used to capture discontinuties.
+
+        Parameters
+        ----------
+        index : int
+        The index of the force type to use
+            0: axial force
+            1: shear force
+            2: bending
+
+        Returns
+        -------
+        xcoords : array
+            the x coordinants, has vale for x and y.
+        force : array
+            the output force at each node
+        """
+
+        xcoords = np.zeros(self.Nnodes*2)
+        force = np.zeros(self.Nnodes*2) 
+        for ii, node in enumerate(self.nodes):
+            ind1 = 2*ii
+            ind2 = ind1 + 2        
+            xcoords[ind1:ind2]       = node.x
+            force[ind1:ind2] = node.getInternalForces(index)    
+        return xcoords, force
+
     @property
     def Mmax(self):
         return self.Fmax(2)
@@ -668,10 +748,11 @@ class EulerBeam2D(Beam2D):
 
 
 class EleLoad:
-    def __init__(self, x1, x2, distLoad):
+    def __init__(self, x1, x2, distLoad, label = None):
         self.x1 = x1
         self.x2 = x2
         self.load = distLoad
+        self.label = label
 
 
 
@@ -680,11 +761,12 @@ class PointLoad:
     P = np.array([0.,0.,0.])
     nodeID = None
     
-    def __init__(self, P, x, nodeID = None):
+    def __init__(self, P, x, nodeID = None, label = None):
         self.P = P
         self.x = x
         self.nodeID = nodeID
-        
+        self.label = label
+
     def setID(self, newID):
         # print(newID)
         self.nodeID = newID

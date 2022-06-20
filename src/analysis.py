@@ -1,5 +1,4 @@
 import openseespy.opensees as op
-import openseespy.postprocessing.Get_Rendering as opp
 import numpy as np
 import matplotlib.pyplot as plt
 

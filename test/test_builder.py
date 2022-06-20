@@ -6,7 +6,7 @@ Created on Sun May 23 01:00:41 2021
 """
 
 
-from planesections import EulerBeam2D
+import planesections as ps
 # import planesections as ps
 import numpy as np
 import pytest
@@ -18,7 +18,7 @@ fixities = [np.array([1,1,1])]*2
 
 def test_init():
         
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     check1 = beam.nodes[0].x = 0
     
     np.all([1,1])
@@ -28,7 +28,7 @@ def test_addPointLoad_new():
     """
     Also tests the sort feature, because beam nodes need to be sorted correctly.
     """
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     xload = 3
     pointLoad = np.array([1,1,1])
@@ -46,7 +46,7 @@ def test_addPointLoad_existing():
 
     """
 
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
 
     # add a node to the existing location.
     xload = 5
@@ -66,7 +66,7 @@ def test_PointLoad_ID_updating1():
     """
     Checks the node gets updated.
     """
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     xload = 5
     pointLoad = np.array([1,1,1])
     beam.addPointLoad(xload, pointLoad)
@@ -81,7 +81,7 @@ def test_PointLoad_ID_updating2():
     Checks the load gets added gets updated.
     """    
     
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     xload = 5
     pointLoad = np.array([1,1,1])
     beam.addPointLoad(xload, pointLoad)
@@ -97,7 +97,7 @@ def test_PointLoad_ID_updating2():
 
 
 def makeBeamDist(x1, x2):
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     distLoad = np.array([1.,1.])
     beam.addDistLoad(x1, x2, distLoad)
@@ -149,7 +149,7 @@ def test_makeBeamDist_existing():
 
 
 def test_setFixity_existing():
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = np.array([0,0,0])
     beam.setFixity(0, newFixity)
@@ -159,7 +159,7 @@ def test_setFixity_existing():
     
     
 def test_setFixity_new():
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = np.array([0,1,0])
     beam.setFixity(10, newFixity)
@@ -169,7 +169,7 @@ def test_setFixity_new():
     
 def test_setFixity_input_size():
     with pytest.raises(ValueError):
-        beam = EulerBeam2D(x, fixities)
+        beam = ps.EulerBeam2D(x, fixities)
         
         newFixity = np.array([0,1])
         assert beam.setFixity(10, newFixity)
@@ -177,13 +177,13 @@ def test_setFixity_input_size():
         
 def test_setFixity_input_vals():
     with pytest.raises(ValueError):
-        beam = EulerBeam2D(x, fixities)
+        beam = ps.EulerBeam2D(x, fixities)
         
         newFixity = np.array([0,0,10])
         assert beam.setFixity(10, newFixity)
 
 def test_setFixity_int():
-    beam = EulerBeam2D(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = 0
     beam.setFixity(0, newFixity)

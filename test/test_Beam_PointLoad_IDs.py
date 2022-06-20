@@ -5,7 +5,7 @@ Created on Sat Mar 12 19:59:09 2022
 @author: Christian
 """
 
-from planesections import EulerBeam2D
+import planesections as ps
 import numpy as np
 
 x1 = 0
@@ -17,7 +17,7 @@ fixed = np.array([1, 1, 0.])
 q = np.array([0., -5000., 0.])
 
 # print('0 Nodes')
-beam = EulerBeam2D()
+beam = ps.EulerBeam2D()
 # print('1 Nodes')
 
 beam.setFixity(x1, fixed)

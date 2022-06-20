@@ -12,7 +12,8 @@ Hatching should be similar to beam size?
 """
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle, Polygon, Circle
+import numpy as np
+from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 
 from abc import ABC, abstractmethod
  
@@ -499,12 +500,40 @@ class BasicBeamDiagram(BeamDiagram):
     def plotFree(self, xy0, **kwargs):
         pass
 
-    def plotPointForce(self, x, Pnorm):
-        pass
-
-    def plotPointMoment(self, x, M):
-        pass
+    def plotPointForce(self, x, Px, Py):
+        """
+        Note, Px and Py must be normalized!
+        https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.arrow.html
+        """
         
+        width = .03*self.scale
+        hwidth = width* 5
+        length = width* 5
+        self.ax.arrow(x - Px, Py, Px, -Py, width=width, head_width = hwidth, head_length = length, 
+                      edgecolor='none', length_includes_head=True)
+        
+        
+        
+
+    def plotPointMoment(self, x, positive=True):       
+        r = 0.1
+        arrow = r / 4
+        arclength = 1 * 2*np.pi
+        t = np.linspace(0.0, 0.75, 31) * arclength
+        
+        x = r*np.cos(t)
+        y = r*np.sin(t)
+        plt.plot(x, y)
+        
+        x0 = x[-1]
+        y0 = y[-1]
+        
+        xarrow =  [x0 - arrow, x0, x0 - arrow]
+        yarrow =  [y0 + arrow, y0, y0 - arrow]
+        
+        plt.plot(xarrow, yarrow, c='C0')
+
+                
     def plotLineLoad(self, x1, x2, q):
         pass
 
@@ -528,6 +557,13 @@ class BeamPlotter:
     """
     The interface between the high level beam abstraction and plotting lower 
     level plotting.
+ 
+    Note, the diagram has been rescaled so the beam has lenght scaled to the
+    maximum beam size of 8.
+    This is to make consistent plotting easier across a number of beam sizes,
+    however, the matplotlib objects in the plot have different value than 
+    the actual beam.
+ 
     """
         
     def __init__(self, beam, figsize = 8):
@@ -537,15 +573,22 @@ class BeamPlotter:
         
         L = beam.getLength()       
         xscale = beam.getLength()  / self.figsize
-        
         self.xscale = xscale
+        
+        
         self.plotter = BasicBeamDiagram()
-        # self.plotter = BasicBeamDiagram(L / 10)
-        self.nodes = beam.getNodes()
+   
+        
         xlims = beam.getxLims()
-        xlims = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
-        ylims = [-L/10 / xscale, L/10 / xscale]
-        self.plotter._initPlot(self.figsize, xlims, ylims)
+        self.xmin = xlims[0]
+        self.xmax = xlims[0]
+                
+        
+        xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
+        # The ylimit is 
+        ylimsPlot = [-L/10 / xscale, L/10 / xscale]
+          
+        self.plotter._initPlot(self.figsize, xlimsPlot, ylimsPlot)
         
     def plotBeam(self):
         xlims   = self.beam.getxLims()
@@ -556,7 +599,7 @@ class BeamPlotter:
                
     def plotSupports(self):
         
-        for node in self.nodes:
+        for node in self.beam.nodes:
             
             fixityType  = node.getFixityType()
             x = node.getPosition()
@@ -567,7 +610,7 @@ class BeamPlotter:
             if fixityType == 'fixed' and x == self.xmin:
                 kwargs =  {'isLeft':True}
                     
-            if fixityType == 'fixed' and x == self.xmin:
+            if fixityType == 'fixed' and not x == self.xmin:
                 kwargs  = {'isLeft':False}                
             
             xy = [x / self.xscale, 0]
@@ -578,20 +621,61 @@ class BeamPlotter:
         self.plotBeam()
         self.plotSupports()
         self.plotLabels()
+        self.plotPointForces()
         
     def plotLabels(self):
-        for node in self.nodes:
+        for node in self.beam.nodes:
             label = node.label
             if label:
                 x = node.getPosition()
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
-    
-                    
+                        
 
-    def plotForce(self):
+    def plotPointForces(self):
+        forces = []
+        xcoords = []
+        
+        for force in self.beam.pointLoads:
+            forces.append(force.P)
+            xcoords.append(force.x / self.xscale)
+        
+        # Normalize forces
+        forces = np.array(forces)
+        Fmax   = np.max(np.abs(forces), 0)
+        Inds   = np.where(np.abs(Fmax) < 1)
+
+        Fmax[Inds[0]] = 1
+        # fNorm = forces / Fmax
+        fNorm = np.ones_like(forces)*0.5
+        fNorm[:,0] = 0
+        
+        
+        NLoads = len(forces)
+        for ii in range(NLoads):
+            Px, Py, _ = fNorm[ii]
+            x = xcoords[ii]
+            self.plotter.plotPointForce(x, Px, Py)
+
+    def normalizeForces(self):
+        """
+        Reads in all the forces, then normalizes them to fit in the pot space
+        """
         pass
-    
+
+    def getForceIntersection(self):
+        """
+        Finds which forces overlap
+        """
+
+
+
+    def stackForces(self):
+        """
+        Gives the forces an order, and finds where to put them porportionally.
+        """
+        
+
             
 
 def plotBeam(beam, beamPlotter = BasicBeamDiagram):
@@ -633,16 +717,28 @@ def plotBeam(beam, beamPlotter = BasicBeamDiagram):
 # diagram.plotPinned([0.5,0])
 # diagram.plotFixed([1.5,0], isLeft = False)
 
+# diagram.plotPointForce(1, 0., 0.5)
+# # fig, ax = plt.subplots()
+# diagram.plotPointMoment(.5)
 
-# x1 = 0
-# x2 = 3
+from planesections.builder import EulerBeam2D
+x1 = 0
+x2 = 3
 
-# newBeam = Beam()
+distLoad = 30
 
-# newBeam.addNode(x1, 'Roller', 'A')
-# newBeam.addNode(x2, 'Pinned', 'B')
+newBeam = EulerBeam2D()
 
-# newPlotter = BeamPlotter(newBeam)
-# newPlotter.plotSupports()
+newBeam.addNode(x1, [1,1,1], 'A')
+newBeam.addNode(x2, [1,1,0], 'B')
+newBeam.addDistLoad(1, 2, distLoad)
+newBeam.addPointLoad(1, [0, 2000, 0])
+newBeam.addPointLoad(2, [0, 10000, 0])
+
+diagram = BeamPlotter(newBeam)
+diagram.plot()
+
+
+# diagram.plotter.plotPointForce(1, 2.1, 0.)
 
 

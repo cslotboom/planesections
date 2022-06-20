@@ -43,5 +43,6 @@ analysis.runAnalysis()
 
 newPlotter = BeamPlotter(beam)
 
-x = beam.getxLims()
+x,y = beam.getSFD()
+
 newPlotter.plot()
