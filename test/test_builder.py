@@ -6,19 +6,19 @@ Created on Sun May 23 01:00:41 2021
 """
 
 
-from planesections import EulerBeam
+import planesections as ps
 # import planesections as ps
 import numpy as np
 import pytest
 
 
 x = np.array([0,5])
-fixities = [np.array([1,1,1]), np.array([1,1,1])]
+fixities = [np.array([1,1,1])]*2
 
 
 def test_init():
-    
-    beam = EulerBeam(x, fixities)
+        
+    beam = ps.EulerBeam2D(x, fixities)
     check1 = beam.nodes[0].x = 0
     
     np.all([1,1])
@@ -28,35 +28,76 @@ def test_addPointLoad_new():
     """
     Also tests the sort feature, because beam nodes need to be sorted correctly.
     """
-    beam = EulerBeam(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     xload = 3
     pointLoad = np.array([1,1,1])
     beam.addPointLoad(xload, pointLoad)
     
     newNode = beam.nodes[1]
-    
-    # newNode.x = 3
+   
     
     assert(newNode.x  == 3)
 
 def test_addPointLoad_existing():
+    """
+    Note that one must be subtracted from the point load ID to get the index.
+    IDs start from 1.
 
-    beam = EulerBeam(x, fixities)
+    """
+
+    beam = ps.EulerBeam2D(x, fixities)
+
+    # add a node to the existing location.
+    xload = 5
+    P = np.array([1,1,1])
+    beam.addPointLoad(xload, P)
     
+    check1 = len(beam.nodes) == 2
+    pointLoad  = beam.pointLoads[beam.nodes[1].pointLoadIDs[0] - 1]
+    check2 = np.all(pointLoad.P == P) 
+
+    assert(np.all([check1, check2]))
+
+
+
+
+def test_PointLoad_ID_updating1():
+    """
+    Checks the node gets updated.
+    """
+    beam = ps.EulerBeam2D(x, fixities)
+    xload = 5
+    pointLoad = np.array([1,1,1])
+    beam.addPointLoad(xload, pointLoad)
+    pointLoadID = 1
+    
+    check1 = pointLoadID ==beam.nodes[1].pointLoadIDs[0]
+        
+    assert(check1)
+    
+def test_PointLoad_ID_updating2():
+    """
+    Checks the load gets added gets updated.
+    """    
+    
+    beam = ps.EulerBeam2D(x, fixities)
     xload = 5
     pointLoad = np.array([1,1,1])
     beam.addPointLoad(xload, pointLoad)
     
-    check1 = len(beam.nodes) == 2
-    check2 = np.all(beam.nodes[1].pointLoad == pointLoad) 
-        
-    assert(np.all([check1,check2]))
+    pointNodeID = 2
+    outputID = beam.pointLoads[0].nodeID
+    
+    # check2 = np.all(beam.nodes[1].pointLoad == pointLoad) 
+    # print(outputID)
+    assert pointNodeID == outputID
 
+# test_PointLoad_ID_updating2()
 
 
 def makeBeamDist(x1, x2):
-    beam = EulerBeam(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     distLoad = np.array([1.,1.])
     beam.addDistLoad(x1, x2, distLoad)
@@ -108,7 +149,7 @@ def test_makeBeamDist_existing():
 
 
 def test_setFixity_existing():
-    beam = EulerBeam(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = np.array([0,0,0])
     beam.setFixity(0, newFixity)
@@ -118,7 +159,7 @@ def test_setFixity_existing():
     
     
 def test_setFixity_new():
-    beam = EulerBeam(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = np.array([0,1,0])
     beam.setFixity(10, newFixity)
@@ -128,7 +169,7 @@ def test_setFixity_new():
     
 def test_setFixity_input_size():
     with pytest.raises(ValueError):
-        beam = EulerBeam(x, fixities)
+        beam = ps.EulerBeam2D(x, fixities)
         
         newFixity = np.array([0,1])
         assert beam.setFixity(10, newFixity)
@@ -136,13 +177,13 @@ def test_setFixity_input_size():
         
 def test_setFixity_input_vals():
     with pytest.raises(ValueError):
-        beam = EulerBeam(x, fixities)
+        beam = ps.EulerBeam2D(x, fixities)
         
         newFixity = np.array([0,0,10])
         assert beam.setFixity(10, newFixity)
 
 def test_setFixity_int():
-    beam = EulerBeam(x, fixities)
+    beam = ps.EulerBeam2D(x, fixities)
     
     newFixity = 0
     beam.setFixity(0, newFixity)
@@ -165,7 +206,7 @@ def test_setFixity_int():
 
 
 # def test_addPointLoad_old():
-#     beam = ps.EulerBeam(x, fixities)
+#     beam = ps.EulerBeam2D(x, fixities)
     
 #     xload = 3
 #     beam.addPointLoad(x, pointLoad)

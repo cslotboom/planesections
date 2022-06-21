@@ -5,7 +5,7 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, RecordOutput
+import planesections as ps
 # from planesections import EulerBeam
 import numpy as np
 

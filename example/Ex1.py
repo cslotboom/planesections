@@ -5,30 +5,36 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, RecordOutput, plotMoment,plotShear
+from planesections import EulerBeam2D, OpenSeesAnalyzer2D, OutputRecorder2D, plotMoment2D,plotShear2D
+# from planesections import EulerBeam
 import numpy as np
-import openseespy.opensees as op
 
 x = np.linspace(0,5,80)
 fixed = np.array([1,1,0.])
+# fixities = [np.array([1,1,1], int), np.array([1,1,1], int)]
 
 P = np.array([0.,1000.,0.])
 q = np.array([0.,-1000.])
 
-beam = EulerBeam()
+
+beam = EulerBeam2D()
 beam.addNodes(x)
-beam.setFixity(.4, fixed)
-beam.setFixity(4.60, fixed)
 
-beam.addVerticalLoad(0, -1000.)
-beam.addVerticalLoad(2.5, -1000.)
-beam.addVerticalLoad(5, -1000.)
+beam.setFixity(0.4, fixed, label = '1')
+beam.setFixity(4.6, fixed)
+beam.addVerticalLoad(0, -1000.,label = 'A')
+beam.addVerticalLoad(2.5, -1000.,label = 'B')
+beam.addVerticalLoad(5, -1000.,label = 'C')
 beam.addDistLoad(0,5, q) 
-
+beam.addDistLoad(1,2, q*4) 
 beam.plot()
-analysis = OpenSeesAnalyzer(beam)
-analysis.runAnalysis()
-RecordOutput(beam)
 
-plotMoment(beam)
-plotShear(beam)
+
+analysis = OpenSeesAnalyzer2D(beam)
+analysis.runAnalysis()
+OutputRecorder2D(beam)
+fig, ax, line = plotMoment2D(beam)
+
+# print(beam.Mmax)
+plotShear2D(beam)
+

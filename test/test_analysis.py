@@ -5,7 +5,7 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam, OpenSeesAnalyzer, RecordOutput
+import planesections as ps
 # from planesections import EulerBeam
 import numpy as np
 
@@ -14,24 +14,24 @@ import openseespy.opensees as op
 x = np.array([0,5])
 fixities = [np.array([1,1,1], int), np.array([1,1,1], int)]
 
-pointBeam = EulerBeam(x, fixities)
+pointBeam = ps.EulerBeam2D(x, fixities)
 P = np.array([0.,1000.,0.])
 pointBeam.addPointLoad(2.5, -P)
 
 
 q = np.array([0.,-1000.])
 q = np.array([0.,-1000.])
-distBeam = EulerBeam(x, fixities)
+distBeam = ps.EulerBeam2D(x, fixities)
 distBeam.addDistLoad(0.,5.,q)
-distBeamAnalysis  = OpenSeesAnalyzer(distBeam)
+distBeamAnalysis  = ps.OpenSeesAnalyzer2D(distBeam)
 
-beam = EulerBeam(x, fixities) 
+beam = ps.EulerBeam2D(x, fixities) 
 beam.addDistLoad(0.,5.,q) 
 beam.addPointLoad(2.5, -P)
-analysis = OpenSeesAnalyzer(beam)
+analysis = ps.OpenSeesAnalyzer2D(beam)
 
 def test_nodes():
-    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
+    pointBeamAnalysis  = ps.OpenSeesAnalyzer2D(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     out = op.nodeCoord(1)[0]
@@ -41,7 +41,7 @@ def test_nodes():
 
 
 def test_EulerElements():
-    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
+    pointBeamAnalysis  = ps.OpenSeesAnalyzer2D(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     pointBeamAnalysis.buildEulerBeams()
@@ -51,14 +51,15 @@ def test_EulerElements():
     
     
 def test_node_loads():
-    pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
+    pointBeamAnalysis  = ps.OpenSeesAnalyzer2D(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     pointBeamAnalysis.buildEulerBeams()    
     pointBeamAnalysis.buildPointLoads()   
     pointBeamAnalysis.buildAnalysisPropreties()
     pointBeamAnalysis.analyze()
-
+    pointBeam.plot()
+    # print(op.nodeReaction(3) )
     assert op.nodeReaction(3) == [0,500,-625]
 
 def test_ele_loads():
@@ -87,12 +88,24 @@ def test_full_beam():
 
 def test_record_output():
     analysis.runAnalysis()
-    RecordOutput(beam)
+    # OutputRecorder(beam)
 
 
-test_nodes()
-test_EulerElements()
-test_node_loads()
-test_ele_loads()
-test_full_beam()
-test_record_output()
+# pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
+# pointBeamAnalysis.initModel()
+# pointBeamAnalysis.buildNodes()
+# out = op.nodeCoord(0)[0]
+# print(pointBeam.nodes.P)
+
+# print(pointBeam.pointLoads[0].P)
+# print(pointBeam.pointLoads[0].nodeID)
+
+
+
+
+# test_nodes()
+# test_EulerElements()
+# test_node_loads()
+# test_ele_loads()
+# test_full_beam()
+# test_record_output()
