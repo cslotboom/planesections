@@ -513,28 +513,64 @@ class BasicBeamDiagram(BeamDiagram):
                       edgecolor='none', length_includes_head=True)
         
         
-        
+    
+    # def _getArrowXY(x, y)
+    
 
-    def plotPointMoment(self, x, positive=True):       
-        r = 0.1
+    def plotPointMoment(self, x0, positive=False):       
+        r = 0.15
+        rInner = r / 5
         arrow = r / 4
+        rotationAngle = 30
         arclength = 1 * 2*np.pi
-        t = np.linspace(0.0, 0.75, 31) * arclength
         
+        # Get base rectangle point.
+        t = np.linspace(0.0, 0.8, 31) * arclength        
         x = r*np.cos(t)
         y = r*np.sin(t)
-        plt.plot(x, y)
         
-        x0 = x[-1]
-        y0 = y[-1]
+        if positive:
+            ind = -1
+            x0c = x[ind]
+            y0c = y[ind]
+            xarrow =  [x0c - arrow*1.2, x0c, x0c - arrow*1.2]
+            yarrow =  [y0c + arrow*1.5, y0c, y0c - arrow*1.5]            
+            
+        if not positive:
+            ind = 0
+            x0c = x[ind]
+            y0c = y[ind]
+            xarrow =  [x0c - arrow*1.5, x0c, x0c + arrow*1.5]
+            yarrow =  [y0c + arrow*1.2, y0c, y0c + arrow*1.2]   
+
+        # Define a rotation matrix
+        theta = np.radians(rotationAngle)
+        c, s = np.cos(theta), np.sin(theta)
+        R = np.array(((c, -s), (s, c)))
         
-        xarrow =  [x0 - arrow, x0, x0 - arrow]
-        yarrow =  [y0 + arrow, y0, y0 - arrow]
+        # rotate the vectors
+        xy = np.column_stack([x,y])
+        xyArrow = np.column_stack([xarrow, yarrow])
+        xyOut = np.dot(xy, R.T)
+        xyArrowOut = np.dot(xyArrow, R.T)
         
-        plt.plot(xarrow, yarrow, c='C0')
+        # Shift to the correct location
+        xyOut[:,0] += x0
+        xyArrowOut[:,0] += x0
+        xy0 = [x0,0]
+
+        self.ax.add_patch(Circle(xy0, rInner, facecolor='C0', fill=True, zorder=2, lw = self.lw))
+
+        plt.plot(xyOut[:,0], xyOut[:,1])
+        plt.plot(xyArrowOut[:,0], xyArrowOut[:,1], c='C0')
 
                 
     def plotLineLoad(self, x1, x2, q):
+        """
+        The line load is compsed of the top bar, two side bars, and a series
+        of arrows spaced between the side bars.
+
+        """
         pass
 
         
@@ -617,7 +653,7 @@ class BeamPlotter:
             # plot the appropriate option without an if statement!
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
-    def plot(self):
+    def plot(self, **kwargs):
         self.plotBeam()
         self.plotSupports()
         self.plotLabels()
@@ -632,30 +668,66 @@ class BeamPlotter:
                 self.plotter.plotLabel(xy, label)
                         
 
+    def getForceVectorLength(self, forces):
+        # Normalize forces
+        forces = np.array(forces)
+        signs = np.sign(forces)
+        Fmax   = np.max(np.abs(forces), 0)
+        
+        # Avoid dividing by zero later
+        Inds   = np.where(np.abs(Fmax) == 0)
+        Fmax[Inds[0]] = 1
+        
+        # Find all force that are zero. These should remain zero
+        Inds0 = np.where(np.abs(forces) == 0)
+        
+        # Plot the static portion, and the scale port of the force
+        fscale = 0.4*abs(forces) / Fmax
+        fstatic = 0.3*np.ones_like(forces)
+        fstatic[Inds0[0],Inds0[1]] = 0
+        
+        print(fscale)
+        print(fstatic)
+        # fstatic[:,Inds[0]] = 0
+        print(signs)
+        fplot =  (fscale + fstatic)*signs
+        
+        return fplot
+    
+    
     def plotPointForces(self):
+        """
+        Forces have a static portion to their length and dynamic portion.
+        This means that arrows can't have length less than a certain value.
+        This prevents small from being plotted that look silly.
+
+        """
         forces = []
         xcoords = []
         
         for force in self.beam.pointLoads:
             forces.append(force.P)
             xcoords.append(force.x / self.xscale)
-        
-        # Normalize forces
-        forces = np.array(forces)
-        Fmax   = np.max(np.abs(forces), 0)
-        Inds   = np.where(np.abs(Fmax) < 1)
-
-        Fmax[Inds[0]] = 1
-        # fNorm = forces / Fmax
-        fNorm = np.ones_like(forces)*0.5
-        fNorm[:,0] = 0
-        
-        
+        fplot = self.getForceVectorLength(forces)
+        print(fplot)
         NLoads = len(forces)
         for ii in range(NLoads):
-            Px, Py, _ = fNorm[ii]
+            Px, Py, Mx = fplot[ii]
+            
             x = xcoords[ii]
-            self.plotter.plotPointForce(x, Px, Py)
+            # if it's a moment, there is nothing to plot!
+            if (Px == 0 and Py ==0):
+                if Mx < 0:
+                    postive = True
+                else:
+                    postive = False
+                self.plotter.plotPointMoment(x, postive)
+            else:
+                self.plotter.plotPointForce(x, Px, Py)
+
+
+
+
 
     def normalizeForces(self):
         """
@@ -717,26 +789,27 @@ def plotBeam(beam, beamPlotter = BasicBeamDiagram):
 # diagram.plotPinned([0.5,0])
 # diagram.plotFixed([1.5,0], isLeft = False)
 
-# diagram.plotPointForce(1, 0., 0.5)
+# diagram.plotPointForce(1, 0., -0.5)
 # # fig, ax = plt.subplots()
 # diagram.plotPointMoment(.5)
 
-from planesections.builder import EulerBeam2D
-x1 = 0
-x2 = 3
+# from planesections.builder import EulerBeam2D
+# x1 = 0
+# x2 = 3
 
-distLoad = 30
+# distLoad = 30
 
-newBeam = EulerBeam2D()
+# newBeam = EulerBeam2D()
 
-newBeam.addNode(x1, [1,1,1], 'A')
-newBeam.addNode(x2, [1,1,0], 'B')
-newBeam.addDistLoad(1, 2, distLoad)
-newBeam.addPointLoad(1, [0, 2000, 0])
-newBeam.addPointLoad(2, [0, 10000, 0])
+# newBeam.addNode(x1, [1,1,1], 'A')
+# newBeam.addNode(x2, [1,1,0], 'B')
+# newBeam.addDistLoad(1, 2, distLoad)
+# newBeam.addPointLoad(1, [0, 2000, 0])
+# newBeam.addPointLoad(2, [0, -10000, 0])
+# newBeam.addPointLoad(2, [0, 0, 1])
 
-diagram = BeamPlotter(newBeam)
-diagram.plot()
+# diagram = BeamPlotter(newBeam)
+# diagram.plot()
 
 
 # diagram.plotter.plotPointForce(1, 2.1, 0.)
