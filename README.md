@@ -19,7 +19,9 @@ The PlaneSections can plot representations that can be used in documentation.
 
 
 <p align="center">
-  <img src="doc/img/Beam Image.png">
+  <img src="doc/img/Beam Image 2.png">
+  <img src="doc/img/Beam Image 2 SFD.png">
+  <img src="doc/img/Beam Image 2 BMD.png">
 </p>
 
 # Work Status
