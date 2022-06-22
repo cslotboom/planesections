@@ -6,6 +6,8 @@ Created on Sun May 23 01:00:41 2021
 """
 
 import planesections as ps
+from planesections.core import plotBeamDiagram
+
 import numpy as np
 
 """
@@ -26,7 +28,7 @@ Loffset = 0.5*m
 
 x       = np.linspace(0, L, 80)
 fixed   = np.array([1, 1, 0])
-q       = np.array([0.,-2*kN])
+q       = np.array([0.,-1*kN])
 
 section = ps.SectionRectangle(E, d, w)
 beam = ps.EulerBeam2D(section = section)
@@ -35,14 +37,15 @@ beam.addNodes(x)
 beam.setFixity(Loffset, fixed)
 beam.setFixity(L - Loffset, fixed)
 beam.addVerticalLoad(0, -5*kN)
-beam.addVerticalLoad(L / 2, -kN)
+beam.addVerticalLoad(L *0.7, -5*kN)
 beam.addVerticalLoad(L, -5*kN)
 beam.addDistLoad(0, L, q) 
-beam.plot()
+plotBeamDiagram(beam)
 
 analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 ps.OutputRecorder2D(beam)
-ps.plotDisp2D(beam,scale=1000)
+ps.plotDisp2D(beam, scale=1000)
+ps.plotRotation2D(beam, scale=1000)
 
 
