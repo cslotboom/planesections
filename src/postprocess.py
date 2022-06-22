@@ -41,12 +41,12 @@ def _initOutputFig(showAxis, showGrid):
     
     return fig, ax
 
-def _plotAxis(ax, xcoords, xunit, yunit):
+def _plotAxis(ax, xcoords, xunit, yunit, baseY = 'Internal Force'):
     plt.plot([xcoords[0],xcoords[-1]], [0,0] , c='black', linewidth=0.5)
     
     
     xlabel = 'Distance (' + xunit + ')'
-    ylabel = 'Internal Force  (' + yunit + ')'
+    ylabel = baseY + '  (' + yunit + ')'
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
@@ -56,14 +56,11 @@ def _plotAxis(ax, xcoords, xunit, yunit):
 def _plotLabels(ax, xcoords, ycoords, labels):
     
     offsetx = (max(xcoords) - min(xcoords)) / 100
-    # offsetx = 0
     offsety = (max(ycoords) - min(ycoords)) / 50
-    # print(len(xcoords))
-    # print(len(labels))
     
     # print(xcoords)
     for ii in range(len(labels)):
-        xcoord = xcoords[ii*2]
+        xcoord = xcoords[ii]
         label = labels[ii]
         # print(label)
         if label is not None:
@@ -78,7 +75,7 @@ def _plotLabel(ax, xcoord, label, offsetx, offsety):
 
 
 
-def plotMoment2D(beam:Beam2D, scale:float=1, **kwargs):
+def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'kNm', **kwargs):
     """
     Plots the internal moment at each node in the beam. Note that internal 
     force is only plotted at nodes.
@@ -94,12 +91,10 @@ def plotMoment2D(beam:Beam2D, scale:float=1, **kwargs):
         DESCRIPTION.
 
     """
-    return plotInternalForce2D(beam, 2, scale, **kwargs)
+    return plotInternalForce2D(beam, 2, scale ,yunit = yunit, **kwargs)
      
 
     
-
-
 
 def plotShear2D(beam:Beam2D, scale:float=1, **kwargs):
     return plotInternalForce2D(beam, 1, scale, **kwargs)
@@ -155,7 +150,7 @@ def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit =
     _plotAxis(ax, xcoords, xunit, yunit)
     
     if labelPlot:
-        _plotLabels(ax, xcoords, force*scale, labels)
+        _plotLabels(ax, xcoords[::2], force*scale, labels)
     
     line = plt.plot(xcoords, force*scale)     
     
@@ -163,18 +158,19 @@ def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit =
   
          
         
-def plotVertDisp2D(beam:Beam2D):
-    return plotDisp2D(beam) 
+def plotVertDisp2D(beam:Beam2D, scale=1000, yunit = 'mm', **kwargs):
+    return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
 
 
-def plotRotation2D(beam:Beam2D):
-    return plotDisp2D(beam, 2)
+def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
+    return plotDisp2D(beam, 2, scale, yunit= yunit, **kwargs)
 
 # def plotVertDisp(beam):
 #     return plotDisp() 
 
 
-def plotDisp2D(beam:Beam2D, index=1, scale=1):
+def plotDisp2D(beam:Beam2D, index=1, scale=1, xunit= 'm', yunit = 'mm',
+                        showAxis = True, showGrid = False, labelPlot = True):
     """
     Plots the displacement of a beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
@@ -202,14 +198,21 @@ def plotDisp2D(beam:Beam2D, index=1, scale=1):
     # Plotbeam....  
     xcoords = np.zeros(beam.Nnodes)
     disp = np.zeros(beam.Nnodes)
+    labels = [None]*beam.Nnodes
+    
     for ii, node in enumerate(beam.nodes):
         xcoords[ii] = node.x
         disp[ii] = node.disps[index]
-        # moment[ii] = 
+        labels[ii] = node.label
+        
+    fig, ax = _initOutputFig(showAxis, showGrid)
+    _plotAxis(ax, xcoords, xunit, yunit, 'Displacement')
     
-    fig, ax = plt.subplots()
+    if labelPlot:
+        _plotLabels(ax, xcoords, disp*scale, labels)
+        
     line = plt.plot(xcoords, disp*scale)     
-    
+
     return fig, ax, line   
         
 

@@ -162,7 +162,7 @@ class OpenSeesAnalyzer2D():
             N1 = self.beam._findNode(eleload.x1) + 1
             N2 = self.beam._findNode(eleload.x2) + 1
             
-            load = eleload.load
+            load = eleload.P
             
             for ii in range(N1, N2):                
                 op.eleLoad('-ele', int(ii), '-type', '-beamUniform', load[1], load[0])

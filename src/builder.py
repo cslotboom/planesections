@@ -617,9 +617,9 @@ class EulerBeam2D(Beam2D):
     # TODO: this is somewhat problematic as beam references the same list..
     def __init__(self, xcoords = [], fixities = [], labels = [], 
                  section = SectionBasic2D(), geomTransform = 'Linear'):
-                
-        self._initArrays()
+        
         # geomTransform has values 'Linear' or 'PDelta'
+        self._initArrays()
         self.nodes = []
         self.eleLoads = []
                    
@@ -749,9 +749,28 @@ class EulerBeam2D(Beam2D):
 
 class EleLoad:
     def __init__(self, x1, x2, distLoad, label = None):
+        """
+        Representes a distrubted element load between two points px and py
+
+        Parameters
+        ----------
+        x1 : float
+            The start position.
+        x2 : float
+            The end position.
+        distLoad : TYPE
+            List of forces in [Px, Py].
+        label : str, optional
+            DESCRIPTION. The default is None.
+
+        Returns
+        -------
+        None.
+
+        """
         self.x1 = x1
         self.x2 = x2
-        self.load = distLoad
+        self.P = distLoad
         self.label = label
 
 
@@ -766,6 +785,7 @@ class PointLoad:
         self.x = x
         self.nodeID = nodeID
         self.label = label
+        self.loadPattern = None
 
     def setID(self, newID):
         # print(newID)

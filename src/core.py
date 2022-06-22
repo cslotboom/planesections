@@ -333,7 +333,7 @@ class BasicBeamDiagram(BeamDiagram):
         self.yScale = 1
         
         
-        self.labelOffset = 0.15*scale
+        self.labelOffset = 0.1*scale
         self.r = 0.1*scale
         self.hTriSup = 0.3*scale
         self.wTriSup = 2*self.hTriSup
@@ -500,23 +500,18 @@ class BasicBeamDiagram(BeamDiagram):
     def plotFree(self, xy0, **kwargs):
         pass
 
-    def plotPointForce(self, x, Px, Py):
+    def plotPointForce(self, x, y, Px, Py, baseWidth = 0.03, c='C0'):
         """
         Note, Px and Py must be normalized!
         https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.arrow.html
         """
         
-        width = .03*self.scale
+        width = baseWidth*self.scale
         hwidth = width* 5
         length = width* 5
-        self.ax.arrow(x - Px, Py, Px, -Py, width=width, head_width = hwidth, head_length = length, 
-                      edgecolor='none', length_includes_head=True)
+        self.ax.arrow(x - Px, Py + y, Px, -Py, width=width, head_width = hwidth, head_length = length, 
+                      edgecolor='none', length_includes_head=True, fc=c)
         
-        
-    
-    # def _getArrowXY(x, y)
-    
-
     def plotPointMoment(self, x0, positive=False):       
         r = 0.15
         rInner = r / 5
@@ -565,13 +560,25 @@ class BasicBeamDiagram(BeamDiagram):
         plt.plot(xyArrowOut[:,0], xyArrowOut[:,1], c='C0')
 
                 
-    def plotLineLoad(self, x1, x2, q):
+    def plotVerticalLineLoad(self, x1, x2, q, y0 = 0, spacing = 1, barC = 'grey'):
         """
         The line load is compsed of the top bar, two side bars, and a series
-        of arrows spaced between the side bars.
+        of arrows spaced between the side bars. Only vertical line loads
+        are supported.
 
         """
-        pass
+        barWidth = 1
+        N = int((x2 - x1) / spacing)
+        # N = 11
+        xVals = np.linspace(x1, x2, N)
+        
+        xbar = [x1, x2]
+        ybar = [q, q]
+        plt.plot(xbar, ybar, linewidth = barWidth, c = barC)
+        
+        for ii in range(N):
+            x = xVals[ii]
+            self.plotPointForce(x, 0, 0, q, baseWidth = 0.015, c = barC)
 
         
     def plotLabel(self, xy0, label):
@@ -656,8 +663,9 @@ class BeamPlotter:
     def plot(self, **kwargs):
         self.plotBeam()
         self.plotSupports()
-        self.plotLabels()
         self.plotPointForces()
+        self.plotEleForces()
+        self.plotLabels()
         
     def plotLabels(self):
         for node in self.beam.nodes:
@@ -666,12 +674,11 @@ class BeamPlotter:
                 x = node.getPosition()
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
-                        
 
-    def getForceVectorLength(self, forces):
+    def getForceVectorLength(self, forces, vectScale = 1):
         # Normalize forces
         forces = np.array(forces)
-        signs = np.sign(forces)
+        signs = -np.sign(forces)
         Fmax   = np.max(np.abs(forces), 0)
         
         # Avoid dividing by zero later
@@ -686,13 +693,9 @@ class BeamPlotter:
         fstatic = 0.3*np.ones_like(forces)
         fstatic[Inds0[0],Inds0[1]] = 0
         
-        print(fscale)
-        print(fstatic)
-        # fstatic[:,Inds[0]] = 0
-        print(signs)
         fplot =  (fscale + fstatic)*signs
         
-        return fplot
+        return fplot*vectScale
     
     
     def plotPointForces(self):
@@ -709,7 +712,6 @@ class BeamPlotter:
             forces.append(force.P)
             xcoords.append(force.x / self.xscale)
         fplot = self.getForceVectorLength(forces)
-        print(fplot)
         NLoads = len(forces)
         for ii in range(NLoads):
             Px, Py, Mx = fplot[ii]
@@ -723,11 +725,35 @@ class BeamPlotter:
                     postive = False
                 self.plotter.plotPointMoment(x, postive)
             else:
-                self.plotter.plotPointForce(x, Px, Py)
+                self.plotter.plotPointForce(x, 0, Px, Py)
 
 
-
-
+    def plotEleForces(self):
+        spacing = self.beam.getLength() / 25 / self.xscale
+        
+        forces = []
+        xcoords = []        
+        for force in self.beam.eleLoads:
+            forces.append(force.P)
+            xcoords.append([force.x1 / self.xscale, force.x2 / self.xscale] )
+        print(forces)
+        fplot = self.getForceVectorLength(forces, vectScale = 0.4)
+        
+        NLoads = len(forces)
+        for ii in range(NLoads):       
+            Px, Py = fplot[ii]
+            x1, x2 = xcoords[ii]
+            
+            if (Px != 0 ):
+                print("Waring: Px is supploed to distributed load, but plotting isn't supported for these force types.")
+            if (Py == 0):
+                print("Waring: distributed load has no vertical component.")            
+            else:
+                self.plotter.plotVerticalLineLoad(x1, x2, Py, spacing=spacing)           
+           
+           
+           
+           
 
     def normalizeForces(self):
         """
@@ -735,12 +761,10 @@ class BeamPlotter:
         """
         pass
 
-    def getForceIntersection(self):
+    def getForceIntersection(self, x1:list, x2:list):
         """
         Finds which forces overlap
         """
-
-
 
     def stackForces(self):
         """
@@ -750,23 +774,29 @@ class BeamPlotter:
 
             
 
-def plotBeam(beam, beamPlotter = BasicBeamDiagram):
+def plotBeamDiagram(beam):
     """
-    Is called to actually plot the beam.
+    Creates a diagram of the created beam. Only certain load types are supported,
+    including
+    
+    Distributed loads do not stack on top of eachother
+    
+    The resulting diagram is a matplotlib
+    figure that can be furthe manipulated.
 
     Parameters
     ----------
     beam : TYPE
         DESCRIPTION.
-    beamPlotter : TYPE, optional
-        DESCRIPTION. The default is BasicBeamDiagram.
 
     Returns
     -------
     None.
 
     """
-    pass
+    diagram = BeamPlotter(beam)
+    diagram.plot()
+    return diagram.plotter.fig, diagram.plotter.ax
 
 
 # =============================================================================
@@ -793,25 +823,31 @@ def plotBeam(beam, beamPlotter = BasicBeamDiagram):
 # # fig, ax = plt.subplots()
 # diagram.plotPointMoment(.5)
 
+
+
+
+
+
 # from planesections.builder import EulerBeam2D
 # x1 = 0
 # x2 = 3
 
-# distLoad = 30
+# distLoad = [0,-30]
 
 # newBeam = EulerBeam2D()
 
 # newBeam.addNode(x1, [1,1,1], 'A')
 # newBeam.addNode(x2, [1,1,0], 'B')
-# newBeam.addDistLoad(1, 2, distLoad)
-# newBeam.addPointLoad(1, [0, 2000, 0])
+# newBeam.addDistLoad(1, 1.8, distLoad)
+# newBeam.addPointLoad(1, [0,  2000, 0],'C')
 # newBeam.addPointLoad(2, [0, -10000, 0])
 # newBeam.addPointLoad(2, [0, 0, 1])
 
 # diagram = BeamPlotter(newBeam)
 # diagram.plot()
 
-
-# diagram.plotter.plotPointForce(1, 2.1, 0.)
+# plotBeamDiagram(newBeam)
+# diagram.plotter.plotVerticalLineLoad(1, 2, .3)
+# diagram.plotter.plotVerticalLineLoad(1, 2, .3)
 
 
