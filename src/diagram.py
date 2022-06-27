@@ -324,30 +324,30 @@ class BasicBeamDiagram(BeamDiagram):
 
     """
     
-    def __init__(self, scale=1):
+    def __init__(self, scale = 1, supScale = 0.8):
 
         self.lw = 1 * scale
-        # plt.rc("hatch", linewidth=self.lw)
         
-        self.scale = scale
-        self.yScale = 1
+        self.scale = scale # Scales all drawing elements
+        # self.yScale = 1
         
-        
+        # changes the offset from the point in x/y
         self.labelOffset = 0.1*scale
-        self.r = 0.1*scale
-        self.hTriSup = 0.3*scale
+        
+        # Pin geometry variables
+        self.r = 0.1*scale*supScale
+        self.hTriSup = 0.3*scale*supScale
         self.wTriSup = 2*self.hTriSup
         
-        self.hFixedRect = 0.2*scale
-        self.marginFixedSup = 0.2*scale
-        self.hatch = '/'* int((3/scale))
+        self.hFixedRect = 0.2*scale*supScale
+        self.marginFixedSup = 0.2*scale*supScale
+        self.hatch = '/'* int((3/(scale*supScale)))
         self.wRect   = self.wTriSup + self.marginFixedSup
         
         self.hRollerGap = self.hFixedRect / 4
 
         self.fig = None
         self.ax = None
-        
         self.y0 = 0
 
         self.supportPlotOptions = {'fixed':self.plotFixed, 
@@ -504,12 +504,15 @@ class BasicBeamDiagram(BeamDiagram):
         """
         Note, Px and Py must be normalized!
         https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.arrow.html
+        
+        x and y are the start point of the arrow.
+        
         """
         
         width = baseWidth*self.scale
         hwidth = width* 5
         length = width* 5
-        self.ax.arrow(x - Px, Py + y, Px, -Py, width=width, head_width = hwidth, head_length = length, 
+        self.ax.arrow(x, y, Px, Py, width=width, head_width = hwidth, head_length = length, 
                       edgecolor='none', length_includes_head=True, fc=c)
         
     def plotPointMoment(self, x0, positive=False):       
@@ -568,22 +571,27 @@ class BasicBeamDiagram(BeamDiagram):
 
         """
         barWidth = 1
-        N = int((x2 - x1) / spacing)
-        # N = 11
+        N = int((x2 - x1) / spacing) + 1
         xVals = np.linspace(x1, x2, N)
-        
+ 
+        if q < 0: # if the dirrection is negative, start high and point down
+            ystart = y0 - q # the positon of arrow start
+        else:
+            ystart = y0 # the positon of arrow start
+                        
         xbar = [x1, x2]
-        ybar = [q, q]
-        plt.plot(xbar, ybar, linewidth = barWidth, c = barC)
+        yBarS = [ystart, ystart]
+        yBarE = [ystart+q, ystart+q]
+        plt.plot(xbar, yBarS, linewidth = barWidth, c = barC)
+        plt.plot(xbar, yBarE, linewidth = barWidth, c = barC)
         
         for ii in range(N):
             x = xVals[ii]
-            self.plotPointForce(x, 0, 0, q, baseWidth = 0.015, c = barC)
-
+            self.plotPointForce(x, ystart, 0, q, baseWidth = 0.015, c = barC)
         
     def plotLabel(self, xy0, label):
-        x = xy0[0]*self.scale  + self.labelOffset
-        y = xy0[1]*self.yScale + self.labelOffset
+        x = xy0[0] + self.labelOffset
+        y = xy0[1] + self.labelOffset
         self.ax.text(x, y, label, {'size':12*self.scale})
         # self.labelOffset
 
@@ -617,20 +625,15 @@ class BeamPlotter:
         L = beam.getLength()       
         xscale = beam.getLength()  / self.figsize
         self.xscale = xscale
-        
-        
         self.plotter = BasicBeamDiagram()
    
-        
         xlims = beam.getxLims()
         self.xmin = xlims[0]
         self.xmax = xlims[0]
                 
-        
         xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
         # The ylimit is 
         ylimsPlot = [-L/10 / xscale, L/10 / xscale]
-          
         self.plotter._initPlot(self.figsize, xlimsPlot, ylimsPlot)
         
     def plotBeam(self):
@@ -643,12 +646,13 @@ class BeamPlotter:
     def plotSupports(self):
         
         for node in self.beam.nodes:
-            
             fixityType  = node.getFixityType()
             x = node.getPosition()
+            
             """
             This makes some big assumptions about the shape of the system.
             """
+            
             kwargs = {}
             if fixityType == 'fixed' and x == self.xmin:
                 kwargs =  {'isLeft':True}
@@ -663,8 +667,10 @@ class BeamPlotter:
     def plot(self, **kwargs):
         self.plotBeam()
         self.plotSupports()
-        self.plotPointForces()
-        self.plotEleForces()
+        if self.beam.pointLoads:
+            self.plotPointForces()
+        if self.beam.eleLoads:
+            self.plotEleForces()
         self.plotLabels()
         
     def plotLabels(self):
@@ -675,10 +681,20 @@ class BeamPlotter:
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
 
-    def getForceVectorLength(self, forces, vectScale = 1):
+    def _getForceVectorLength(self, forces, vectScale = 1):
+        """
+        Gets the corce vector length in terms of the drawing units.
+        Force vectors will have a static component that doesn't change,
+        and a dynamic component that adapts to the magnitude of forces.
+        
+        The output plotting forces are in the direction they act.
+        
+        
+        
+        """
         # Normalize forces
         forces = np.array(forces)
-        signs = -np.sign(forces)
+        signs = np.sign(forces)
         Fmax   = np.max(np.abs(forces), 0)
         
         # Avoid dividing by zero later
@@ -711,13 +727,14 @@ class BeamPlotter:
         for force in self.beam.pointLoads:
             forces.append(force.P)
             xcoords.append(force.x / self.xscale)
-        fplot = self.getForceVectorLength(forces)
+        fplot = self._getForceVectorLength(forces)
         NLoads = len(forces)
         for ii in range(NLoads):
             Px, Py, Mx = fplot[ii]
             
             x = xcoords[ii]
-            # if it's a moment, there is nothing to plot!
+            
+            # if it's a moment, plot it as a moment
             if (Px == 0 and Py ==0):
                 if Mx < 0:
                     postive = True
@@ -725,34 +742,117 @@ class BeamPlotter:
                     postive = False
                 self.plotter.plotPointMoment(x, postive)
             else:
-                self.plotter.plotPointForce(x, 0, Px, Py)
+                self.plotter.plotPointForce(x - Px, -Py, Px, Py)
 
 
     def plotEleForces(self):
+        
+        # The spacing between force lines
         spacing = self.beam.getLength() / 25 / self.xscale
         
         forces = []
         xcoords = []        
         for force in self.beam.eleLoads:
             forces.append(force.P)
-            xcoords.append([force.x1 / self.xscale, force.x2 / self.xscale] )
+            xcoords.append([force.x1 / self.xscale, force.x2 / self.xscale])
+        
         print(forces)
-        fplot = self.getForceVectorLength(forces, vectScale = 0.4)
+        fplot = self._getForceVectorLength(forces, vectScale = 0.4)
+        ycoords = self._getStackedPositions(xcoords, fplot)
         
         NLoads = len(forces)
         for ii in range(NLoads):       
             Px, Py = fplot[ii]
             x1, x2 = xcoords[ii]
+            y1 = ycoords[ii] # y1 is the start point of the arrow
+
             
             if (Px != 0 ):
                 print("Waring: Px is supploed to distributed load, but plotting isn't supported for these force types.")
             if (Py == 0):
                 print("Waring: distributed load has no vertical component.")            
             else:
-                self.plotter.plotVerticalLineLoad(x1, x2, Py, spacing=spacing)           
+                # This is a little akward, but Py is added to account for the offset of -Py in the base funciton.
+                self.plotter.plotVerticalLineLoad(x1, x2, Py, y1 + Py, spacing=spacing)           
            
-           
-           
+    def _getStackedPositions(self, xcoords: list[list[float]], fplot):
+        """
+        Gives the forces an order, and finds where to put them porportionally.
+        Longer forces will go on the bottom, while shorter forces are
+        placed on top of them.
+        """      
+        Nforces = len(xcoords)
+        lengths = [None]*Nforces
+        xcoords = np.array(xcoords)
+        ycoords = np.zeros(Nforces) # [bottom, top]
+        
+        # Get the lengths - we want to 
+        lengths = xcoords[:,1] - xcoords[:,0]
+        sortedInds = np.argsort(lengths)[::-1]
+        
+        fplotOut = np.zeros_like(fplot)
+        fplotOut[:] = fplot
+        print(fplot)
+
+        # the current x and y points being plotted.        
+        plottedxCoords = []
+        plottedyCoords = []
+        plottedDyCoords = []
+        
+        # start at the widest items and plot them first
+        for ind in sortedInds:
+            
+            dy = fplotOut[ind][1]
+            y0 = self.getStackedDatum(xcoords[ind], plottedxCoords, plottedyCoords)
+            
+            # y = 
+            # if positive
+            ycoords[ind] =  y0 - dy
+            
+            plottedxCoords.append(xcoords[ind])           
+            plottedyCoords.append(ycoords[ind])
+            # plottedyCoords.append([y, y - dy])
+            # plottedDyCoords.append(dy)            
+            
+            
+            print(y0)
+            print(dy)
+            print(plottedyCoords)
+            # print(plottedDyCoords)
+            
+             # lengths[ii] = xcoords[ii][1] - xcoords[ii][0]
+        # print(ycoords) 
+        return ycoords
+    
+    def checkIfInRange(self, xtest, x1,x2):
+        # print((x1 <= xtest))
+        # print((xtest <= x2))
+        
+        if (x1 < xtest) and (xtest < x2):
+            return True
+        
+        return False
+    
+    
+  
+    
+    def getStackedDatum(self, xCurrent, currentRanges, plottedY):
+        """
+        Starting at the top of the force stack, check each force to see if
+        it intersects with any other forces.
+        """
+        
+        Npoint = len(currentRanges)
+
+        for ii in range(Npoint):
+            localInd = Npoint - 1 - ii
+            x1, x2  = currentRanges[localInd]
+            if self.checkIfInRange(xCurrent[0], x1, x2):
+                    return plottedY[localInd]
+            if self.checkIfInRange(xCurrent[0], x1, x2):
+                    return plottedY[localInd]       
+
+        return 0
            
 
     def normalizeForces(self):
@@ -764,13 +864,7 @@ class BeamPlotter:
     def getForceIntersection(self, x1:list, x2:list):
         """
         Finds which forces overlap
-        """
-
-    def stackForces(self):
-        """
-        Gives the forces an order, and finds where to put them porportionally.
-        """
-        
+        """    
 
             
 
@@ -797,57 +891,4 @@ def plotBeamDiagram(beam):
     diagram = BeamPlotter(beam)
     diagram.plot()
     return diagram.plotter.fig, diagram.plotter.ax
-
-
-# =============================================================================
-# 
-# =============================================================================
-
-# beamSize = 8
-# xlims = [-beamSize/2, beamSize/2]
-# ylims = [-1.6, 1.6]
-# figSize = beamSize + 1
-# xy0 = [-1.,0]
-# scale = .8
-
-# diagram = BasicBeamDiagram(scale)
-
-# diagram._initPlot(figSize, xlims, ylims)
-# # diagram.plotPin(fig, ax, xy0)
-# diagram.plotFixed([-1.5,0])
-# diagram.plotRoller([-.5,0])
-# diagram.plotPinned([0.5,0])
-# diagram.plotFixed([1.5,0], isLeft = False)
-
-# diagram.plotPointForce(1, 0., -0.5)
-# # fig, ax = plt.subplots()
-# diagram.plotPointMoment(.5)
-
-
-
-
-
-
-# from planesections.builder import EulerBeam2D
-# x1 = 0
-# x2 = 3
-
-# distLoad = [0,-30]
-
-# newBeam = EulerBeam2D()
-
-# newBeam.addNode(x1, [1,1,1], 'A')
-# newBeam.addNode(x2, [1,1,0], 'B')
-# newBeam.addDistLoad(1, 1.8, distLoad)
-# newBeam.addPointLoad(1, [0,  2000, 0],'C')
-# newBeam.addPointLoad(2, [0, -10000, 0])
-# newBeam.addPointLoad(2, [0, 0, 1])
-
-# diagram = BeamPlotter(newBeam)
-# diagram.plot()
-
-# plotBeamDiagram(newBeam)
-# diagram.plotter.plotVerticalLineLoad(1, 2, .3)
-# diagram.plotter.plotVerticalLineLoad(1, 2, .3)
-
 

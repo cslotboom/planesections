@@ -120,7 +120,7 @@ def test_makeBeamDist_new():
    
     check1 = len(beam.eleLoads) == 1
     # check1 = True
-    check2 = np.all(beam.eleLoads[0].load == np.array([1.,1.]))
+    check2 = np.all(beam.eleLoads[0].P == np.array([1.,1.]))
     # check2 = True
     # check2 = np.all(beam.nodes[1].distLoad == distLoad) 
         
@@ -142,7 +142,7 @@ def test_makeBeamDist_existing():
     beam = makeBeamDist(1,5)
    
     check1 = len(beam.eleLoads) == 1
-    check2 = np.all(beam.eleLoads[0].load  == np.array([1.,1.]))
+    check2 = np.all(beam.eleLoads[0].P  == np.array([1.,1.]))
     # check2 = np.all(beam.nodes[1].distLoad == distLoad) 
         
     assert(np.all([check1,check2]))
