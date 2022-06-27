@@ -6,7 +6,7 @@ Created on Sun May 23 01:00:41 2021
 """
 
 import planesections as ps
-from planesections.core import plotBeamDiagram
+from planesections.diagram import plotBeamDiagram
 
 import numpy as np
 
