@@ -6,17 +6,19 @@ While OpenSees can analyze nearly anything, the emphasis is on providing a quick
 
 The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release.
 
+## Installation
+Package is installable through pip
+```
+pip install planesections
+```
 
 ## Simple API
 Easily make changes with the beam object
 
-## Basic Plots
-Easily make plots and get results for shear force, bending force, deflection or roation.
 
-
-## Fancy Plots
+## Beam diagrams and plots Plots
 The PlaneSections can plot representations that can be used in documentation.
-
+It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
 
 <p align="center">
   <img src="doc/img/Beam Image 2.png">
@@ -24,12 +26,12 @@ The PlaneSections can plot representations that can be used in documentation.
   <img src="doc/img/Beam Image 2 BMD.png">
 </p>
 
-# Work Status
+## 1.0 Work Status
 Currently a work in progress. To be compeleted before intial release:
 
 *Analysis and API*:
-- [ ] fancy plots (distributed Load)
-- [ ] Better deflection plots (distributed Load)
+- [x] fancy plots (distributed Load)
+- [x] Better deflection plots (distributed Load)
 
 *Infacstructure*:
 - [x] pip package
@@ -43,6 +45,13 @@ Currently a work in progress. To be compeleted before intial release:
   - [ ] Finish landing page with code examples and figures.
   - [ ] Compare simple cases with analytic equations.
   - [ ] Compare complex cases with sap/rfem/etc.
+
+
+# Post 1.0 release
+*Analysis and API*:
+- [ ] plot labels
+
+
 
 Future work:
  - 3D beams
