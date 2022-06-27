@@ -6,7 +6,7 @@ Created on Sun May 23 01:00:41 2021
 """
 
 from planesections import EulerBeam2D, OpenSeesAnalyzer2D, OutputRecorder2D, plotMoment2D,plotShear2D
-from planesections.core import plotBeamDiagram
+from planesections.diagram import plotBeamDiagram
 import numpy as np
 
 x = np.linspace(0,5,80)
