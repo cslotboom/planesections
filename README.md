@@ -16,9 +16,11 @@ pip install planesections
 Easily make changes with the beam object
 
 
-## Beam diagrams and plots Plots
+## Beam diagrams and Result Plots Plots
 The PlaneSections can plot representations that can be used in documentation.
 It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
+
+**Future code example**
 
 <p align="center">
   <img src="doc/img/Beam Image 2.png">
