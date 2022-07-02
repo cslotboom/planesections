@@ -12,6 +12,11 @@ The following website documents all classes and functions the user can access in
 The core of the program is the beam class in the builder module. This classes will encapuslate all of the contains all information for loading serve as interfaces for class is the beam, 
 and the user interacts with this class to run their analysis.
 
+The Builder module is used to create the beam and 
+The Analysis module is used to analyze the beam using OpenSeesPy and document the results.
+The Diagram module is used to plot representations of the beam.
+The Postprocess module is used to plot outputs of the analysis, including force diagrams and deflections
+
 Note that the core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
 will be given for breaking changes.
 

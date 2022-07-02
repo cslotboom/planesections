@@ -1,7 +1,8 @@
 Diagram
 =======
 
-These classes are used to plot representations of the beam.
+The diagram class is used to plot representations of the beam.
+These output plots will include labels, loads, and support fixities.
 
 #. :doc:`diagram-plotBeamDiagram`
 #. :doc:`diagram-beamPlotter`
