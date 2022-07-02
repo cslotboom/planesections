@@ -886,7 +886,9 @@ def plotBeamDiagram(beam):
 
     Returns
     -------
-    None.
+    fig : matplotlib fig
+    
+    ax : matplotlib ax
 
     """
     diagram = BeamPlotter(beam)

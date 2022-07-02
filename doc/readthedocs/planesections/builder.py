@@ -29,6 +29,7 @@ class Section2D():
     E:None
     A:None
     Ixx:None
+    Iyy:None
     
 
 
@@ -36,17 +37,19 @@ class Section2D():
 class SectionBasic2D(Section2D):
     """
     A basic section that contains the global propreties of the beam section,
-    without any geometry.
+    without any geometry. It's assume the section is elastic.
     """
     E:float = 1
     A:float = 1
     Ixx:float = 1
+    Iyy:float = 1
 
 
 @dataclass
 class SectionRectangle(Section2D):
     """
-    Represents a Rectangular section.
+    Represents a elastic Rectangular section. Ixx and A are calcualted using 
+    the beam width and height.
     """
     
     E:float = 200*10**9
@@ -57,6 +60,7 @@ class SectionRectangle(Section2D):
     def __post_init__(self):
         self.A = self.d*self.w
         self.Ixx = self.d**3*self.w / 12
+        self.Ixx = self.w**3*self.d / 12
 
         
 class Node2D(NodeArchetype):
@@ -717,10 +721,9 @@ def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
     if x2 <= x1:
         raise Exception('x2 must be greater than x1')
     
-    x = np.linspace(x1,x2,meshSize)
-    EulerBeam2D(x)
+    x = np.linspace(x1, x2, meshSize)  
     
-    return EulerBeam2D()
+    return EulerBeam2D(x)
 
 
 
