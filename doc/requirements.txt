@@ -1,4 +1,4 @@
+python==3.9
 matplotlib
 numpy
 openseespy
-python==3.9
