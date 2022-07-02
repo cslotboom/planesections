@@ -1,10 +1,10 @@
 # PlaneSections
 A lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
-There was no package for beam bending in python that worked to my satisfaction, hence this package.
+The goal of PlaneSections is to make easy-to-use beam anayses, which can be used to quickly document structural calculations.
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
-While OpenSees can analyze nearly anything, the emphasis is on providing a quick way to analyze beams.
 
-The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release.
+The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
+can be expected for major changes.
 
 ## Installation
 Package is installable through pip
@@ -23,7 +23,38 @@ Easily make changes with the beam object
 The PlaneSections can plot representations that can be used in documentation.
 It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
 
-**Future code example**
+```
+
+	import planesections as ps
+
+	# Define node locations, and support conditions
+	L = 5
+	beam = ps.newEulerBeam2D(L)
+
+	# Define beam and fixities
+	pinned = [1,1,0]
+	beam.setFixity(L*0.1, pinned, label = '1')
+	beam.setFixity(L*0.9, pinned)
+
+	# Define loads
+	Pz = -1
+	beam.addVerticalLoad(0, Pz, label = 'A')
+	beam.addVerticalLoad(L*0.5, 2*Pz, label = 'B')
+	beam.addVerticalLoad(L, Pz, label = 'C')
+	beam.addDistLoadVertical(0, L, Pz)
+	beam.addDistLoadVertical(1, L*0.3, 5*Pz)
+
+	# Plot the beam diagram
+	ps.plotBeamDiagram(beam)
+
+	# Run the analysis
+	analysis = ps.OpenSeesAnalyzer2D(beam)
+	analysis.runAnalysis()
+
+	# Plot the SFD and BMD
+	ps.plotShear2D(beam)
+	ps.plotMoment2D(beam)
+```
 
 <p align="center">
   <img src="doc/img/Beam Image 2.png">
