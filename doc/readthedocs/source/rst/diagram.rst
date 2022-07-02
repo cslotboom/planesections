@@ -4,7 +4,7 @@ Diagram
 These classes are used to plot representations of the beam.
 
 #. :doc:`diagram-plotBeamDiagram`
-#. :doc:`diagram-BeamPlotter`
+#. :doc:`diagram-beamPlotter`
 
 
 .. toctree::
@@ -12,4 +12,4 @@ These classes are used to plot representations of the beam.
    :hidden:
    
    diagram-plotBeamDiagram.rst
-   diagram-BeamPlotter.rst
+   diagram-beamPlotter.rst

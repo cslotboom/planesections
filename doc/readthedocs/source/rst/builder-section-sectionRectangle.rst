@@ -1,5 +1,5 @@
 SectionRectangle
-==============
+================
 
 .. autoclass:: planesections.builder.SectionRectangle
    :members:

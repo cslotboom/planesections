@@ -1,4 +1,4 @@
-newEulerbeam2D
-==============
+New Euler Beam 2D
+=================
 
-.. autofunction:: planesections.builder.newEulerbeam2D
+.. autofunction:: planesections.builder.newEulerBeam2D
