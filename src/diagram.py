@@ -693,6 +693,7 @@ class BeamPlotter:
         
         """
         # Normalize forces
+        print(forces)
         forces = np.array(forces)
         signs = np.sign(forces)
         Fmax   = np.max(np.abs(forces), 0)

@@ -16,8 +16,7 @@ P = -1000
 q = np.array([0.,-1000.])
 
 
-beam = EulerBeam2D()
-beam.addNodes(x)
+beam = EulerBeam2D(x)
 
 beam.setFixity(0.4, fixed, label = '1')
 beam.setFixity(4.6, fixed)
@@ -39,5 +38,5 @@ OutputRecorder2D(beam)
 # fig, ax, line = plotMoment2D(beam)
 
 # print(beam.Mmax)
-# plotShear2D(beam)
+plotShear2D(beam)
 

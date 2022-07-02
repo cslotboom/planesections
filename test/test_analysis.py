@@ -58,7 +58,7 @@ def test_node_loads():
     pointBeamAnalysis.buildPointLoads()   
     pointBeamAnalysis.buildAnalysisPropreties()
     pointBeamAnalysis.analyze()
-    pointBeam.plot()
+    
     # print(op.nodeReaction(3) )
     assert op.nodeReaction(3) == [0,500,-625]
 

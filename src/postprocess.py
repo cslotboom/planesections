@@ -12,12 +12,8 @@ def getInternalForces2D(node:Node2D, ind):
     1 = shear force
     2 = moment
     """
-    
     return node.Fint[[ind,ind+3]]
     
-
-
-
 def _initOutputFig(showAxis, showGrid):
     
     fig, ax = plt.subplots(dpi=300)
@@ -50,86 +46,146 @@ def _plotAxis(ax, xcoords, xunit, yunit, baseY = 'Internal Force'):
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
-# def plotAxis():
-    
 
 def _plotLabels(ax, xcoords, ycoords, labels):
     
     offsetx = (max(xcoords) - min(xcoords)) / 100
     offsety = (max(ycoords) - min(ycoords)) / 50
-    
-    # print(xcoords)
     for ii in range(len(labels)):
         xcoord = xcoords[ii]
         label = labels[ii]
-        # print(label)
         if label is not None:
             _plotLabel(ax, xcoord, label, offsetx, offsety)
-
-    
+ 
 def _plotLabel(ax, xcoord, label, offsetx, offsety):
     x = xcoord  + offsetx
     y = 0 + offsety
-    # ax.text(x, y, label, {'size':12})
     ax.text(x, y, label)
 
-
-
-def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'kNm', **kwargs):
+def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'Nm', **kwargs):
     """
-    Plots the internal moment at each node in the beam. Note that internal 
-    force is only plotted at nodes.
+    Plots the internal moment at each node in the beam. 
+    Two values are given for each point, one at the left side, one at the right
+    side. 
+    Note that internal force is only known exactly at nodes, and linear 
+    interpolation is used for all other values.
 
     Parameters
     ----------
-    beam : TYPE
-        DESCRIPTION.
-
+    beam : Beam2D
+        The beam to plot internal forces with. The analysis must be run.
+    scale : float, optional
+        The scale to apply to the plot. The default is 1.
+    yunit : str, optional
+        The yunit for the plot labels. The default is Nm.
+        
+    Kwarg Parameters
+    ----------        
+    These are possible Kwarg parameters that will be passed to plotInternalForce2D.
+    
+    xunit : str, optional
+        The xunit for the plot labels. The default is m.
+    showAxis : bool, optional
+        Turns on or off the axis.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.    
+        
     Returns
     -------
-    TYPE
-        DESCRIPTION.
+    fig : matplotlib fig
+    ax : matplotlib ax
+    line : matplotlib line
+        the plotted line.
 
     """
-    return plotInternalForce2D(beam, 2, scale ,yunit = yunit, **kwargs)
+    return plotInternalForce2D(beam, 2, scale , yunit = yunit, **kwargs)
      
 
     
 
 def plotShear2D(beam:Beam2D, scale:float=1, **kwargs):
-    return plotInternalForce2D(beam, 1, scale, **kwargs)
-
-def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit = 'kN',
-                        showAxis = True, showGrid = False, labelPlot = True):
     """
-    Plots the internal forces within a beam. Each node will contain the
-    relevant force information. Analysis must be run on the beam prior to 
-    plotting.
-    
-    Both the lest and right side forces at each node will be plotted.
+    Plots the internal shear force within a beam. 
+    Two values are given for each point, one at the left side, one at the right
+    side. 
+    The analysis must be run on the beam prior to plotting.
+    Note that internal force is only known exactly at nodes, and linear 
+    interpolation is used for all other values.
     
     Parameters
     ----------
     beam : Beam2D
         The beam to plot internal forces with. The analysis must be run.
-    index : TYPE
+    scale : float, optional
+        The scale to apply to the plot. The default is 1.
+        
+    Kwarg Parameters
+    ----------        
+    
+    These are possible Kwarg parameters that will be passed to plotInternalForce2D.
+    
+    xunit : str, optional
+        The xunit for the plot labels. The default is m.
+    yunit : str, optional
+        The yunit for the plot labels. The default is N.
+    showAxis : bool, optional
+        Turns on or off the axis.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.        
+
+    Returns
+    -------
+    fig : matplotlib fig
+    
+    ax : matplotlib ax
+    
+    line : matplotlib line
+        the plotted line.
+
+    """    
+    
+    return plotInternalForce2D(beam, 1, scale, **kwargs)
+
+def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit = 'N',
+                        showAxis = True, showGrid = False, labelPlot = True):
+    """
+    Plots the internal forces within a beam. 
+    Two values are given for each point, one at the left side, one at the right
+    side. 
+    The analysis must be run on the beam prior to plotting.
+    Note that internal force is only known exactly at nodes, and linear 
+    interpolation is used for all other values.
+    
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to plot internal forces with. The analysis must be run.
+    index : int
         The type of response to plot, can have value 0:axial force, 1: shear force
         2: moment.
     scale : float, optional
         The scale to apply to the plot. The default is 1.
     xunit : str, optional
-        The xunit for the plot. The default is 1.
+        The xunit for the plot labels. The default is m.
     yunit : str, optional
-        The scale to apply to the plot. The default is 1.
+        The yunit for the plot labels. The default is N.
     showAxis : bool, optional
         Turns on or off the axis.
-    labelPeak : bool, optional
-        Turns on or off labels for the peaks.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.        
 
     Returns
     -------
     fig : matplotlib fig
+    
     ax : matplotlib ax
+    
     line : matplotlib line
         the plotted line.
 
@@ -159,20 +215,8 @@ def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit =
          
         
 def plotVertDisp2D(beam:Beam2D, scale=1000, yunit = 'mm', **kwargs):
-    return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
-
-
-def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
-    return plotDisp2D(beam, 2, scale, yunit= yunit, **kwargs)
-
-# def plotVertDisp(beam):
-#     return plotDisp() 
-
-
-def plotDisp2D(beam:Beam2D, index=1, scale=1, xunit= 'm', yunit = 'mm',
-                        showAxis = True, showGrid = False, labelPlot = True):
     """
-    Plots the displacement of a beam. Each node will contain the
+    Plots the rotation of a beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
     plotting.
     
@@ -180,16 +224,106 @@ def plotDisp2D(beam:Beam2D, index=1, scale=1, xunit= 'm', yunit = 'mm',
     ----------
     beam : Beam2D
         The beam to plot internal forces with. The analysis must be run.
-    index : TYPE
-        The type of response to plot, can have value 0:axial force, 1: shear force
-        2: moment.
+    index : int
+        The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
-
+        The scale to apply to the plot. The default is 0.001.
+    xunit : str, optional
+        The xunit for the plot labels. The default is m.
+    yunit : str, optional
+        The yunit for the plot labels. The default is mm.
+    showAxis : bool, optional
+        Turns on or off the axis.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.        
+        
     Returns
     -------
     fig : matplotlib fig
+    
     ax : matplotlib ax
+    
+    line : matplotlib line
+        the plotted line.
+    """    
+    
+    return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
+
+
+def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
+    """
+    Plots the rotation of a beam. Each node will contain the
+    relevant dispancement information. Analysis must be run on the beam prior to 
+    plotting.
+    
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to plot internal forces with. The analysis must be run.
+    index : int
+        The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
+    scale : float, optional
+        The scale to apply to the plot. The default is 0.001.
+    xunit : str, optional
+        The xunit for the plot labels. The default is m.
+    yunit : str, optional
+        The yunit for the plot labels. The default is mm.
+    showAxis : bool, optional
+        Turns on or off the axis.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.        
+        
+    Returns
+    -------
+    fig : matplotlib fig
+    
+    ax : matplotlib ax
+    
+    line : matplotlib line
+        the plotted line.
+    """
+    
+    
+    
+    return plotDisp2D(beam, 2, scale, yunit= yunit, **kwargs)
+
+
+def plotDisp2D(beam:Beam2D, index=1, scale=0.001, xunit= 'm', yunit = 'mm',
+                        showAxis = True, showGrid = False, labelPlot = True):
+    """
+    Plots the displacement of one dimension of the beam. Each node will contain the
+    relevant dispancement information. Analysis must be run on the beam prior to 
+    plotting.
+    
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to plot internal forces with. The analysis must be run.
+    index : int
+        The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
+    scale : float, optional
+        The scale to apply to the plot. The default is 0.001.
+    xunit : str, optional
+        The xunit for the plot labels. The default is m.
+    yunit : str, optional
+        The yunit for the plot labels. The default is mm.
+    showAxis : bool, optional
+        Turns on or off the axis.
+    showGrid : bool, optional
+        Turns on or off the grid.        
+    labelPlot : bool, optional
+        Turns on or off the plot labels.        
+        
+    Returns
+    -------
+    fig : matplotlib fig
+    
+    ax : matplotlib ax
+    
     line : matplotlib line
         the plotted line.
 
