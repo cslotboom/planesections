@@ -12,6 +12,9 @@ Package is installable through pip
 pip install planesections
 ```
 
+## Documentation
+All major functions and classes are documenteted on read-the-docs: https://planesections.readthedocs.io/en/latest/
+
 ## Simple API
 Easily make changes with the beam object
 
