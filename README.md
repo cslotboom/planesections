@@ -8,7 +8,7 @@ will be given for breaking changes.
 
 **NOTE:**
 Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
-PlaneSections has been design with Metric units in mind in terms of scaling diagrams. For those using imperial units, dedicated support may be added in the future.
+PlaneSections has been design with Metric units in mind in terms of scaling diagrams. For those using imperial units, results will work with a consitent unit basis, but the scale of the digrams may be off.
 
 ## Installation
 Package is installable through pip
