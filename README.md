@@ -10,6 +10,13 @@ will be given for breaking changes.
 Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
 PlaneSections has been design with Metric units in mind in terms of scaling diagrams. For those using imperial units, results will work with a consitent unit basis, but the scale of the digrams may be off.
 
+## Contents
+* [Installation](https://github.com/cslotboom/planesections#Installation)
+* [Documentation](https://github.com/cslotboom/planesections#Documentation)
+* [Demo](https://github.com/cslotboom/planesections#Demo)
+* [Work Status](https://github.com/cslotboom/planesections#Status)
+
+
 ## Installation
 Package is installable through pip
 ```
@@ -19,11 +26,7 @@ pip install planesections
 ## Documentation
 All major functions and classes are documented on read-the-docs: https://planesections.readthedocs.io/en/latest/
 
-## Simple API
-Easily make changes with the beam object
-
-
-## Beam Diagrams and Result Plots
+## Demo
 The PlaneSections can plot representations that can be used in documentation.
 It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
 
@@ -61,13 +64,21 @@ ps.plotMoment2D(beam)
 ```
 
 <p align="center">
-  <img src="doc/img/Beam Image 2.png">
-  <img src="doc/img/Beam Image 2 SFD.png">
-  <img src="doc/img/Beam Image 2 BMD.png">
+  <img src="doc/img/Beam Image 2.png" width="500">
 </p>
+<p align="center">
+  <img src="doc/img/Beam Image 2 SFD.png" width="500">
+</p>  
+<p align="center">
+  <img src="doc/img/Beam Image 2 BMD.png" width="500">
+</p>  
 
-## 1.0 Work Status
-Currently a work in progress. To be compeleted before intial release:
+## Further Examples
+See the examples folder for
+
+
+## Status
+Before the first beta release, the following will be completed.
 
 *Analysis and API*:
 - [x] fancy plots (distributed Load)
@@ -76,11 +87,11 @@ Currently a work in progress. To be compeleted before intial release:
 *Infacstructure*:
 - [x] pip package
   - [x] setup on pypi: complete, package is installable with "pip install planesections"
-  - [ ] Add requirements
-- [ ] Document code
-  - [ ] Finish all class docstrings.
-  - [ ] Add Sphinx docs.
-  - [ ] Add read the docs website.
+  - [x] Add requirements
+- [x] Document code
+  - [x] Finish all class docstrings.
+  - [x] Add Sphinx docs.
+  - [x] Add read the docs website.
 - [ ] Examples
   - [ ] Finish landing page with code examples and figures.
   - [ ] Compare simple cases with analytic equations.
