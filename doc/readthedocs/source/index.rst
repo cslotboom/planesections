@@ -5,7 +5,7 @@
 
 PlaneSections Documentation
 ======================================
-PlaneSections is a lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
+PlaneSections is a lightweight beam bending library built on <https://github.com/zhuminjie/OpenSeesPy>`_.
 The goal of PlaneSections is to quickly run beam anayses, and create outputs to document structural calculations.
 
 The following website documents all classes and functions the user can access in PlaneSections.
