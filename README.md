@@ -4,7 +4,8 @@ The goal of PlaneSections is to make easy-to-use beam anayses, which can be used
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
 
 The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
-can be expected for major changes.
+will be given for breaking changes.
+
 
 ## Installation
 Package is installable through pip
