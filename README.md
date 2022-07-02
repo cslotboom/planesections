@@ -6,6 +6,9 @@ Being built on OpenSees, the structural results are reliable, and there is lots 
 The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
 will be given for breaking changes.
 
+*NOTE:*
+Units must be passed to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
+For those using imeprial units, dedicated support may be added in the future.
 
 ## Installation
 Package is installable through pip
