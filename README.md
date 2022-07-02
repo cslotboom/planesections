@@ -7,7 +7,7 @@ The core classes and API are complete, but development is still in progress. Exp
 will be given for breaking changes.
 
 **NOTE:**
-Units for force and length be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
+Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
 PlaneSections has been design with Metric units in mind in terms of scaling diagrams. For those using imperial units, dedicated support may be added in the future.
 
 ## Installation
