@@ -1,0 +1,246 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4. Protocol &mdash; Hysteresis 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. Climate" href="climate.html" />
+    <link rel="prev" title="3.2.3. Plot" href="defaultFunctions-plot-defaultPlotFunction.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Hysteresis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="baseClass.html">1. Base Classes</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-CurveBase.html">1.1. CurveBase</a></li>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-Hysteresis.html">1.2. Hysteresis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-SimpleCycle.html">1.3. SimpleCycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-MonotonicCurve.html">1.4. MonotonicCurve</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basicFunctions.html">2. Basic Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-concatenateHys.html">2.1. concatenateHys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-resample.html">2.2. resample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-resampleDx.html">2.3. resampleDx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-removeNegative.html">2.4. removeNegative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-compareHys.html">2.5. compareHys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-compareCycle.html">2.6. compareCycle</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="defaultFunctions.html">3. Default Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="defaultFunctions-data.html">3.1. Default Data Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultSlopeFunction.html">3.1.1. Slope Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultAreaFunction.html">3.1.2. Area Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultSampleFunction.html">3.1.3. Curve Sample Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultCombineDiff.html">3.1.4. Difference Function</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="defaultFunctions-plot.html">3.2. Default Plot Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-initializeFig.html">3.2.1. Initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-defaultLabelFunction.html">3.2.2. Show Cycles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-defaultPlotFunction.html">3.2.3. Plot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="climate.html">5. Climate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">6. Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Hysteresis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li><span class="section-number">4. </span>Protocol</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/rst/protocol.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="protocol">
+<h1><span class="section-number">4. </span>Protocol<a class="headerlink" href="#protocol" title="Permalink to this headline">¶</a></h1>
+<p>Coming soon!</p>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="climate.html" class="btn btn-neutral float-right" title="5. Climate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="defaultFunctions-plot-defaultPlotFunction.html" class="btn btn-neutral float-left" title="3.2.3. Plot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, CSlotboom
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

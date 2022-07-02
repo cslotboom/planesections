@@ -1,0 +1,341 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1.2. Hysteresis &mdash; Hysteresis 1.0.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="1.3. SimpleCycle" href="baseClass-SimpleCycle.html" />
+    <link rel="prev" title="1.1. CurveBase" href="baseClass-CurveBase.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> Hysteresis
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="baseClass.html">1. Base Classes</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="baseClass-CurveBase.html">1.1. CurveBase</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">1.2. Hysteresis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-SimpleCycle.html">1.3. SimpleCycle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="baseClass-MonotonicCurve.html">1.4. MonotonicCurve</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basicFunctions.html">2. Basic Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-concatenateHys.html">2.1. concatenateHys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-resample.html">2.2. resample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-resampleDx.html">2.3. resampleDx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-removeNegative.html">2.4. removeNegative</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-compareHys.html">2.5. compareHys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basicFunctions-compareCycle.html">2.6. compareCycle</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="defaultFunctions.html">3. Default Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="defaultFunctions-data.html">3.1. Default Data Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultSlopeFunction.html">3.1.1. Slope Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultAreaFunction.html">3.1.2. Area Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultSampleFunction.html">3.1.3. Curve Sample Function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-data-defaultCombineDiff.html">3.1.4. Difference Function</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="defaultFunctions-plot.html">3.2. Default Plot Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-initializeFig.html">3.2.1. Initialize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-defaultLabelFunction.html">3.2.2. Show Cycles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="defaultFunctions-plot-defaultPlotFunction.html">3.2.3. Plot</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="protocol.html">4. Protocol</a></li>
+<li class="toctree-l1"><a class="reference internal" href="climate.html">5. Climate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">6. Examples</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Hysteresis</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="baseClass.html"><span class="section-number">1. </span>Base Classes</a> &raquo;</li>
+        
+      <li><span class="section-number">1.2. </span>Hysteresis</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/rst/baseClass-Hysteresis.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="hysteresis">
+<h1><span class="section-number">1.2. </span>Hysteresis<a class="headerlink" href="#hysteresis" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="hysteresis.baseClass.Hysteresis">
+<em class="property">class </em><code class="sig-prename descclassname">hysteresis.baseClass.</code><code class="sig-name descname">Hysteresis</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">XYData</span></em>, <em class="sig-param"><span class="n">setCycles</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">setArea</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">setSlope</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="baseClass-CurveBase.html#hysteresis.baseClass.CurveBase" title="hysteresis.baseClass.CurveBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">hysteresis.baseClass.CurveBase</span></code></a></p>
+<p>Hysteresis objects are those that have at least one reversal point in
+the x direction of the data.</p>
+<p>The hysteresis object has a number of functions that help find the reversal
+points in the x data of the curve.</p>
+<p>The hysteresis object also stores each each half-cycle (where there is no
+change in direction) as a SimpleCycle object.</p>
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.RemoveCycles">
+<code class="sig-name descname">RemoveCycles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.RemoveCycles" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.getCycle">
+<code class="sig-name descname">getCycle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Index</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.getCycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of cycles given a input index</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.getCycles">
+<code class="sig-name descname">getCycles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Indicies</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.getCycles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of cycles given a list of indicies</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.plotCycle">
+<code class="sig-name descname">plotCycle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Index</span></em>, <em class="sig-param"><span class="n">plotPeaks</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">xlim</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">ylim</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.plotCycle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a specific cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.plotCycles">
+<code class="sig-name descname">plotCycles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">Cycles</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">plotCycles</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plotPeaks</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">xlim</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">ylim</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">labelCycles</span><span class="o">=</span><span class="default_value">[]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.plotCycles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots several cycles on the same figure</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.recalculateCycles">
+<code class="sig-name descname">recalculateCycles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peakDist</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">peakWidth</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">peakProminence</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.recalculateCycles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Peaks are calculated using scipy’s find_peaks function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>distance</strong> (<em>number</em><em>, </em><em>optional</em>) – The minimum minimal numbr of indexese (&gt;= 1) in samples between
+neighbouring peaks. Smaller peaks are removed first until the condition
+is fulfilled for all remaining peaks.</p></li>
+<li><p><strong>prominence</strong> (<em>number</em><em> or </em><em>ndarray</em><em> or </em><em>sequence</em><em>, </em><em>optional</em>) – Required prominence of peaks. Either a number, <code class="docutils literal notranslate"><span class="pre">None</span></code>, an array
+matching <cite>x</cite> or a 2-element sequence of the former. The first
+element is always interpreted as the  minimal and the second, if
+supplied, as the maximal required prominence.</p></li>
+<li><p><strong>width</strong> (<em>number</em><em> or </em><em>ndarray</em><em> or </em><em>sequence</em><em>, </em><em>optional</em>) – Required width of peaks in samples. Either a number, <code class="docutils literal notranslate"><span class="pre">None</span></code>, an array
+matching <cite>x</cite> or a 2-element sequence of the former. The first
+element is always interpreted as the  minimal and the second, if
+supplied, as the maximal required width.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.setCycleNetAreas">
+<code class="sig-name descname">setCycleNetAreas</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.setCycleNetAreas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the net area under each cycle.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.setCycles">
+<code class="sig-name descname">setCycles</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.setCycles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stores all simple cycle objects in the Hysteresis</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.setNetArea">
+<code class="sig-name descname">setNetArea</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.setNetArea" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the net area of the whole Hysteresis</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="hysteresis.baseClass.Hysteresis.setReversalIndexes">
+<code class="sig-name descname">setReversalIndexes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">peakDist</span><span class="o">=</span><span class="default_value">2</span></em>, <em class="sig-param"><span class="n">peakWidth</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">peakProminence</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#hysteresis.baseClass.Hysteresis.setReversalIndexes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Finds the location of the reversal points</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="baseClass-SimpleCycle.html" class="btn btn-neutral float-right" title="1.3. SimpleCycle" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="baseClass-CurveBase.html" class="btn btn-neutral float-left" title="1.1. CurveBase" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, CSlotboom
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
