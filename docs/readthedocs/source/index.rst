@@ -1,3 +1,8 @@
+.. Hysteresis documentation master file, created by
+   sphinx-quickstart on Thu Dec 31 18:57:31 2020.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
 PlaneSections Documentation
 ======================================
 PlaneSections is a easy to use beam bending libary.
