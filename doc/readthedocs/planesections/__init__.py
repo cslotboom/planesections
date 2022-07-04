@@ -4,4 +4,4 @@ from .builder import (Section2D, SectionBasic2D, SectionRectangle,
 from .analysis import (OutputRecorder2D, OpenSeesAnalyzer2D)
 from .postprocess import (plotInternalForce2D, plotShear2D, plotMoment2D, 
                        plotShear2D, plotDisp2D, plotVertDisp2D, plotRotation2D)
-from .diagram import plotBeamDiagram, BeamPlotter
+from .diagram import plotBeamDiagram, BeamPlotter2D
