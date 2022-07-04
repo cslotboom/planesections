@@ -279,15 +279,6 @@ class Beam(BeamArchetype):
     
     
 
-
-
-
-
-
-
-
-
-
 # =============================================================================
 # 
 # =============================================================================
@@ -313,9 +304,6 @@ class BeamDiagram:
     def plotFixed():
         pass
     
-
-
-
 class BasicBeamDiagram(BeamDiagram):
     
     """
@@ -603,21 +591,26 @@ class BasicBeamDiagram(BeamDiagram):
 
 
 
-class BeamPlotter:
-    
-    """
-    The interface between the high level beam abstraction and plotting lower 
-    level plotting.
- 
-    Note, the diagram has been rescaled so the beam has lenght scaled to the
-    maximum beam size of 8.
-    This is to make consistent plotting easier across a number of beam sizes,
-    however, the matplotlib objects in the plot have different value than 
-    the actual beam.
- 
-    """
-        
+class BeamPlotter2D:
     def __init__(self, beam, figsize = 8):
+        """
+        Used to make a diagram of the beam. Only certain fixities are supported
+        for plotting, including free, roller (support only in y), pinned (support in x and y),
+        and fixed (support in x/y/rotation).
+        Only certain forces are supported for plotting - for distrubuted
+        forces only the y component of the beam can be plotted.
+     
+        Note, the diagram has been rescaled so the beam has lenght scaled to the
+        maximum beam size of 8.
+        This is to make consistent plotting easier across a number of beam sizes,
+        however, the matplotlib objects in the plot have different value than 
+        the actual beam.
+        
+        The class used as a interface between the high level beam abstraction 
+        and lower level rules plotting.    
+        
+        
+        """        
         
         self.beam = beam
         self.figsize = figsize
@@ -632,7 +625,6 @@ class BeamPlotter:
         self.xmax = xlims[0]
                 
         xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
-        # The ylimit is 
         ylimsPlot = [-L/10 / xscale, L/10 / xscale]
         self.plotter._initPlot(self.figsize, xlimsPlot, ylimsPlot)
         
@@ -644,7 +636,6 @@ class BeamPlotter:
         self.plotter.plotBeam(xy0, xy1)
                
     def plotSupports(self):
-        
         for node in self.beam.nodes:
             fixityType  = node.getFixityType()
             x = node.getPosition()
@@ -661,10 +652,24 @@ class BeamPlotter:
                 kwargs  = {'isLeft':False}                
             
             xy = [x / self.xscale, 0]
+            
             # plot the appropriate option without an if statement!
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
     def plot(self, **kwargs):
+        """
+        Plots the beam, supports, point forces, element forces, and labels.
+        
+        Note that forces have a "static" and "adaptive" portion of their length
+        . This means that arrows can't have values length less than a certain 
+        length, preventing very small arrows from being plotted that look silly.
+        However, this also means that the ratio between different arrows won't
+        be exactly the ratio between their force magnitude.
+        
+        Only the vertical components of distributed forces are plotted.
+
+        """
+        
         self.plotBeam()
         self.plotSupports()
         if self.beam.pointLoads:
@@ -674,6 +679,10 @@ class BeamPlotter:
         self.plotLabels()
         
     def plotLabels(self):
+        """
+        Adds all labels to the plot. Labels are offset from the point in the 
+        x and y.
+        """
         for node in self.beam.nodes:
             label = node.label
             if label:
@@ -688,12 +697,9 @@ class BeamPlotter:
         and a dynamic component that adapts to the magnitude of forces.
         
         The output plotting forces are in the direction they act.
-        
-        
-        
+
         """
         # Normalize forces
-        print(forces)
         forces = np.array(forces)
         signs = np.sign(forces)
         Fmax   = np.max(np.abs(forces), 0)
@@ -717,6 +723,8 @@ class BeamPlotter:
     
     def plotPointForces(self):
         """
+        Plots all point forces.
+        
         Forces have a static portion to their length and dynamic portion.
         This means that arrows can't have length less than a certain value.
         This prevents small from being plotted that look silly.
@@ -745,8 +753,12 @@ class BeamPlotter:
             else:
                 self.plotter.plotPointForce(x - Px, -Py, Px, Py)
 
-
     def plotEleForces(self):
+        """
+        Plots all distributed forces. Only vertical forces can be plotted.
+        If a horizontal component is supplied to the force, it is not included
+        in the plot.
+        """
         
         # The spacing between force lines
         spacing = self.beam.getLength() / 25 / self.xscale
@@ -757,21 +769,19 @@ class BeamPlotter:
             forces.append(force.P)
             xcoords.append([force.x1 / self.xscale, force.x2 / self.xscale])
         
-        print(forces)
         fplot = self._getForceVectorLength(forces, vectScale = 0.4)
         ycoords = self._getStackedPositions(xcoords, fplot)
-        
+                
         NLoads = len(forces)
         for ii in range(NLoads):       
             Px, Py = fplot[ii]
             x1, x2 = xcoords[ii]
             y1 = ycoords[ii] # y1 is the start point of the arrow
-
             
             if (Px != 0 ):
-                print("Waring: Px is supploed to distributed load, but plotting isn't supported for these force types.")
+                print("WARNING: A force with an X component is being used, but plotting isn't supported for this force type.")
             if (Py == 0):
-                print("Waring: distributed load has no vertical component.")            
+                print("WARNING: Distributed load has no vertical component.")            
             else:
                 # This is a little akward, but Py is added to account for the offset of -Py in the base funciton.
                 self.plotter.plotVerticalLineLoad(x1, x2, Py, y1 + Py, spacing=spacing)           
@@ -793,7 +803,6 @@ class BeamPlotter:
         
         fplotOut = np.zeros_like(fplot)
         fplotOut[:] = fplot
-        print(fplot)
 
         # the current x and y points being plotted.        
         plottedxCoords = []
@@ -802,87 +811,59 @@ class BeamPlotter:
         
         # start at the widest items and plot them first
         for ind in sortedInds:
-            
             dy = fplotOut[ind][1]
-            y0 = self.getStackedDatum(xcoords[ind], plottedxCoords, plottedyCoords)
-            
-            # y = 
-            # if positive
+            y0 = self._getStackedDatum(xcoords[ind], plottedxCoords, plottedyCoords)
+
             ycoords[ind] =  y0 - dy
             
             plottedxCoords.append(xcoords[ind])           
             plottedyCoords.append(ycoords[ind])
-            # plottedyCoords.append([y, y - dy])
-            # plottedDyCoords.append(dy)            
-            
-            
-            print(y0)
-            print(dy)
-            print(plottedyCoords)
-            # print(plottedDyCoords)
-            
-             # lengths[ii] = xcoords[ii][1] - xcoords[ii][0]
-        # print(ycoords) 
+
         return ycoords
     
-    def checkIfInRange(self, xtest, x1,x2):
-        # print((x1 <= xtest))
-        # print((xtest <= x2))
-        
+    def _checkIfInRange(self, xtest, x1,x2):
         if (x1 < xtest) and (xtest < x2):
             return True
-        
         return False
     
-    
-  
-    
-    def getStackedDatum(self, xCurrent, currentRanges, plottedY):
+    def _getStackedDatum(self, xCurrent, currentRanges, plottedY):
         """
         Starting at the top of the force stack, check each force to see if
         it intersects with any other forces.
         """
         
         Npoint = len(currentRanges)
-
         for ii in range(Npoint):
             localInd = Npoint - 1 - ii
             x1, x2  = currentRanges[localInd]
-            if self.checkIfInRange(xCurrent[0], x1, x2):
+            if self._checkIfInRange(xCurrent[0], x1, x2):
                     return plottedY[localInd]
-            if self.checkIfInRange(xCurrent[0], x1, x2):
+            if self._checkIfInRange(xCurrent[0], x1, x2):
                     return plottedY[localInd]       
-
         return 0
-           
-
-    def normalizeForces(self):
-        """
-        Reads in all the forces, then normalizes them to fit in the pot space
-        """
-        pass
-
-    def getForceIntersection(self, x1:list, x2:list):
-        """
-        Finds which forces overlap
-        """    
-
-            
+                       
 
 def plotBeamDiagram(beam):
     """
-    Creates a diagram of the created beam. Only certain load types are supported,
-    including
-    
-    Distributed loads do not stack on top of eachother
-    
-    The resulting diagram is a matplotlib
-    figure that can be furthe manipulated.
+    Creates a diagram of the created beam. 
+    Only certain fixities are supported for plotting, including free, roller 
+    (support only in y), pinned (support in x and y), and fixed 
+    (support in x/y/rotation).
+    Only certain forces are supported for plotting - for distrubuted
+    forces only the y component of the beam can be plotted.
+ 
+    Note, the diagram has been rescaled so the beam has lenght scaled to the
+    maximum beam size of 8.
+    This is to make consistent plotting easier across a number of beam sizes,
+    however, the matplotlib objects in the plot have different value than 
+    the actual beam.
+        
+    The resulting diagram is a matplotlib figure that can be further manipulated.
 
     Parameters
     ----------
-    beam : TYPE
-        DESCRIPTION.
+    beam : PlaneSections beam
+        The Beam Object to be plotted.
 
     Returns
     -------
@@ -891,7 +872,7 @@ def plotBeamDiagram(beam):
     ax : matplotlib ax
 
     """
-    diagram = BeamPlotter(beam)
+    diagram = BeamPlotter2D(beam)
     diagram.plot()
     return diagram.plotter.fig, diagram.plotter.ax
 

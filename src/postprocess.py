@@ -1,9 +1,7 @@
 import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
-
 from planesections.builder import Node2D, Beam2D
-
 
 
 def getInternalForces2D(node:Node2D, ind):
@@ -17,7 +15,6 @@ def getInternalForces2D(node:Node2D, ind):
 def _initOutputFig(showAxis, showGrid):
     
     fig, ax = plt.subplots(dpi=300)
-        
 
     if not showAxis:
         ax.axis("off")
@@ -45,7 +42,6 @@ def _plotAxis(ax, xcoords, xunit, yunit, baseY = 'Internal Force'):
     ylabel = baseY + '  (' + yunit + ')'
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
 
 def _plotLabels(ax, xcoords, ycoords, labels):
     
@@ -95,7 +91,9 @@ def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'Nm', **kwargs):
     Returns
     -------
     fig : matplotlib fig
+    
     ax : matplotlib ax
+    
     line : matplotlib line
         the plotted line.
 

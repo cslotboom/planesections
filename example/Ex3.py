@@ -1,44 +1,39 @@
-# -*- coding: utf-8 -*-
-R"""
-Created on Sun May 23 01:00:41 2021
-
-@author: Christian
+"""
+An example with lots of forces.
 """
 
-from planesections import EulerBeam2D, OpenSeesAnalyzer2D, plotMoment2D, plotShear2D
-from planesections.diagram import plotBeamDiagram
+import planesections as ps
+from planesections.units.metric import m, kN
 import numpy as np
 
-kN = 1000
+L = 5*m
+x = np.linspace(0,L,80)
+beam = ps.EulerBeam2D(x)
 
-# Initialize beam variables
-x1 = 0
-x2 = 1
-offset = x2/20
-x      = np.linspace(0, x2, 80)
-fixed  = np.array([1, 1, 0])
-roller = np.array([0, 1, 0])
+pinned = [1,1,0]
+fixed = [1,1,1]
+beam.setFixity(0.4, pinned, label = 'A')
+beam.setFixity(L, fixed, label = 'B')
 
-q = np.array([0.,-1*kN])  # element Distributed load
+P = -2*kN
+M = 5*kN*m
+q = np.array([0.,-1000.])
+beam.addVerticalLoad(0, P,label = 'C')
+beam.addVerticalLoad(2.5, P,label = 'D')
+beam.addVerticalLoad(4, -P,label = 'E')
 
-# Set up the beam 
-beam = EulerBeam2D(x)
-beam.setFixity(x1, fixed)
-beam.setFixity(x2, fixed)
-beam.setFixity(x2/3, roller)
+beam.addMoment(3, M)
 
-# apply forces
-beam.addVerticalLoad(offset, -2*kN, 'A')
-beam.addVerticalLoad(x2/2, -2*kN, 'B')
-beam.addVerticalLoad(x2 - offset, -2*kN, 'C')
-beam.addDistLoad(0, x2, q) 
-plotBeamDiagram(beam)
+beam.addDistLoad(0, 3, q) 
+beam.addDistLoad(0.2,0.5, q*2) 
+beam.addDistLoad(0.5,3, q*4) 
+beam.addDistLoad(4, 4.8, -q*4) 
+beam.addDistLoad(3.2, 4.8, q*2) 
 
-# run analysis
-analysis = OpenSeesAnalyzer2D(beam)
+ps.plotBeamDiagram(beam)
+
+analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
-
-plotShear2D(beam)
-plotMoment2D(beam)
-
+ps.plotShear2D(beam,scale = 1/kN, yunit = 'kN')
+ps.plotMoment2D(beam,scale = -1/kN, yunit = 'kNm')
 

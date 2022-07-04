@@ -1,14 +1,8 @@
-# -*- coding: utf-8 -*-
-R"""
-Created on Sun May 23 01:00:41 2021
-
-@author: Christian
-
-The following example shows a basic implementatation of the beam class.
-A simply supported beam is created, a diagram of it is made, then the beam is
-and analyzed.
 """
-
+The following is a basic demo of how planesections works
+A simply supported beam is created, a diagram of it is made, then the beam is
+and analyzed and results are output
+"""
 import planesections as ps
 
 # Define node locations, and support conditions
@@ -17,14 +11,14 @@ beam = ps.newEulerBeam2D(L)
 
 # Define beam and fixities
 pinned = [1,1,0]
-beam.setFixity(L*0.1, pinned, label = '1')
-beam.setFixity(L*0.9, pinned)
+beam.setFixity(L*0.1, pinned, label = 'A')
+beam.setFixity(L*0.9, pinned, label = 'B')
 
 # Define point Loads
-Pz = -1
-beam.addVerticalLoad(0, Pz, label = 'A')
-beam.addVerticalLoad(L*0.5, 2*Pz, label = 'B')
-beam.addVerticalLoad(L, Pz, label = 'C')
+Pz = -1000
+beam.addVerticalLoad(0, Pz, label = 'C')
+beam.addVerticalLoad(L*0.5, 2*Pz, label = 'D')
+beam.addVerticalLoad(L, Pz, label = 'E')
 
 # Define distributed Loads
 beam.addDistLoadVertical(0, L, Pz)
@@ -38,7 +32,5 @@ analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
 # Plot the SFD and BMD
-ps.plotShear2D(beam)
-ps.plotMoment2D(beam)
-
-
+ps.plotShear2D(beam, scale = 0.001, yunit = 'kN')
+ps.plotMoment2D(beam, scale = 0.001, yunit = 'kNm')

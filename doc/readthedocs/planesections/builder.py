@@ -17,14 +17,6 @@ from abc import ABC, abstractproperty
 
 
 
-
-# =============================================================================
-# Problems:
-# =============================================================================
-# Summarize Nodes?
-# Summarize Loads?
-
-
 class Section2D():
     E:None
     A:None
@@ -88,7 +80,7 @@ class Node2D(NodeArchetype):
         A name for the node. This can be displayed in the plots. The default is ''.
     """    
     
-    
+    _dimension = '2D'
     
     def __init__(self, x, fixity, label = ''):
         
@@ -125,9 +117,9 @@ class Node2D(NodeArchetype):
 
     def getFixityType(self):
         """
-        ???
-        This isn't great, but we can't hash lists so I'm not sure how to 
-        improve it.
+        Returns the type of beam fixity for supported 2D fixities.
+        Currently only free, roller, pinned, and fixed are supported.
+
         """
         if list(self.fixity) == [0,0,0]:
             return 'free'

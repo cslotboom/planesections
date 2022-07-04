@@ -33,15 +33,9 @@ class OutputRecorder2D():
 
     def getEleInteralForce(self, nodID):
         """
-        
         Gets the internal force at the left and right side of a node.
         The left and right side forces represent internal force at either side
-        of a section cut.
-        
-         N-1  L R  N
-        .------.------.
-        N-1    N      N+1
-        
+        of a section cut.       
         
         """
 
@@ -51,8 +45,6 @@ class OutputRecorder2D():
             # 0 is used to so that the plot "closes", i.e. starts at zero the goes up
             Fint[:3] =  0                                   # Left side forces
             Fint[3:] =  op.eleForce(eleR)[:3]             # Right side forces
-            # Fint[3:] = op.eleForce(nodeID)[:3] # Right side forces
-            # Fint[:3] = Fint[3:]                # Left side forces
             
         #Direct Check, this is scary.
         elif nodID == self.nodeIDEnd: # right side node
