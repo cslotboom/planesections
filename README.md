@@ -64,13 +64,13 @@ ps.plotMoment2D(beam)
 ```
 
 <p align="center">
-  <img src="doc/img/Beam Image 2.png" width="500">
+  <img src="doc/img/Beam-Image-2.png" width="500">
 </p>
 <p align="center">
-  <img src="doc/img/Beam Image 2 SFD.png" width="500">
+  <img src="doc/img/Beam-Image-2-SFD.png" width="500">
 </p>  
 <p align="center">
-  <img src="doc/img/Beam Image 2 BMD.png" width="500">
+  <img src="doc/img/Beam-Image-2-BMD.png" width="500">
 </p>  
 
 ## Further Examples
