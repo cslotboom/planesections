@@ -1,10 +1,15 @@
 # PlaneSections
+<p align="center">
+  <img src="doc/img/Beam Image.png" width="500">
+</p>
+
 A lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
 The goal of PlaneSections is to make easy-to-use beam anayses, which can be used to quickly document structural calculations.
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
 
 The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
 will be given for breaking changes.
+
 
 **NOTE:**
 Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
