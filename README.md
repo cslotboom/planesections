@@ -18,6 +18,7 @@ PlaneSections has been design with Metric units in mind in terms of scaling diag
 
 ## Contents
 * [Installation](https://github.com/cslotboom/planesections#Installation)
+* [Features](https://github.com/cslotboom/planesections#Features)
 * [Documentation](https://github.com/cslotboom/planesections#Documentation)
 * [Demo](https://github.com/cslotboom/planesections#Demo)
 * [Work Status](https://github.com/cslotboom/planesections#Status)
@@ -28,6 +29,12 @@ Package is installable through pip
 ```
 pip install planesections
 ```
+
+## Features:
+2D beams can be anayzed under the following force types:
+- Point loads
+- Point Moments
+- Line loads
 
 ## Documentation
 All major functions and classes are documented on read-the-docs: https://planesections.readthedocs.io/en/latest/
