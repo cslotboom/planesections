@@ -39,7 +39,6 @@ def test_nodes():
     assert out == 0
 
 
-
 def test_EulerElements():
     pointBeamAnalysis  = ps.OpenSeesAnalyzer2D(pointBeam)
     pointBeamAnalysis.initModel()
