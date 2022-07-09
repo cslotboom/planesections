@@ -3,7 +3,7 @@
   <img src="doc/img/Beam Image.png" width="500">
 </p>
 
-A lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
+A lightweight finite element beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
 The goal of PlaneSections is to make easy-to-use beam anayses, which can be used to quickly document structural calculations.
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
 **Note, calculations are only completed a the nodes specified by the user - all intermediate values are linearly interpolated**
@@ -21,6 +21,7 @@ PlaneSections has been design with Metric units in mind in terms of scaling diag
 * [Features](https://github.com/cslotboom/planesections#Features)
 * [Documentation](https://github.com/cslotboom/planesections#Documentation)
 * [Demo](https://github.com/cslotboom/planesections#Demo)
+* [License](https://github.com/cslotboom/planesections#License)
 * [Work Status](https://github.com/cslotboom/planesections#Status)
 
 
@@ -89,6 +90,19 @@ ps.plotMoment2D(beam)
 ## Further Examples
 See the examples folder for
 
+## License:
+Some restrictions exist for OpenSees license, so this for now this libary is restricted for resale. 
+Basically, you are able to use the software for anything except commercial use external.
+
+What you can do:
+- Use PlaneSections commercially to analyze/design beams on your building.
+- Develop an App that uses PlaneSections to analyze beams, and share that app within your comapny.
+
+What you can't do:
+- Use PlaneSections to develop an App, then sell that app externally to your company.
+
+If there is any demand for resale, please reach out to the developers. The OpenSees solver can be replaced with a custom one, however due to the time investment required this will only be done if there is demand for it.
+
 
 ## Status
 Before the first beta release, the following will be completed.
@@ -97,7 +111,7 @@ Before the first beta release, the following will be completed.
 - [x] fancy plots (distributed Load)
 - [x] Better deflection plots (distributed Load)
 
-*Infacstructure*:
+*Infastructure*:
 - [x] pip package
   - [x] setup on pypi: complete, package is installable with "pip install planesections"
   - [x] Add requirements
