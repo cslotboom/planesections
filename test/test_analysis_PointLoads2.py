@@ -16,11 +16,12 @@ import numpy as np
 E = 9500*MPa
 b = 38*mm
 h = 235*mm
-section = ps.SectionRectangle(E, h, b)
+section = ps.SectionRectangle(E, h, b, units='mm')
 I = section.Ixx
 
+L = 3
 x1 = 0
-x2 = 3
+x2 = L
 x3 = x2 * (2 / 3)
 
 Py = -5000
@@ -43,6 +44,9 @@ R = beam.reactions
 R1y = R[0][1]
 R2y = R[1][1]
 
+analysis.beam
+
+
 def test_Mmax():
     # pass
     tol = 0.0001
@@ -52,14 +56,24 @@ def test_Mmax():
     
     assert(abs(MAsolution - MA) < tol)
 
-# test_Mmax()
+def test_maxDisp():
+    tolPercent = 0.002
+
+    xmaxSol = 8*L / 13
+    dispMaxSol = 128*L**3*Py / (13689*E*I)
+
+    disp, x = ps.getVertDisp(beam)
 
 
-# def test_Vmax():
-#     tol = 0.0001
-#     check1 = abs(Vmin - q[1]/2) < tol
-#     check2 = abs(Vmax + q[1]/2) < tol
+    dispMax, xmax = ps.getMaxVertDisp(beam)
     
-#     assert(np.all([check1,check2]))
+    check1 = abs(dispMax / dispMaxSol) - 1 < tolPercent
+    check2 = abs(xmax / xmaxSol) - 1 < tolPercent
+    assert (check1 and check2)
 
-    # assert(np.all([check1,check2]))
+
+
+# test_maxDisp()
+    
+    
+# xmax = ps.getMaxVertDisp(beam)

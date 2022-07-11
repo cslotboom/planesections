@@ -1,0 +1,8 @@
+{
+	"Name": "custom unit environment"
+    "distance": {"units":"cm", "scale":0.01, "Ndecimal":0},
+    "force": {"units":"kN", "scale":1.0, "Ndecimal":0},
+    "moment": {"units":"kN", "scale":1.0, "Ndecimal":0},
+    "distForce": {"units":"kN/m", "scale":1.0, "Ndecimal":0},
+
+}
