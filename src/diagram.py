@@ -13,10 +13,12 @@ Hatching should be similar to beam size?
 
 import matplotlib.pyplot as plt
 import numpy as np
+from dataclasses import dataclass
 from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 
 from abc import ABC, abstractmethod
- 
+from planesections.environment import diagramUnits
+
 # hatches = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
 
 
@@ -40,6 +42,8 @@ Not used properly right now, but ideally this is defined only in one place.
 """
 # fixities  = {'free':0, 'roller': 1, 'pinned':2, 'fixed':3}
 fixities  = {'free':[0,0,0], 'roller': [0,1,0], 'pinned':[1,1,0], 'fixed':[1,1,1]}
+
+
 
 
 
@@ -276,8 +280,8 @@ class Beam(BeamArchetype):
         """
         self.nodeArchetype = nodeArchetype                
     
-    
-    
+
+
 
 # =============================================================================
 # 
@@ -315,15 +319,13 @@ class BasicBeamDiagram(BeamDiagram):
     def __init__(self, scale = 1, supScale = 0.8):
 
         self.lw = 1 * scale
-        
         self.scale = scale # Scales all drawing elements
-        # self.yScale = 1
         
         # changes the offset from the point in x/y
         self.labelOffset = 0.1*scale
         
         # Pin geometry variables
-        self.r = 0.1*scale*supScale
+        self.r = 0.08*scale*supScale
         self.hTriSup = 0.3*scale*supScale
         self.wTriSup = 2*self.hTriSup
         
@@ -582,7 +584,11 @@ class BasicBeamDiagram(BeamDiagram):
         y = xy0[1] + self.labelOffset
         self.ax.text(x, y, label, {'size':12*self.scale})
         # self.labelOffset
-
+        
+    # def plotForceLabel(self, xy0, label):
+    #     x = xy0[0] + self.labelOffset
+    #     y = xy0[1] + self.labelOffset
+    #     self.ax.text(x, y, label, {'size':12*self.scale})
 
 
 # =============================================================================
@@ -609,11 +615,16 @@ class BeamPlotter2D:
         The class used as a interface between the high level beam abstraction 
         and lower level rules plotting.    
         
-        
+        unitHandler: str, or dict
+            Represents the . the env tag.
+            
         """        
         
         self.beam = beam
         self.figsize = figsize
+        
+        self.unitHandler = diagramUnits.env
+        
         
         L = beam.getLength()       
         xscale = beam.getLength()  / self.figsize
@@ -624,9 +635,9 @@ class BeamPlotter2D:
         self.xmin = xlims[0]
         self.xmax = xlims[0]
                 
-        xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
-        ylimsPlot = [-L/10 / xscale, L/10 / xscale]
-        self.plotter._initPlot(self.figsize, xlimsPlot, ylimsPlot)
+        self.xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
+        self.ylimsPlot = [-L/10 / xscale, L/10 / xscale]
+        
         
     def plotBeam(self):
         xlims   = self.beam.getxLims()
@@ -639,7 +650,6 @@ class BeamPlotter2D:
         for node in self.beam.nodes:
             fixityType  = node.getFixityType()
             x = node.getPosition()
-            
             """
             This makes some big assumptions about the shape of the system.
             """
@@ -656,7 +666,7 @@ class BeamPlotter2D:
             # plot the appropriate option without an if statement!
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
-    def plot(self, **kwargs):
+    def plot(self, plotLabel = False, plotForceValue = True, **kwargs):
         """
         Plots the beam, supports, point forces, element forces, and labels.
         
@@ -670,13 +680,15 @@ class BeamPlotter2D:
 
         """
         
-        self.plotBeam()
+        self.plotter._initPlot(self.figsize, self.xlimsPlot, self.ylimsPlot)
         self.plotSupports()
         if self.beam.pointLoads:
-            self.plotPointForces()
+            self.plotPointForces(plotForceValue)
         if self.beam.eleLoads:
-            self.plotEleForces()
-        self.plotLabels()
+            self.plotEleForces(plotForceValue)
+        if plotLabel:
+            self.plotLabels()
+        self.plotBeam()
         
     def plotLabels(self):
         """
@@ -689,6 +701,29 @@ class BeamPlotter2D:
                 x = node.getPosition()
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
+                
+        
+    # def _plotPointForceValues(self, frcLabel, frcMag, roundFrc = True):
+    #     """
+    #     Adds labels
+    #     P_A = magnitude
+    #     """
+        
+    #     pltFrc = round(frcMag)
+        
+    #     if frcLabel:
+    #         diaLabel = f"$P_{frcLabel}$" + " = {pltFrc}" + f"{pltUnit}"
+        
+        
+        
+    #     for node in self.beam.nodes:
+    #         label = node.label
+    #         if label:
+    #             x = node.getPosition()
+    #             xy = [x / self.xscale, 0]
+    #             self.plotter.plotLabel(xy, label)                
+    #     self.plotter.plotLabel(xy, label)
+                
 
     def _getForceVectorLength(self, forces, vectScale = 1):
         """
@@ -721,7 +756,7 @@ class BeamPlotter2D:
         return fplot*vectScale
     
     
-    def plotPointForces(self):
+    def plotPointForces(self, plotForceValue):
         """
         Plots all point forces.
         
@@ -738,6 +773,7 @@ class BeamPlotter2D:
             xcoords.append(force.x / self.xscale)
         fplot = self._getForceVectorLength(forces)
         NLoads = len(forces)
+        
         for ii in range(NLoads):
             Px, Py, Mx = fplot[ii]
             
@@ -752,8 +788,10 @@ class BeamPlotter2D:
                 self.plotter.plotPointMoment(x, postive)
             else:
                 self.plotter.plotPointForce(x - Px, -Py, Px, Py)
+                
 
-    def plotEleForces(self):
+
+    def plotEleForces(self, plotForceValue):
         """
         Plots all distributed forces. Only vertical forces can be plotted.
         If a horizontal component is supplied to the force, it is not included
@@ -842,8 +880,19 @@ class BeamPlotter2D:
                     return plottedY[localInd]       
         return 0
                        
+    # TODO: This
+    def plotDimensionLines(self):
+        pass
+                       
+    # TODO: This
+    def plotForceLabels(self):
+        pass
 
-def plotBeamDiagram(beam):
+
+
+
+
+def plotBeamDiagram(beam, plotLabel = False, plotForceValue = True):
     """
     Creates a diagram of the created beam. 
     Only certain fixities are supported for plotting, including free, roller 
@@ -864,6 +913,8 @@ def plotBeamDiagram(beam):
     ----------
     beam : PlaneSections beam
         The Beam Object to be plotted.
+    figsize : PlaneSections beam
+        The size of the output matplotlib figure.
 
     Returns
     -------
@@ -873,6 +924,6 @@ def plotBeamDiagram(beam):
 
     """
     diagram = BeamPlotter2D(beam)
-    diagram.plot()
+    diagram.plot(plotLabel, plotForceValue)
     return diagram.plotter.fig, diagram.plotter.ax
 

@@ -1,10 +1,6 @@
-import openseespy.opensees as op
 import numpy as np
-import matplotlib.pyplot as plt
-
-from planesections.archetypes import NodeArchetype
 from dataclasses import dataclass
-from abc import ABC, abstractproperty
+from abc import ABC, abstractproperty, abstractmethod
 
 # =============================================================================
 # Future additons:
@@ -53,6 +49,42 @@ class SectionRectangle(Section2D):
         self.A = self.d*self.w
         self.Ixx = self.d**3*self.w / 12
         self.Ixx = self.w**3*self.d / 12
+
+
+
+
+# =============================================================================
+# 
+# =============================================================================
+class NodeArchetype(ABC):
+    """
+    Represents a node/point of interst on the diagram.
+    """
+    @abstractmethod
+    def getFixityType():
+        """
+        Gets the fixity type used.
+        Currently supported - free, roller, pin, fixed.
+        """
+        pass
+    
+    @abstractmethod
+    def getPosition():
+        """
+        Gets the x position of the node.
+        Currently supported - roller, pin, fixed.
+        """
+
+        pass
+    
+    @abstractmethod
+    def getLabel():
+        """
+        Returns the label that has been assigned to the node/
+        ???:
+            what values are supported??
+        """
+        pass    
 
         
 class Node2D(NodeArchetype):
@@ -148,7 +180,12 @@ class Node2D(NodeArchetype):
         """
         
         return self.Fint[[ind,ind+3]]
-    
+
+
+
+# =============================================================================
+# 
+# =============================================================================
 
 class Beam2D():
     """
@@ -169,11 +206,12 @@ class Beam2D():
 
         Returns
         -------
-        flaot
+        float
             The beam length.
 
         """
         return self.nodes[-1].x - self.nodes[0].x
+    
     def getxLims(self):
         """
         Returns the  of the beam.
@@ -673,12 +711,12 @@ class Beam2D():
     def getNodes(self):
         return self.nodes
     
-
-    def getForces():
-        pass
-    
-    def getDistForses():
-        pass 
+    # def getMaxDisp(self):
+    #     disps = [None]*self.Nnodes*2
+    #     for ii in self.Nnodes:
+    #         disps[ii:ii+1] = self.nodes[ii].disp
+    #         node.
+    #     return 
 
 # =============================================================================
 # 
@@ -707,7 +745,6 @@ def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
     -------
     EulerBeam2D : EulerBeam2D
         The the beam intialized with the mesh of points between x1 and x2.
-
     """
     
     if x2 <= x1:
@@ -746,19 +783,26 @@ class EulerBeam2D(Beam2D):
         A list of labels for each node. The default is [], which gives no label
         to each node.
     section : Section2D, optional
-        The section to use in the anaysis. The default is SectionBasic2D().
-        
-
+        The section to use in the anaysis. The default uses SectionBasic2D().
     """
+    
     # TODO: this is somewhat problematic as beam references the same list..
-    def __init__(self, xcoords = [], fixities = [], labels = [],
-                 section = SectionBasic2D()):
-
+    def __init__(self, xcoords:list = None, fixities:list = None, labels:list = None,
+                 section = None):
         # geomTransform has values 'Linear' or 'PDelta'
         self._initArrays()
         self.nodes = []
         self.eleLoads = []
-                   
+        
+        if xcoords is None:
+            xcoords = []
+        if fixities is None:
+            fixities = []
+        if labels is None:
+            labels = []
+        if section is None:
+            section = SectionBasic2D()
+        
         self.Nnodes = 0
         NnewNodes = len(xcoords)
         
@@ -774,11 +818,9 @@ class EulerBeam2D(Beam2D):
         self.d = 1
         self.materialPropreties = [section.A, section.E, section.Ixx]        
         self.plotter = None
-        
         self.EleType = 'elasticBeamColumn'
       
     def _parseCoords(self, xcoords):
-        # If s
         if type(xcoords) == float:
             xcoords = [xcoords]
         if len(xcoords) == 1:
@@ -786,8 +828,6 @@ class EulerBeam2D(Beam2D):
                
       
     def _initFixities(self, fixities, NnewNodes):
-        
-           
         if len(fixities) == 0:
             fixities = [np.array([0., 0., 0.])] * NnewNodes
         if len(fixities) != NnewNodes:
@@ -874,17 +914,15 @@ class EulerBeam2D(Beam2D):
             # print(node.hasReaction)
             if node.hasReaction:
                 reactions.append(node.rFrc)
-                
-            # F1 = node.Reactions[index]
-            # F2 = node.Fint[index + 3]
-            
-            # if F1 < Fmin or F2 < Fmin:
-            #     Fmin = min(F1, F2)
-            
-            # if Fmax < F1 or Fmax < F2:
-            #     Fmax = max(F1, F2)
         return reactions
-
+    
+    @property
+    def reactionDict(self):
+        reactions = {}
+        for node in self.nodes:
+            if node.hasReaction:
+                reactions[node.x] = node.rFrc
+        return reactions
 
 @dataclass()
 class EleLoad:

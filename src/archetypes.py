@@ -28,35 +28,7 @@ class LabelArchetype:
 
 
 
-class NodeArchetype(ABC):
-    """
-    Represents a node/point of interst on the diagram.
-    """
-    @abstractmethod
-    def getFixityType():
-        """
-        Gets the fixity type used.
-        Currently supported - free, roller, pin, fixed.
-        """
-        pass
-    
-    @abstractmethod
-    def getPosition():
-        """
-        Gets the x position of the node.
-        Currently supported - roller, pin, fixed.
-        """
 
-        pass
-    
-    @abstractmethod
-    def getLabel():
-        """
-        Returns the label that has been assigned to the node/
-        ???:
-            what values are supported??
-        """
-        pass    
 
 class BeamArchetype(ABC):
     """

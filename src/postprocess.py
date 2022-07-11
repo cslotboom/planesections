@@ -1,8 +1,162 @@
 import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 from planesections.builder import Node2D, Beam2D
 
+
+
+
+
+# =============================================================================
+# 
+# =============================================================================
+
+
+def getVertDisp(beam: Beam2D):
+    """
+    Gets the beam vertical displacement for the beam
+
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to read displacement from. The beam must be analyzed to get data.
+
+    Returns
+    -------
+    disp : numpy array
+        The displacement at each x coordinant.
+    xcoords : numpy array
+        The x coordinants.
+    """
+    return getDisp(beam, 1)
+
+
+def getMaxVertDisp(beam: Beam2D):
+    """
+    Gets the absolute value of beam vertical displacement and it's location.
+
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to read displacement from. The beam must be analyzed to get data.
+
+    Returns
+    -------
+    dispMax : float
+        The displacement at each x coordinant.
+    xcoords : numpy array
+        The x coordinants.
+    """
+    disp, x  = getVertDisp(beam)
+    
+    dispAbs = np.abs(disp)
+    
+    ind = np.argmax(dispAbs)
+    print(ind)
+    
+    return disp[ind], x[ind]
+
+    
+
+
+def getDisp(beam: Beam2D, ind: int):
+    """
+    Gets the beam displacement along the axis specified for the index.
+
+    Parameters
+    ----------
+    beam : Beam2D
+        The beam to read displacement from. The beam must be analyzed to get data.
+    ind : int
+        The index of the axis to read from. Can have value 0: horizontal displacement
+        1: vertical displacement 
+        2: rotation.
+
+    Returns
+    -------
+    disp : numpy array
+        The displacement at each x coordinant.
+    xcoords : numpy array
+        The x coordinants.
+    """
+    
+    xcoords = np.zeros(beam.Nnodes)
+    disp = np.zeros(beam.Nnodes)   
+    for ii, node in enumerate(beam.nodes):
+        xcoords[ii] = node.x
+        disp[ii] = node.disps[ind]
+    return  disp, xcoords
+
+
+
+
+# def getBeamDisp(beam: Beam2D, ind: int):
+#     """
+#     Gets the beam displacement along the axis specified for the index.
+
+#     Parameters
+#     ----------
+#     beam : Beam2D
+#         DESCRIPTION.
+#     ind : TYPE
+#         DESCRIPTION.
+
+#     Returns
+#     -------
+#     None.
+
+#     """
+    
+#     disp = [None]*beam.Nnodes*2
+#     x = [None]*beam.Nnodes*2
+#     ii = 0
+#     for node in beam.nodes:
+#         disp[2*ii] = beam.disp[ind]
+#         x[2*ii:2*ii+1] = beam.x
+#         disp[2*ii + 1] = beam.disp[ind + 3]
+#         # disp[2*ii] = node.Fint[ind]
+#         # F2 = node.Fint[ind + 3]
+        
+#         # if F1 < Fmin or F2 < Fmin:
+#         #     Fmin = min(F1, F2)
+        
+#         # if Fmax < F1 or Fmax < F2:
+#         #     Fmax = max(F1, F2)    
+#     return disp, x
+    
+    
+def getMaxBeamDisp(beam: Beam2D, ind: int):
+    """
+    Gets the beam displacement along the axis specified for the index.
+
+    Parameters
+    ----------
+    beam : Beam2D
+        DESCRIPTION.
+    ind : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """    
+
+
+
+
+
+
+# =============================================================================
+# 
+# =============================================================================
+
+
+    
+# =============================================================================
+# Plotting
+# =============================================================================
 
 def getInternalForces2D(node:Node2D, ind):
     """
@@ -290,7 +444,14 @@ def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
     return plotDisp2D(beam, 2, scale, yunit= yunit, **kwargs)
 
 
-def plotDisp2D(beam:Beam2D, index=1, scale=0.001, xunit= 'm', yunit = 'mm',
+
+
+
+
+
+
+
+def plotDisp2D(beam:Beam2D, index=1, scale=1000, xunit= 'm', yunit = 'mm',
                         showAxis = True, showGrid = False, labelPlot = True):
     """
     Plots the displacement of one dimension of the beam. Each node will contain the
