@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 
 from abc import ABC, abstractmethod
-from planesections.environment import diagramUnits
+from planesections import diagramUnits
 
 # hatches = ['/', '\\', '|', '-', '+', 'x', 'o', 'O', '.', '*']
 
@@ -341,9 +341,9 @@ class BasicBeamDiagram(BeamDiagram):
         self.y0 = 0
 
         self.supportPlotOptions = {'fixed':self.plotFixed, 
-                                 'pinned':self.plotPinned,
-                                 'roller':self.plotRoller,
-                                 'free':self.plotFree}
+                                   'pinned':self.plotPinned,
+                                   'roller':self.plotRoller,
+                                   'free':self.plotFree}
 
     def _initPlot(self, figSize, xlims, ylims, dpi = 300):
         
@@ -483,7 +483,6 @@ class BasicBeamDiagram(BeamDiagram):
 
         """
         xy0Rect, xyLine = self._getFixedSupportCords(xy0, isLeft)
-        # print(isLeft)
         self.ax.add_patch(Rectangle(xy0Rect, self.hFixedRect, self.wRect, ec='black', fc='white', hatch=self.hatch, lw = self.lw))
         self.ax.plot(xyLine[0], xyLine[1], c = 'white', lw = self.lw)
 
@@ -598,7 +597,7 @@ class BasicBeamDiagram(BeamDiagram):
 
 
 class BeamPlotter2D:
-    def __init__(self, beam, figsize = 8):
+    def __init__(self, beam, figsize = 8, units = 'environment'):
         """
         Used to make a diagram of the beam. Only certain fixities are supported
         for plotting, including free, roller (support only in y), pinned (support in x and y),
@@ -622,10 +621,11 @@ class BeamPlotter2D:
         
         self.beam = beam
         self.figsize = figsize
-        
-        self.unitHandler = diagramUnits.env
-        
-        
+        if units == 'environment':
+            self.unitHandler = diagramUnits.activeEnv
+        elif units == 'environment':
+            self.unitHandler = diagramUnits.getEnv(diagramUnits)
+            
         L = beam.getLength()       
         xscale = beam.getLength()  / self.figsize
         self.xscale = xscale
@@ -788,8 +788,6 @@ class BeamPlotter2D:
                 self.plotter.plotPointMoment(x, postive)
             else:
                 self.plotter.plotPointForce(x - Px, -Py, Px, Py)
-                
-
 
     def plotEleForces(self, plotForceValue):
         """
@@ -887,9 +885,6 @@ class BeamPlotter2D:
     # TODO: This
     def plotForceLabels(self):
         pass
-
-
-
 
 
 def plotBeamDiagram(beam, plotLabel = False, plotForceValue = True):

@@ -6,9 +6,10 @@ Created on Sun May 23 01:00:41 2021
 Tests if the diagram unit environment is being loaded correctly.
 """
 
-# import planesections as ps
+from planesections import diagramUnits
 
-from planesections.environment import diagramUnits
+# print(diagramUnits)
+
 
 def test_print():
     """
@@ -23,10 +24,9 @@ def test_setEnv():
     """
     Checks if a different environment gets set.
     """
-    diagramUnits.setEnvironment('imperial_ftkip')
-    print(diagramUnits.env)
-    check1 = diagramUnits.env['distance'].unit == 'ft'
-    check2 = diagramUnits.env['moment'].unit == 'kip-ft'
+    diagramUnits.setActiveEnvironment('imperial_ftkip')
+    check1 = diagramUnits.activeEnv['distance'].unit == 'ft'
+    check2 = diagramUnits.activeEnv['moment'].unit == 'kip-ft'
     
     assert check1 and check2
     
@@ -39,13 +39,13 @@ def test_modify_single():
     """
     modValue = {'unit':'kNcm', 'scale':100, 'Ndecimal' : 1}
     dictVal = 'distForce'
-    diagramUnits.modifyEnvironment(dictVal, modValue)
+    diagramUnits.modifyActiveEnvironment(dictVal, modValue)
     
     # print(ps.diagramUnits.env[dictVal])
-    check1 = diagramUnits.env[dictVal].unit == 'kNcm'
-    check2 = diagramUnits.env[dictVal].scale == 100
-    check3 = diagramUnits.env[dictVal].Ndecimal == 1
-    print(diagramUnits.env)
+    check1 = diagramUnits.activeEnv[dictVal].unit == 'kNcm'
+    check2 = diagramUnits.activeEnv[dictVal].scale == 100
+    check3 = diagramUnits.activeEnv[dictVal].Ndecimal == 1
+    print(diagramUnits.activeEnv)
     assert check1 and check2 and check3
 
 def test_modify_multiple():
@@ -55,13 +55,13 @@ def test_modify_multiple():
     modValues = [{'unit':'cm', 'scale':100, 'Ndecimal' : 1}, 
                 {'unit':'kNm', 'scale':1, 'Ndecimal' : 10}]
     dictVals = ['distance', 'distForce']
-    diagramUnits.modifyEnvironment(dictVals, modValues)
+    diagramUnits.modifyActiveEnvironment(dictVals, modValues)
     
     # print(ps.diagramUnits.env)
-    check1 = diagramUnits.env[dictVals[0]].unit == 'cm'
-    check2 = diagramUnits.env[dictVals[0]].scale == 100
-    check3 = diagramUnits.env[dictVals[1]].Ndecimal == 10
-    print(diagramUnits.env)
+    check1 = diagramUnits.activeEnv[dictVals[0]].unit == 'cm'
+    check2 = diagramUnits.activeEnv[dictVals[0]].scale == 100
+    check3 = diagramUnits.activeEnv[dictVals[1]].Ndecimal == 10
+    print(diagramUnits.activeEnv)
     assert check1 and check2 and check3
     
 def test_modify_multiple2():
@@ -71,12 +71,12 @@ def test_modify_multiple2():
     modValues = [{'unit':'cm', 'scale':100, 'Ndecimal' : 1}, 
                 {'unit':'kNm', 'scale':1, 'Ndecimal' : 10}]
     dictVals = ['distance', 'distForce']
-    diagramUnits.modifyEnvironment(dictVals, modValues)
+    diagramUnits.modifyActiveEnvironment(dictVals, modValues)
     
     # print(ps.diagramUnits.env)
-    check1 = diagramUnits.env[dictVals[0]].unit == 'cm'
-    check2 = diagramUnits.env[dictVals[0]].scale == 100
-    check3 = diagramUnits.env[dictVals[1]].Ndecimal == 10
+    check1 = diagramUnits.activeEnv[dictVals[0]].unit == 'cm'
+    check2 = diagramUnits.activeEnv[dictVals[0]].scale == 100
+    check3 = diagramUnits.activeEnv[dictVals[1]].Ndecimal == 10
     # print(diagramUnits.env)
     # print(diagramUnits.env)
     assert check1 and check2 and check3
@@ -85,10 +85,10 @@ def test_resetEnv():
     """
     Checks if a different environment gets set.
     """
-    diagramUnits.setEnvironment('imperial_ftkip')
-    print(diagramUnits.env)
-    check1 = diagramUnits.env['distance'].unit == 'ft'
-    check2 = diagramUnits.env['distForce'].scale == 0.001
+    diagramUnits.setActiveEnvironment('imperial_ftkip')
+    print(diagramUnits.activeEnv)
+    check1 = diagramUnits.activeEnv['distance'].unit == 'ft'
+    check2 = diagramUnits.activeEnv['distForce'].scale == 0.001
     
     assert check1 and check2
     

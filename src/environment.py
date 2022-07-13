@@ -10,12 +10,11 @@ class DiagramUnitEnvironmentHandler:
     envTypes =  ['metric', 'metric_kNm', 'metric_Nm', 
                  'imperial_ftkip', 'imperial_ftlb', 'file']
     envPresetDict =  {'metric': mDiagramUnits_mkN, 
-                    'metric_kNm': mDiagramUnits_mkN,
-                    'metric_Nm': mDiagramUnits_mN,
-                    'imperial_ftkip': iDiagramUnits_ftkip,
-                    'imperial_ftlb': iDiagramUnits_ftlb,
-                    }
-    env = None
+                      'metric_kNm': mDiagramUnits_mkN,
+                      'metric_Nm': mDiagramUnits_mN,
+                      'imperial_ftkip': iDiagramUnits_ftkip,
+                      'imperial_ftlb': iDiagramUnits_ftlb}
+    activeEnv = None
            
     def __init__(self, envType = "metric", fileName = ''):
         """
@@ -23,7 +22,7 @@ class DiagramUnitEnvironmentHandler:
         be a value from envTypes, or a json file specified by 'file'.
         If it is a file, then a filename must be specified.
         """
-        self.setEnvironment(envType, fileName)
+        self.setActiveEnvironment(envType, fileName)
     
     def _validateEnvInput(self, envType):
         """
@@ -44,8 +43,9 @@ class DiagramUnitEnvironmentHandler:
     #         raise Exception(f'{envType} is not one of the supported types')    
     # envTypes =  ['Metric', 'metric_kNm', 'metric_Nm', 
     #              'Imperial_ftkip', 'Imperial_ftlb', 'file']
+
     
-    def setEnvironment(self, envType, fileName = ''):
+    def setActiveEnvironment(self, envType, fileName = ''):
         """
         Sets the unit environment for diagrams. This manages the apperance 
         of all units.
@@ -62,18 +62,16 @@ class DiagramUnitEnvironmentHandler:
             via json file.    
         """
         self._validateEnvInput(envType)
-        
         if envType =='file':
-            self.env = self.readCustomEnv(fileName)
+            self.activeEnv = self.readCustomEnv(fileName)
         else:
-            self.env = deepcopy(self.envPresetDict[envType])
-    
-   
+            self.activeEnv = deepcopy(self.envPresetDict[envType])
+
     # TODO: fix this
     def readCustomEnv(self, file):
-        pass
+        print('Custom Environments coming soon....')
         
-    def modifyEnvironment(self, parameters, modDicts):
+    def modifyActiveEnvironment(self, parameters, modDicts):
         """
         Changes the current environment, modifying part of the units in the environment.
 
@@ -88,82 +86,58 @@ class DiagramUnitEnvironmentHandler:
             {"unit": yourUnit, "scale": yourscale, "Ndecimal":yourDecimals}
         """        
         
-        output = deepcopy(self.env)
+        output = deepcopy(self.activeEnv)
         
         if isinstance(parameters, str):
             parameters = [parameters]
         if isinstance(modDicts, dict):
             modDicts = [modDicts]
-            
         if isinstance(parameters, list) and isinstance(modDicts, list):
             if len(parameters) != len(modDicts):
                 raise Exception('The input variable lengths do not match')
             for param, modDict in zip(parameters, modDicts):
                 output[param].__dict__ = modDict
+        self.activeEnv = output
+    
+    def getActiveEnvironment(self):
+        """
+        Returns an copy of the active environment.
 
-        self.env = output
-        
+        Returns
+        -------
+        Environment Dict
+            A dictionary of the einvironment classes. See XX.
+
+        """
+        return deepcopy(self.activeEnv)
+    
+    
+
+    def getEnvironment(self, envType:str):
+        """
+        returns a copy of the input environment type
+
+        Parameters
+        ----------
+        envType : str
+            The diagram unit environment to use. Custom values can be input
+            via json file.
+            Can have a value of:  *'metric',  'metric_kNm',  'metric_Nm',  
+            'imperial_ftkip',  'imperial_ftlb',  'file'*
+
+        """
+        if self._validateEnvInput(envType):
+            return deepcopy(self.envPresetDict[envType])
         
     def __str__(self):
         summary = 'The diagram units arguements are:\n'
-        for key in self.env.keys():
-            summary += key + ' - ' + self.env[key].getSummary() + '\n'
+        for key in self.activeEnv.keys():
+            summary += key + ' - ' + self.activeEnv[key].getSummary() + '\n'
         return summary
     
     def print(self):
         print(self)
     
 
-diagramUnits = DiagramUnitEnvironmentHandler()
 
-
-
-class DiagramUnitArgs:
-    """
-    Defines the units and scale used in the diagram and output postprocessing 
-    plots
-    distance_unit : str
-        The unit to use for distance labels.
-    distance_scale : float
-        The scale to use to use for distance units.
-    distance_Ndecimal : int
-        The amount of decimals to round the distance units too.
-    force_unit : str
-        The unit to use for point force labels.
-    force_scale : float
-        The scale to use to use for point force magnitudes.
-    force_Ndecimal : int
-        The amount of decimals to use in point force labels.
-    moment_unit : str
-        The unit to use for moment labels.
-    moment_scale : float
-        The scale to use to use for moment magnitudes.
-    moment_Ndecimal : int
-        The amount of decimals to use in moment labels.
-    distForce_unit : str
-        The unit to use for distributed force labels.
-    distForce_scale : float
-        The scale to use to use for distributed force magnitudes.
-    distForce_Ndecimal : int
-        The amount of decimals to use in distributed force labels.
-       
-    """
-   
-    distance_unit:str     = 'm'
-    distance_scale:float  = 1.
-    distance_Ndecimal:int = 2
-    force_unit:str        = 'kN' 
-    force_scale:float     = 0.001
-    force_Ndecimal:int    = 0
-    moment_Unit:str       = 'kNm'
-    moment_scale:float    = 0.001
-    moment_Ndecimal:int    = 0
-    distForce_unit:str    = 'kN/m' 
-    distForce_scale:float = 0.001
-    distForce_Ndecimal:int    = 0
-
-
-
-
-
-
+# diagramUnits = DiagramUnitEnvironmentHandler()
