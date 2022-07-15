@@ -604,9 +604,11 @@ class BeamPlotter2D:
         and fixed (support in x/y/rotation).
         Only certain forces are supported for plotting - for distrubuted
         forces only the y component of the beam can be plotted.
+        Mixed Forces, those that contain a combination of Px/Py/Moment will 
+        not be plotted
      
-        Note, the diagram has been rescaled so the beam has lenght scaled to the
-        maximum beam size of 8.
+        Note, the diagram has been rescaled so it's length in the digram 
+        isn't it's analysis lenght.
         This is to make consistent plotting easier across a number of beam sizes,
         however, the matplotlib objects in the plot have different value than 
         the actual beam.
@@ -644,6 +646,7 @@ class BeamPlotter2D:
         xy0     = [xlims[0]  / self.xscale, 0]
         xy1     = [xlims[1]  / self.xscale, 0]        
         d       = self.beam.d
+        # print(xlims)
         self.plotter.plotBeam(xy0, xy1)
                
     def plotSupports(self):
@@ -653,7 +656,6 @@ class BeamPlotter2D:
             """
             This makes some big assumptions about the shape of the system.
             """
-            
             kwargs = {}
             if fixityType == 'fixed' and x == self.xmin:
                 kwargs =  {'isLeft':True}
@@ -666,7 +668,8 @@ class BeamPlotter2D:
             # plot the appropriate option without an if statement!
             self.plotter.supportPlotOptions[fixityType](xy, **kwargs)
 
-    def plot(self, plotLabel = False, plotForceValue = True, **kwargs):
+    def plot(self, plotLabel = False, labelForce = True, 
+             plotForceValue = True, **kwargs):
         """
         Plots the beam, supports, point forces, element forces, and labels.
         
@@ -683,9 +686,12 @@ class BeamPlotter2D:
         self.plotter._initPlot(self.figsize, self.xlimsPlot, self.ylimsPlot)
         self.plotSupports()
         if self.beam.pointLoads:
-            self.plotPointForces(plotForceValue)
+            fplot = self.plotPointForces()
+        if self.beam.pointLoads and plotLabel:
+            self.plotPointForceLables(fplot, labelForce, plotForceValue)
+            
         if self.beam.eleLoads:
-            self.plotEleForces(plotForceValue)
+            self.plotEleForces(labelForce, plotForceValue)
         if plotLabel:
             self.plotLabels()
         self.plotBeam()
@@ -697,11 +703,56 @@ class BeamPlotter2D:
         """
         for node in self.beam.nodes:
             label = node.label
-            if label:
+            
+            if label and node.labelIsPlotted:
+                # print(node.ID)
                 x = node.getPosition()
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
+                node.labelIsPlotted = True
                 
+    def plotPointForceLables(self, fplot, labelForce, plotForceValue):
+        """
+        Adds all labels to the plot. Labels are offset from the point in the 
+        x and y.
+        """
+        
+        labels = []
+        outForceLabels = []
+        inds = range(len(self.beam.pointLoads))
+        for ii, force in zip(inds, self.beam.pointLoads):
+            Px, Py, Mx = fplot[ii]
+            isMoment = False
+            if Mx != 0:
+                isMoment = True
+                Py = -0.15
+            
+            labelBase = self.beam.nodes[force.nodeID - 1].label
+            label = ''
+            
+            print(force.nodeID)
+            print(labelBase)
+            print(labelForce)
+            if labelBase and labelForce and isMoment:
+                label += f'$M_{labelBase}$'
+            elif labelBase and labelForce and (not isMoment):
+                label += f'$P_{labelBase}$'
+            else:
+                pass
+            
+            # label +=
+            
+            x = force.getPosition()
+            xy = [x / self.xscale, -Py]            
+            self.plotter.plotLabel(xy, label)
+            self.beam.nodes[force.nodeID - 1].labelisPlotted = True
+            # if force.label
+            #TODO Add the force and units!
+            # if labelForce and isMoment:
+                
+            
+        
+
         
     # def _plotPointForceValues(self, frcLabel, frcMag, roundFrc = True):
     #     """
@@ -756,7 +807,7 @@ class BeamPlotter2D:
         return fplot*vectScale
     
     
-    def plotPointForces(self, plotForceValue):
+    def plotPointForces(self):
         """
         Plots all point forces.
         
@@ -765,22 +816,18 @@ class BeamPlotter2D:
         This prevents small from being plotted that look silly.
 
         """
-        forces = []
+        forces  = []
         xcoords = []
-        
         for force in self.beam.pointLoads:
             forces.append(force.P)
             xcoords.append(force.x / self.xscale)
-        fplot = self._getForceVectorLength(forces)
+        fplot  = self._getForceVectorLength(forces)
         NLoads = len(forces)
         
         for ii in range(NLoads):
             Px, Py, Mx = fplot[ii]
-            
             x = xcoords[ii]
-            
-            # if it's a moment, plot it as a moment
-            if (Px == 0 and Py ==0):
+            if (Px == 0 and Py ==0): # if it's a moment, plot it as a moment
                 if Mx < 0:
                     postive = True
                 else:
@@ -788,6 +835,8 @@ class BeamPlotter2D:
                 self.plotter.plotPointMoment(x, postive)
             else:
                 self.plotter.plotPointForce(x - Px, -Py, Px, Py)
+                
+        return fplot
 
     def plotEleForces(self, plotForceValue):
         """
@@ -798,8 +847,7 @@ class BeamPlotter2D:
         
         # The spacing between force lines
         spacing = self.beam.getLength() / 25 / self.xscale
-        
-        forces = []
+        forces  = []
         xcoords = []        
         for force in self.beam.eleLoads:
             forces.append(force.P)
@@ -833,10 +881,9 @@ class BeamPlotter2D:
         xcoords = np.array(xcoords)
         ycoords = np.zeros(Nforces) # [bottom, top]
         
-        # Get the lengths - we want to 
+        # Get the lengths
         lengths = xcoords[:,1] - xcoords[:,0]
         sortedInds = np.argsort(lengths)[::-1]
-        
         fplotOut = np.zeros_like(fplot)
         fplotOut[:] = fplot
 
@@ -887,9 +934,9 @@ class BeamPlotter2D:
         pass
 
 
-def plotBeamDiagram(beam, plotLabel = False, plotForceValue = True):
+def plotBeamDiagram(beam, units = 'environment', plotLabel = False, labelForce = True, plotForceValue = True):
     """
-    Creates a diagram of the created beam. 
+    Creates a diagram of the created beam.
     Only certain fixities are supported for plotting, including free, roller 
     (support only in y), pinned (support in x and y), and fixed 
     (support in x/y/rotation).
@@ -918,7 +965,7 @@ def plotBeamDiagram(beam, plotLabel = False, plotForceValue = True):
     ax : matplotlib ax
 
     """
-    diagram = BeamPlotter2D(beam)
-    diagram.plot(plotLabel, plotForceValue)
+    diagram = BeamPlotter2D(beam, units = units)
+    diagram.plot(plotLabel, plotForceValue, labelForce)
     return diagram.plotter.fig, diagram.plotter.ax
 

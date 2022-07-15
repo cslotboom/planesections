@@ -120,6 +120,8 @@ class Node2D(NodeArchetype):
         self.fixity = fixity
         self.ID = None        
         self.label = label
+        self.labelIsPlotted = False
+        
         self.pointLoadIDs = []
         
         self.disp = None
@@ -508,8 +510,10 @@ class Beam2D():
         
         """
         
+        if hasattr(pointLoad, '__iter__') == False:
+            raise Exception('Point load vector must be a list of Numpy array.')
+            
         loadID = len(self.pointLoads) + 1
-        
         # Add the load ID to the node in question. Make a node if no ID.
         if x in self.nodeCoords:
             nodeIndex = self._findNode(x)
@@ -754,6 +758,45 @@ def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
     
     return EulerBeam2D(x)
 
+def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0):
+    """
+    Initializes a new simply supported Euler beam with a distributed load. 
+    The beam will have no fixities or labels.
+
+    Parameters
+    ----------
+    x2 : float
+        The end position of the beam. If no x1 is provided, this is also the
+        length of the beam
+    x1 : float, optional
+        The start position of the beam. The default is 0.
+    meshSize : int, optional
+        The mesh size for the beam. This many nodes will be added between the 
+        points x1 and x2. The default is 101, which divides the beam into
+        100 even sections..
+    q : float, optional
+        The simply supported
+
+
+
+    Returns
+    -------
+    EulerBeam2D : EulerBeam2D
+        The the beam intialized with the mesh of points between x1 and x2.
+    """
+    
+    if x2 <= x1:
+        raise Exception('x2 must be greater than x1')
+    
+    x = np.linspace(x1, x2, meshSize)  
+    
+    beam  = EulerBeam2D(x)
+    beam.addNode(x1, [1,1,0])
+    beam.addNode(x2, [0,1,0])
+    if q != 0:
+        beam.addDistLoad(x1, x2, q)
+    return beam
+
 
 
 class EulerBeam2D(Beam2D):
@@ -983,4 +1026,7 @@ class PointLoad:
 
     def _setID(self, newID):
         self.nodeID = newID
+        
+    def getPosition(self):
+        return self.x
         

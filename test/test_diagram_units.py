@@ -8,7 +8,7 @@ Tests if node labels are being set and re-ordered correctly.
 
 import planesections as ps
 from planesections.units.metric import m, kN
-ps.environment.diagramUnits.setEnvironment('imperial_ftkip')
+ps.diagramUnits.setActiveEnvironment('imperial_ftkip')
 
 #TODO: make function that updates to this, so the path isn't so long?
 import numpy as np
@@ -42,11 +42,11 @@ diagram = ps.BeamPlotter2D(beam)
 print(diagram.unitHandler['distance'])
 print(diagram.unitHandler)
 
-ps.environment.diagramUnits.setEnvironment('metric')
+ps.diagramUnits.setActiveEnvironment('metric')
 
 diagram = ps.BeamPlotter2D(beam)
-# print(diagram.unitHandler['distance'])
-# print(diagram.unitHandler)
+print(diagram.unitHandler['distance'])
+print(diagram.unitHandler)
 
 
 # test_labels_new()

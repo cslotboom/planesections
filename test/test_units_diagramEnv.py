@@ -57,7 +57,6 @@ def test_modify_multiple():
     dictVals = ['distance', 'distForce']
     diagramUnits.modifyActiveEnvironment(dictVals, modValues)
     
-    # print(ps.diagramUnits.env)
     check1 = diagramUnits.activeEnv[dictVals[0]].unit == 'cm'
     check2 = diagramUnits.activeEnv[dictVals[0]].scale == 100
     check3 = diagramUnits.activeEnv[dictVals[1]].Ndecimal == 10
@@ -77,8 +76,6 @@ def test_modify_multiple2():
     check1 = diagramUnits.activeEnv[dictVals[0]].unit == 'cm'
     check2 = diagramUnits.activeEnv[dictVals[0]].scale == 100
     check3 = diagramUnits.activeEnv[dictVals[1]].Ndecimal == 10
-    # print(diagramUnits.env)
-    # print(diagramUnits.env)
     assert check1 and check2 and check3
 
 def test_resetEnv():

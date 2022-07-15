@@ -1,5 +1,6 @@
 from .builder import (Section2D, SectionBasic2D, SectionRectangle,
-                      Node2D, Beam2D, newEulerBeam2D, EulerBeam2D, EleLoad, PointLoad)
+                      Node2D, Beam2D, newEulerBeam2D, newSimpleEulerBeam2D, 
+                      EulerBeam2D, EleLoad, PointLoad)
 
 from .analysis import (OutputRecorder2D, OpenSeesAnalyzer2D)
 from .postprocess import (getDisp, getVertDisp, getMaxVertDisp,
