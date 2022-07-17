@@ -343,7 +343,6 @@ class Beam2D():
             self.nodes[index] = newNode
             return 0
         else:
-            # print(newNode)
             self._addNewNode(newNode, sort)
             return 1
         return -1
@@ -488,7 +487,7 @@ class Beam2D():
         else:
             self.addNode(x, fixity, label)        
                  
-    def addPointLoad(self, x, pointLoad, label = None):
+    def addPointLoad(self, x, pointLoad, label = ''):
         """
         Adds a load ot the model at location x.
         If a node exists at the current location, the old load value is overwritten.
@@ -610,7 +609,7 @@ class Beam2D():
                 return ii
         return None
             
-    def addDistLoad(self, x1, x2, distLoad):
+    def addDistLoad(self, x1, x2, distLoad, label=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -628,7 +627,8 @@ class Beam2D():
         distLoad : 2D array
             The distributed load in the form of 
             [Axial force, shear force]
-
+        label : str
+            A optional label for the force.
         """
         
         defaultFixity = np.array([0,0,0], int)
@@ -640,10 +640,10 @@ class Beam2D():
         if x2 not in self.nodeCoords:
             self.addNode(x2, defaultFixity)
         
-        newEleLoad = EleLoad(x1, x2, distLoad)
+        newEleLoad = EleLoad(x1, x2, distLoad, label)
         self.eleLoads.append(newEleLoad)
 
-    def addDistLoadVertical(self, x1, x2, qy):
+    def addDistLoadVertical(self, x1, x2, qy, label=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -660,13 +660,14 @@ class Beam2D():
             Start point of distributed load.
         qy : float
             A constantly distributed axial force.
-
+        label : str
+            A optional label for the force.
         """
 
         distLoad = np.array([0., qy])
-        self.addDistLoad(x1, x2, distLoad)
+        self.addDistLoad(x1, x2, distLoad, label)
 
-    def addDistLoadHorizontal(self, x1, x2, qx):
+    def addDistLoadHorizontal(self, x1, x2, qx, label=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -683,9 +684,11 @@ class Beam2D():
             Start point of distributed load.
         qx : float
             A constantly distributed axial force.
+        label : str
+            A optional label for the force.            
         """
         distLoad = np.array([qx, 0.])
-        self.addDistLoad(x1, x2, distLoad)
+        self.addDistLoad(x1, x2, distLoad, label)
 
     
 
@@ -775,9 +778,7 @@ def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0):
         points x1 and x2. The default is 101, which divides the beam into
         100 even sections..
     q : float, optional
-        The simply supported
-
-
+        The distributed load on the simply supported beam.
 
     Returns
     -------
@@ -954,7 +955,6 @@ class EulerBeam2D(Beam2D):
     def reactions(self):
         reactions = []
         for node in self.nodes:
-            # print(node.hasReaction)
             if node.hasReaction:
                 reactions.append(node.rFrc)
         return reactions

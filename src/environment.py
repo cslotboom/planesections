@@ -5,7 +5,13 @@ from copy import deepcopy
    
 class DiagramUnitEnvironmentHandler:
     """
-    Creates and manages the unit environment
+    Creates and manages the units in the diagrams. When a diagram goes to 
+    plot units, they will either be read from the active environment, or by
+    reading from a specific set of units. The active environment can be 
+    modified using the 'modifyActiveEnvironment' method, and a new active
+    environment can be set using the 'setActiveEnvironment' method.
+
+    By default, the active environment is used for all plots.
     """
     envTypes =  ['metric', 'metric_kNm', 'metric_Nm', 
                  'imperial_ftkip', 'imperial_ftlb', 'file']
@@ -17,11 +23,7 @@ class DiagramUnitEnvironmentHandler:
     activeEnv = None
            
     def __init__(self, envType = "metric", fileName = ''):
-        """
-        Creates and manages the unit environment. THe environment must either
-        be a value from envTypes, or a json file specified by 'file'.
-        If it is a file, then a filename must be specified.
-        """
+
         self.setActiveEnvironment(envType, fileName)
     
     def _validateEnvInput(self, envType):
@@ -32,18 +34,6 @@ class DiagramUnitEnvironmentHandler:
             return True
         else:
             raise Exception(f'{envType} is not one of the supported types, use one of {self.envTypes}')
-    
-    # def _validateCustomEnv(self, envType):
-    #     """
-    #     Checks if a Custom Environment is valid
-    #     """
-    #     if envType in self.envTypes:
-    #         self.env = self.envDict[envType]
-    #     else:
-    #         raise Exception(f'{envType} is not one of the supported types')    
-    # envTypes =  ['Metric', 'metric_kNm', 'metric_Nm', 
-    #              'Imperial_ftkip', 'Imperial_ftlb', 'file']
-
     
     def setActiveEnvironment(self, envType, fileName = ''):
         """
@@ -56,7 +46,7 @@ class DiagramUnitEnvironmentHandler:
             The diagram unit environment to use. Custom values can be input
             via json file.
             Can have a value of:  *'metric',  'metric_kNm',  'metric_Nm',  
-            'imperial_ftkip',  'imperial_ftlb',  'file'*
+            'imperial_ftkip',  'imperial_ftlb'*
         fileName : str
             If a custom file is used, then  environment to use. Custom values can be input
             via json file.    
@@ -106,16 +96,14 @@ class DiagramUnitEnvironmentHandler:
         Returns
         -------
         Environment Dict
-            A dictionary of the einvironment classes. See XX.
+            A dictionary of the environment classes.
 
         """
         return deepcopy(self.activeEnv)
-    
-    
 
     def getEnvironment(self, envType:str):
         """
-        returns a copy of the input environment type
+        Returns a copy of the input environment type.
 
         Parameters
         ----------
@@ -138,6 +126,3 @@ class DiagramUnitEnvironmentHandler:
     def print(self):
         print(self)
     
-    # def roundTo()
-
-# diagramUnits = DiagramUnitEnvironmentHandler()

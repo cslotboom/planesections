@@ -40,246 +40,9 @@ They should define all the meaningful interfaces/abstractions in the class.
 """
 Not used properly right now, but ideally this is defined only in one place.
 """
-# fixities  = {'free':0, 'roller': 1, 'pinned':2, 'fixed':3}
 fixities  = {'free':[0,0,0], 'roller': [0,1,0], 'pinned':[1,1,0], 'fixed':[1,1,1]}
 
 
-
-
-
-
-class NodeArchetype:
-    """
-    Represents a node/point of interst on the diagram.
-    """
-    @abstractmethod
-    def getFixityType():
-        """
-        Gets the fixity type used.
-        Currently supported - free, roller, pin, fixed.
-        """
-        pass
-    
-    @abstractmethod
-    def getPosition():
-        """
-        Gets the x position of the node.
-        Currently supported - roller, pin, fixed.
-        """
-
-        pass
-    
-    @abstractmethod
-    def getLabel():
-        """
-        Returns the label that has been assigned to the node/
-        ???:
-            what values are supported??
-        """
-        pass    
-    
-
-
-class BeamArchetype:
-    """
-    Archetype class of data beams need in order to use make use of the beam
-    diagram class
-    
-    ???:
-        Should nodes be given a required internal naming convention?
-    """
-    nodes = []
-    NodeArchetype = None
-    forces = []
-    distForces = []
-
-    
-    
-    @abstractmethod
-    def getNodes():
-        """
-        Returns all noed objects in the beam.
-        """
-        pass
-    
-    @abstractmethod
-    def getForces():
-        """
-        Gets all applied point Loads.
-        """        
-        pass
-    
-    @abstractmethod
-    def getDistForses():
-        """
-        Gets all applied distrubuted Loads.
-        """ 
-        pass    
-    
-    
-    @abstractmethod
-    def setNodeArchetype():
-        """
-        Sets the archetype method used to create new nodes.
-        """ 
-        pass
-    
-    @abstractmethod
-    def addNode(self, xCoord, fixity, label=None):
-        """
-        Adds a new node to the model.
-        """ 
-        pass    
-
-        
-        
-        
-
-
-# ???
-# call point force?
-
-class ForceArchetype:
-    """
-    Represents a force applied to a single node
-    """
-    
-    @abstractmethod
-    def getConnectedNode():
-        """
-        """
-        pass
-    
-    @abstractmethod
-    def getMagnitudes():
-        """
-        Returns the magnitude of force at each of the connected nodes
-        """
-        pass   
-    
-     
-    @abstractmethod
-    def getLabelNodes():
-        """
-        Returns the nodes that are labeled
-        """
-        pass         
-
-class DistrubtedForceArchetype:
-    """
-    Represents a force distributed across multiple nodes, i.e. uniform, etc
-    """
-    
-    @abstractmethod
-    def getConnectedNode():
-        """
-        
-        """
-        pass
-    
-    @abstractmethod
-    def getMagnitudes():
-        """
-        Returns the magnitude of force at each of the connected nodes
-        """
-        pass   
-    
-     
-    @abstractmethod
-    def getLabelNodes():
-        """
-        Returns the nodes that are labeled
-        """
-        pass      
-    
-    
-
-
-# =============================================================================
-# Implementations.
-# =============================================================================
-
-
-class Node(NodeArchetype):
-    """
-    A concrete implementation for a class that represents a node/point of 
-    interst on the diagram.
-    """
-    
-    def __init__(self, xCoord, fixity, label):
-        self.x = xCoord
-        self.fixity = fixity
-        self.label = label
-    
-    
-    def getFixityType(self):
-        """
-        Gets the fixity type used.
-        Currently supported - free, roller, pin, fixed.
-        """
-        return self.fixity
-    
-    def getPosition(self):
-        """
-        Gets the x position of the node.
-        Currently supported - roller, pin, fixed.
-        """
-
-        return self.x
-    
-    def getLabel(self):
-        """
-        Returns the label that has been assigned to the node/
-        ???:
-            what values are supported??
-        """
-        return self.label  
-
-
-class Beam(BeamArchetype):
-    
-    def __init__(self):
-        """
-        The concrete implementaiton of the beam class.
-
-        """
-        nodes = []
-        NodeArchetype = None
-        forces = []
-        distForces = []
-        
-        self.setNodeArchetype()
-    
-    def getNodes(self):
-        """
-        Returns all noed objects in the beam.
-        """
-        return self.nodes
-    
-    def getForces(self):
-        """
-        Gets all applied point Loads.
-        """        
-        return self.forces
-    
-    def getDistForses(self):
-        """
-        Gets all applied distrubuted Loads.
-        """ 
-        print('NOT SUPPORTED YET')            
-        
-        
-    def addNode(self, xCoord, fixity, label=None):
-        NewNode = self.nodeArchetype(xCoord, fixity,label)
-        self.nodes.append(NewNode)
-    
-    def setNodeArchetype(self, nodeArchetype:NodeArchetype = Node):
-        """
-        Used to set the type of node class used. The node should inherit from
-        the nodeArhetype class.
-        """
-        self.nodeArchetype = nodeArchetype                
-    
 
 
 
@@ -625,8 +388,8 @@ class BeamPlotter2D:
         self.figsize = figsize
         if units == 'environment':
             self.unitHandler = diagramUnits.activeEnv
-        elif units == 'environment':
-            self.unitHandler = diagramUnits.getEnv(diagramUnits)
+        else:
+            self.unitHandler = diagramUnits.getEnvironment(units)
             
         L = beam.getLength()       
         xscale = beam.getLength()  / self.figsize
@@ -640,13 +403,14 @@ class BeamPlotter2D:
         self.xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
         self.ylimsPlot = [-L/10 / xscale, L/10 / xscale]
         
+        self.plottedNodeIDs = []
+        
         
     def plotBeam(self):
         xlims   = self.beam.getxLims()
         xy0     = [xlims[0]  / self.xscale, 0]
         xy1     = [xlims[1]  / self.xscale, 0]        
         d       = self.beam.d
-        # print(xlims)
         self.plotter.plotBeam(xy0, xy1)
                
     def plotSupports(self):
@@ -691,8 +455,12 @@ class BeamPlotter2D:
             self.plotPointForceLables(fplot, labelForce, plotForceValue)
             
         if self.beam.eleLoads:
-            self.plotEleForces(labelForce, plotForceValue)
+            fplot, xcoords = self.plotEleForces()
+        if self.beam.eleLoads and plotLabel:
+            self.plotDistForceLables(fplot, xcoords, labelForce, plotForceValue)
+            
         if plotLabel:
+            # print('here')
             self.plotLabels()
         self.plotBeam()
         
@@ -703,22 +471,40 @@ class BeamPlotter2D:
         """
         for node in self.beam.nodes:
             label = node.label
+            x     = node.getPosition()
             
-            if label and node.labelIsPlotted:
-                # print(node.ID)
-                x = node.getPosition()
+            if label and (self._checkIfLabelPlotted(node.ID) != True):
                 xy = [x / self.xscale, 0]
                 self.plotter.plotLabel(xy, label)
-                node.labelIsPlotted = True
-                
+                self._addLabelToPlotted(node.ID)
+
+    def _getValueText(self, diagramType, forceValue):
+        
+        unit = self.unitHandler[diagramType].unit
+        scale = self.unitHandler[diagramType].scale
+        Ndecimal = self.unitHandler[diagramType].Ndecimal
+        
+        # Round force
+        forceValue *= scale
+        if Ndecimal == 0:
+            forceValue = round(forceValue)
+        else:
+            forceValue = round(forceValue*10**Ndecimal) / 10**Ndecimal
+        return forceValue, unit
+
+    def _checkIfLabelPlotted(self, nodeID):
+        check = nodeID in self.plottedNodeIDs
+        return check
+        
+    def _addLabelToPlotted(self, nodeID):
+        self.plottedNodeIDs.append(nodeID)
+
     def plotPointForceLables(self, fplot, labelForce, plotForceValue):
         """
         Adds all labels to the plot. Labels are offset from the point in the 
         x and y.
         """
         
-        labels = []
-        outForceLabels = []
         inds = range(len(self.beam.pointLoads))
         for ii, force in zip(inds, self.beam.pointLoads):
             Px, Py, Mx = fplot[ii]
@@ -726,55 +512,64 @@ class BeamPlotter2D:
             if Mx != 0:
                 isMoment = True
                 Py = -0.15
+                diagramType = 'moment'
+                fText = force.P[2]
+            else:
+                # shift the force down so it fits in the diagram!
+                Py += 0.15
+                diagramType = 'force'
+                fText = np.sum(force.P[:2]**2)**0.5
             
+            # get the label from the node - it's store there and not on the force.
             labelBase = self.beam.nodes[force.nodeID - 1].label
             label = ''
             
-            print(force.nodeID)
-            print(labelBase)
-            print(labelForce)
             if labelBase and labelForce and isMoment:
-                label += f'$M_{labelBase}$'
+                label +=  f'$M_{{{labelBase}}}$' # Tripple brackets needed to make the whole thing subscript
+                
             elif labelBase and labelForce and (not isMoment):
-                label += f'$P_{labelBase}$'
+                label += f'$P_{{{labelBase}}}$'
             else:
                 pass
             
-            # label +=
-            
+            if labelBase and plotForceValue and labelForce:
+                valueText, unit = self._getValueText(diagramType, fText)
+                label += ' = ' + str(valueText) + "" + unit
+                        
             x = force.getPosition()
-            xy = [x / self.xscale, -Py]            
-            self.plotter.plotLabel(xy, label)
-            self.beam.nodes[force.nodeID - 1].labelisPlotted = True
-            # if force.label
-            #TODO Add the force and units!
-            # if labelForce and isMoment:
-                
+            xy = [x / self.xscale, -Py]
             
-        
-
-        
-    # def _plotPointForceValues(self, frcLabel, frcMag, roundFrc = True):
-    #     """
-    #     Adds labels
-    #     P_A = magnitude
-    #     """
-        
-    #     pltFrc = round(frcMag)
-        
-    #     if frcLabel:
-    #         diaLabel = f"$P_{frcLabel}$" + " = {pltFrc}" + f"{pltUnit}"
-        
-        
-        
-    #     for node in self.beam.nodes:
-    #         label = node.label
-    #         if label:
-    #             x = node.getPosition()
-    #             xy = [x / self.xscale, 0]
-    #             self.plotter.plotLabel(xy, label)                
-    #     self.plotter.plotLabel(xy, label)
-                
+            if self._checkIfLabelPlotted(force.nodeID) != True:
+                self.plotter.plotLabel(xy, label)
+                self._addLabelToPlotted(force.nodeID)
+            
+                              
+                            
+    def plotDistForceLables(self, fplot, xcoords, labelForce, plotForceValue):
+        """
+        Adds all labels to the plot. Labels are offset from the point in the 
+        x and y.
+        """
+        diagramType = 'distForce'
+        inds = range(len(self.beam.eleLoads))
+        for ii, force in zip(inds, self.beam.eleLoads):
+            qx, qy = fplot[ii]
+            fText = force.P[1]
+            
+            labelBase = force.label
+            label = ''
+            
+            if labelBase and labelForce:
+                label += f'$q_{{{labelBase}}}$'
+            
+            if labelBase and plotForceValue and labelForce:
+                valueText, unit = self._getValueText(diagramType, fText)
+                label += ' = ' + str(valueText) + "" + unit            
+            
+            x1, x2 = xcoords[ii]
+            aMid = (x1 + x2 ) / 2
+            xy = [aMid, -qy]   # note, aMid has already been scaled         
+            self.plotter.plotLabel(xy, label)              
 
     def _getForceVectorLength(self, forces, vectScale = 1):
         """
@@ -838,7 +633,7 @@ class BeamPlotter2D:
                 
         return fplot
 
-    def plotEleForces(self, plotForceValue):
+    def plotEleForces(self):
         """
         Plots all distributed forces. Only vertical forces can be plotted.
         If a horizontal component is supplied to the force, it is not included
@@ -868,8 +663,10 @@ class BeamPlotter2D:
                 print("WARNING: Distributed load has no vertical component.")            
             else:
                 # This is a little akward, but Py is added to account for the offset of -Py in the base funciton.
-                self.plotter.plotVerticalLineLoad(x1, x2, Py, y1 + Py, spacing=spacing)           
-           
+                self.plotter.plotVerticalLineLoad(x1, x2, Py, y1 + Py, spacing=spacing)
+        return fplot, xcoords
+   
+    
     def _getStackedPositions(self, xcoords: list[list[float]], fplot):
         """
         Gives the forces an order, and finds where to put them porportionally.
@@ -898,10 +695,8 @@ class BeamPlotter2D:
             y0 = self._getStackedDatum(xcoords[ind], plottedxCoords, plottedyCoords)
 
             ycoords[ind] =  y0 - dy
-            
             plottedxCoords.append(xcoords[ind])           
             plottedyCoords.append(ycoords[ind])
-
         return ycoords
     
     def _checkIfInRange(self, xtest, x1,x2):
@@ -925,16 +720,8 @@ class BeamPlotter2D:
                     return plottedY[localInd]       
         return 0
                        
-    # TODO: This
-    def plotDimensionLines(self):
-        pass
-                       
-    # TODO: This
-    def plotForceLabels(self):
-        pass
 
-
-def plotBeamDiagram(beam, units = 'environment', plotLabel = False, labelForce = True, plotForceValue = True):
+def plotBeamDiagram(beam, plotLabel = True, labelForce = True, plotForceValue = False, units = 'environment'):
     """
     Creates a diagram of the created beam.
     Only certain fixities are supported for plotting, including free, roller 
@@ -948,15 +735,34 @@ def plotBeamDiagram(beam, units = 'environment', plotLabel = False, labelForce =
     This is to make consistent plotting easier across a number of beam sizes,
     however, the matplotlib objects in the plot have different value than 
     the actual beam.
-        
+    
     The resulting diagram is a matplotlib figure that can be further manipulated.
 
     Parameters
     ----------
     beam : PlaneSections beam
         The Beam Object to be plotted.
-    figsize : PlaneSections beam
-        The size of the output matplotlib figure.
+    plotLabel : bool, optional
+        A toggle that turns on or off plotting user defined labels along the 
+        beam. The default is True.
+    labelForce : bool, optional
+        A toggle that turns on or off if forces get labeled. If toggled to 
+        true, forces will be given a label instead of the beam location.
+        The default is True.
+    plotForceValue : bool, optional
+        A toggle that turns on or off plotting the force values with the label. 
+        If set to true, the magnitude of the force will be plotted in
+        the digram units. The default is False.
+    units : str, optional
+        A string that specified how the diagram units will be managed in the.
+        The default value 'environment' causes the plot to read from the active
+        environment. see :py:class:`planesections.DiagramUnitEnvironmentHandler`
+        
+        If not set to environment, it can have value:  *'metric',  
+        'metric_kNm',  'metric_Nm',  
+        'imperial_ftkip',  'imperial_ftlb'*        
+
+        The unit handler for the plot. This The default is 'environment'.
 
     Returns
     -------
@@ -966,6 +772,242 @@ def plotBeamDiagram(beam, units = 'environment', plotLabel = False, labelForce =
 
     """
     diagram = BeamPlotter2D(beam, units = units)
-    diagram.plot(plotLabel, plotForceValue, labelForce)
+    diagram.plot(plotLabel, labelForce, plotForceValue)
     return diagram.plotter.fig, diagram.plotter.ax
+
+
+
+
+# class NodeArchetype:
+#     """
+#     Represents a node/point of interst on the diagram.
+#     """
+#     @abstractmethod
+#     def getFixityType():
+#         """
+#         Gets the fixity type used.
+#         Currently supported - free, roller, pin, fixed.
+#         """
+#         pass
+    
+#     @abstractmethod
+#     def getPosition():
+#         """
+#         Gets the x position of the node.
+#         Currently supported - roller, pin, fixed.
+#         """
+
+#         pass
+    
+#     @abstractmethod
+#     def getLabel():
+#         """
+#         Returns the label that has been assigned to the node/
+#         ???:
+#             what values are supported??
+#         """
+#         pass    
+    
+
+
+# class BeamArchetype:
+#     """
+#     Archetype class of data beams need in order to use make use of the beam
+#     diagram class
+    
+#     ???:
+#         Should nodes be given a required internal naming convention?
+#     """
+#     nodes = []
+#     NodeArchetype = None
+#     forces = []
+#     distForces = []
+
+    
+    
+#     @abstractmethod
+#     def getNodes():
+#         """
+#         Returns all noed objects in the beam.
+#         """
+#         pass
+    
+#     @abstractmethod
+#     def getForces():
+#         """
+#         Gets all applied point Loads.
+#         """        
+#         pass
+    
+#     @abstractmethod
+#     def getDistForses():
+#         """
+#         Gets all applied distrubuted Loads.
+#         """ 
+#         pass    
+    
+    
+#     @abstractmethod
+#     def setNodeArchetype():
+#         """
+#         Sets the archetype method used to create new nodes.
+#         """ 
+#         pass
+    
+#     @abstractmethod
+#     def addNode(self, xCoord, fixity, label=None):
+#         """
+#         Adds a new node to the model.
+#         """ 
+#         pass    
+
+        
+        
+        
+
+
+# ???
+# call point force?
+
+# class ForceArchetype:
+#     """
+#     Represents a force applied to a single node
+#     """
+    
+#     @abstractmethod
+#     def getConnectedNode():
+#         """
+#         """
+#         pass
+    
+#     @abstractmethod
+#     def getMagnitudes():
+#         """
+#         Returns the magnitude of force at each of the connected nodes
+#         """
+#         pass   
+    
+     
+#     @abstractmethod
+#     def getLabelNodes():
+#         """
+#         Returns the nodes that are labeled
+#         """
+#         pass         
+
+# class DistrubtedForceArchetype:
+#     """
+#     Represents a force distributed across multiple nodes, i.e. uniform, etc
+#     """
+    
+#     @abstractmethod
+#     def getConnectedNode():
+#         """
+        
+#         """
+#         pass
+    
+#     @abstractmethod
+#     def getMagnitudes():
+#         """
+#         Returns the magnitude of force at each of the connected nodes
+#         """
+#         pass   
+    
+     
+#     @abstractmethod
+#     def getLabelNodes():
+#         """
+#         Returns the nodes that are labeled
+#         """
+#         pass      
+    
+    
+
+
+# =============================================================================
+# Implementations.
+# =============================================================================
+
+
+# class Node(NodeArchetype):
+#     """
+#     A concrete implementation for a class that represents a node/point of 
+#     interst on the diagram.
+#     """
+    
+#     def __init__(self, xCoord, fixity, label):
+#         self.x = xCoord
+#         self.fixity = fixity
+#         self.label = label
+    
+    
+#     def getFixityType(self):
+#         """
+#         Gets the fixity type used.
+#         Currently supported - free, roller, pin, fixed.
+#         """
+#         return self.fixity
+    
+#     def getPosition(self):
+#         """
+#         Gets the x position of the node.
+#         Currently supported - roller, pin, fixed.
+#         """
+
+#         return self.x
+    
+#     def getLabel(self):
+#         """
+#         Returns the label that has been assigned to the node/
+#         ???:
+#             what values are supported??
+#         """
+#         return self.label  
+
+
+# class Beam(BeamArchetype):
+    
+#     def __init__(self):
+#         """
+#         The concrete implementaiton of the beam class.
+
+#         """
+#         nodes = []
+#         NodeArchetype = None
+#         forces = []
+#         distForces = []
+        
+#         self.setNodeArchetype()
+    
+#     def getNodes(self):
+#         """
+#         Returns all noed objects in the beam.
+#         """
+#         return self.nodes
+    
+#     def getForces(self):
+#         """
+#         Gets all applied point Loads.
+#         """        
+#         return self.forces
+    
+#     def getDistForses(self):
+#         """
+#         Gets all applied distrubuted Loads.
+#         """ 
+#         print('NOT SUPPORTED YET')            
+        
+        
+#     def addNode(self, xCoord, fixity, label=None):
+#         NewNode = self.nodeArchetype(xCoord, fixity,label)
+#         self.nodes.append(NewNode)
+    
+#     def setNodeArchetype(self, nodeArchetype:NodeArchetype = Node):
+#         """
+#         Used to set the type of node class used. The node should inherit from
+#         the nodeArhetype class.
+#         """
+#         self.nodeArchetype = nodeArchetype                
+    
 
