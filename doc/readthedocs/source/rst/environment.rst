@@ -13,4 +13,3 @@ imperial or metric unit labels. The user can also modify the number of decimals 
    :hidden:
    
    diagram-diagramUnitEnvironmentHandler.rst
-   diagram-beamPlotter.rst
