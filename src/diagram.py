@@ -539,7 +539,7 @@ class BeamPlotter2D:
             x = force.getPosition()
             xy = [x / self.xscale, -Py]
             
-            if self._checkIfLabelPlotted(force.nodeID) != True:
+            if label and self._checkIfLabelPlotted(force.nodeID) != True:
                 self.plotter.plotLabel(xy, label)
                 self._addLabelToPlotted(force.nodeID)
             
@@ -721,7 +721,7 @@ class BeamPlotter2D:
         return 0
                        
 
-def plotBeamDiagram(beam, plotLabel = True, labelForce = True, plotForceValue = False, units = 'environment'):
+def plotBeamDiagram(beam, plotLabel = True, labelForce = False, plotForceValue = False, units = 'environment'):
     """
     Creates a diagram of the created beam.
     Only certain fixities are supported for plotting, including free, roller 
