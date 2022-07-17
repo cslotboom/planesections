@@ -69,6 +69,7 @@ A simple script is shown below:
    rst/builder
    rst/analysis
    rst/diagram
+   rst/environment
    rst/postprocess
 
 =============
