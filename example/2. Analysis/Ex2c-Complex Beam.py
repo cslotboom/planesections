@@ -1,15 +1,13 @@
 """
 An example with lots of forces.
 """
-import handcalcs
-# from handcalcs.install_templates import install_html
 import planesections as ps
 from planesections.units.metric import m, kN
 import numpy as np
 
 L = 5*m
 x = np.linspace(0,L,80)
-beam = ps.EulerBeam2D(x)
+beam = ps.EulerBeam(x)
 
 pinned = [1,1,0]
 fixed = [1,1,1]
@@ -35,6 +33,6 @@ ps.plotBeamDiagram(beam)
 
 analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
-ps.plotShear2D(beam, scale = 1/kN, yunit = 'kN')
-ps.plotMoment2D(beam, scale = -1/kN, yunit = 'kNm')
+ps.plotShear(beam, scale = 1/kN, yunit = 'kN')
+ps.plotMoment(beam, scale = -1/kN, yunit = 'kNm')
 

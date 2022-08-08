@@ -34,7 +34,7 @@ is possible to place them anywhere in the beam desired.
 L = 30*ft
 Loffset = 1.5*ft
 x       = np.linspace(0, L, 80)
-beam = ps.EulerBeam2D(section = section)
+beam = ps.EulerBeam(section = section)
 beam.addNodes(x)
 
 """
@@ -65,6 +65,6 @@ analysis.runAnalysis()
 """
 Plot results
 """
-ps.plotDisp2D(beam, scale=1/inch, yunit = 'in', xunit = 'ft')
+ps.plotDisp(beam, scale=1/inch, yunit = 'in', xunit = 'ft')
 
 
