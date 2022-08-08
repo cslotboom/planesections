@@ -17,7 +17,7 @@ E = 9500*MPa
 b = 38*mm
 h = 235*mm
 section = ps.SectionRectangle(E, h, b, units='mm')
-I = section.Ixx
+I = section.Iz
 
 L = 3
 x1 = 0
@@ -29,7 +29,7 @@ x = np.linspace(0, x2, 100)
 fixed = np.array([1, 1, 1])
 pinned = np.array([1, 1, 0])
 
-beam = ps.EulerBeam2D(x, section = section)
+beam = ps.EulerBeam(x, section = section)
 beam.setFixity(x1, fixed)
 beam.setFixity(x2, pinned)
 beam.addVerticalLoad(x3, Py)

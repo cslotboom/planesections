@@ -6,7 +6,6 @@ Created on Sun May 23 01:00:41 2021
 """
 
 import planesections as ps
-# from planesections import EulerBeam
 import numpy as np
 
 import openseespy.opensees as op
@@ -14,18 +13,18 @@ import openseespy.opensees as op
 x = np.array([0,5])
 fixities = [np.array([1,1,1], int), np.array([1,1,1], int)]
 
-pointBeam = ps.EulerBeam2D(x, fixities)
+pointBeam = ps.EulerBeam(x, fixities)
 P = np.array([0.,1000.,0.])
 pointBeam.addPointLoad(2.5, -P)
 
 
 q = np.array([0.,-1000.])
 q = np.array([0.,-1000.])
-distBeam = ps.EulerBeam2D(x, fixities)
+distBeam = ps.EulerBeam(x, fixities)
 distBeam.addDistLoad(0.,5.,q)
 distBeamAnalysis  = ps.OpenSeesAnalyzer2D(distBeam)
 
-beam = ps.EulerBeam2D(x, fixities) 
+beam = ps.EulerBeam(x, fixities) 
 beam.addDistLoad(0.,5.,q) 
 beam.addPointLoad(2.5, -P)
 analysis = ps.OpenSeesAnalyzer2D(beam)
