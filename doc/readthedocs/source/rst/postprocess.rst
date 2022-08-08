@@ -6,12 +6,12 @@ These classes are used to plot beam outputs.
 #. :doc:`postprocess-getDisp`
 #. :doc:`postprocess-getVertDisp`
 #. :doc:`postprocess-getMaxVertDisp`
-#. :doc:`postprocess-plotInternalForce2D`
-#. :doc:`postprocess-plotShear2D`
-#. :doc:`postprocess-plotMoment2D`
-#. :doc:`postprocess-plotDisp2D`
-#. :doc:`postprocess-plotVertDisp2D`
-#. :doc:`postprocess-plotRotation2D`
+#. :doc:`postprocess-plotInternalForce`
+#. :doc:`postprocess-plotShear`
+#. :doc:`postprocess-plotMoment`
+#. :doc:`postprocess-plotDisp`
+#. :doc:`postprocess-plotVertDisp`
+#. :doc:`postprocess-plotRotation`
 
 
 .. toctree::
@@ -21,9 +21,9 @@ These classes are used to plot beam outputs.
    postprocess-getDisp.rst
    postprocess-getVertDisp.rst
    postprocess-getMaxVertDisp.rst
-   postprocess-plotInternalForce2D.rst
-   postprocess-plotShear2D.rst
-   postprocess-plotMoment2D.rst
-   postprocess-plotDisp2D.rst
-   postprocess-plotVertDisp2D.rst
-   postprocess-plotRotation2D.rst
+   postprocess-plotInternalForce.rst
+   postprocess-plotShear.rst
+   postprocess-plotMoment.rst
+   postprocess-plotDisp.rst
+   postprocess-plotVertDisp.rst
+   postprocess-plotRotation.rst

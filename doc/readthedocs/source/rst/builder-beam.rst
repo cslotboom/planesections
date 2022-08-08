@@ -3,10 +3,10 @@ Beam
 
 These classes and functions are used to make and interact with the beam. 
 
-#. :doc:`builder-beam-beam2D`
-#. :doc:`builder-beam-eulerBeam2D`
-#. :doc:`builder-beam-newEulerBeam2D`
-#. :doc:`builder-beam-newSimpleEulerBeam2D`
+#. :doc:`builder-beam-beam`
+#. :doc:`builder-beam-eulerBeam`
+#. :doc:`builder-beam-newEulerBeam`
+#. :doc:`builder-beam-newSimpleEulerBeam`
 
 
 
@@ -14,7 +14,7 @@ These classes and functions are used to make and interact with the beam.
    :maxdepth: 1
    :hidden:
    
-   builder-beam-beam2D.rst
-   builder-beam-eulerBeam2D.rst
-   builder-beam-newEulerBeam2D.rst
-   builder-beam-newSimpleEulerBeam2D.rst
+   builder-beam-beam.rst
+   builder-beam-eulerBeam.rst
+   builder-beam-newEulerBeam.rst
+   builder-beam-newSimpleEulerBeam.rst
