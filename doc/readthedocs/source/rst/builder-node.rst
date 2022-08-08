@@ -6,6 +6,7 @@ All loads, fixities, and labels are linked to the node they act on.
 
 
 #. :doc:`builder-node-node2D`
+#. :doc:`builder-node-node3D`
 
 
 .. toctree::
@@ -13,4 +14,5 @@ All loads, fixities, and labels are linked to the node they act on.
    :hidden:
    
    builder-node-node2D.rst
+   builder-node-node3D.rst
 

@@ -1,61 +1,13 @@
 import numpy as np
 from dataclasses import dataclass
-from abc import ABC, abstractproperty, abstractmethod
+from abc import ABC, abstractmethod
+from planesections.section import SectionBasic
 
-# =============================================================================
-# Future additons:
-#  - plotting features
-#  - Timoshenko beams
-#  - Mass for dynamic analysis
-#  - web interface
-#  - beam summary?
-# =============================================================================
-
-
-
-class Section2D():
-    E:None
-    A:None
-    Ixx:None
-    Iyy:None
-    
-
-
-@dataclass
-class SectionBasic2D(Section2D):
-    """
-    A basic section that contains the global propreties of the beam section,
-    without any geometry. It's assume the section is elastic.
-    """
-    E:float = 1
-    A:float = 1
-    Ixx:float = 1
-    Iyy:float = 1
-
-
-@dataclass
-class SectionRectangle(Section2D):
-    """
-    Represents a elastic Rectangular section. Ixx and A are calcualted using 
-    the beam width and height.
-    """
-    
-    E:float = 200*10**9
-    d:float = 1
-    w:float = 1
-    units:str='m'
-    
-    def __post_init__(self):
-        self.A = self.d*self.w
-        self.Ixx = self.d**3*self.w / 12
-        self.Ixx = self.w**3*self.d / 12
-
-
-
-
+        
 # =============================================================================
 # 
 # =============================================================================
+
 class NodeArchetype(ABC):
     """
     Represents a node/point of interst on the diagram.
@@ -86,12 +38,86 @@ class NodeArchetype(ABC):
         """
         pass    
 
-        
-class Node2D(NodeArchetype):
+
+class Node(NodeArchetype):
     """
-    Represents a node.
+    Represents a node and isn't inteded to be used by users. Instead the
+    2D and 3D node classes will be used.
     Nodes have labels and IDs. 
-    The Labe is a name the user assigns to the node and will be displayed
+    The Label is a name the user assigns to the node and will be displayed
+    in plots.
+    
+    The ID is a unique name that OpenSees will read. ID - 1 will be the 
+    position in the beam node array. As new nodes are added, the IDs will be 
+    sorted and updated so that they are always increasing from left to right.    
+    """
+    
+    _dimension = '2D'   # the number for forces that can be applied
+    _Nforce = 3         # the number for forces that can be applied    
+    def __init__(self, x, fixity, label = ''):
+        
+        self.x = x
+        self.fixity = fixity
+        self.ID = None        
+        self.label = label
+        self.labelIsPlotted = False
+        
+        self.pointLoadIDs = []
+        
+        self.disp = None
+        self.rFrc = None
+        self.Fint = None
+
+        self.hasReaction = False
+        if np.any(np.array(fixity) != np.array([0,0,0], int)):
+            self.hasReaction = True
+            
+    def _setID(self, newID):
+        """
+        Sets the node ID. The node ID is a unique identifier that can be used.
+        Users can use this to set the ID, but the old ID will be replaced 
+        every time the sort function is called.
+
+        Parameters
+        ----------
+        newID : int
+            A unique integer that represents the node.
+            
+        """
+        self.ID  = newID
+        
+    def __repr__(self):
+        return f'{self._dimension} Node object at {self.x}'
+
+    def getLabel(self):
+        return self.label
+    
+    def getPosition(self):
+        return self.x
+    
+    def getInternalForces(self, ind):
+        """
+        Returns the left and right internal forces each node has for the input
+        force type. For 2D:
+            0: Px (axial force)
+            1: Vx (shear force)
+            2: M (bending
+        For 3D:
+            0: Px (axial force)
+            1: Vx (shear force)
+            2: Vy (bending
+            3: Mx (Torsion)
+            4: My (Out of Plane Bending)
+            5: Mz (bending)            
+        """
+        
+        return self.Fint[[ind,ind + self._Nforce]]
+
+
+class Node2D(Node):
+    """
+    Represents a node 2D. Nodes have labels and IDs and fixities. 
+    The Label is a name the user assigns to the node and will be displayed
     in plots.
     
     The ID is a unique name that OpenSees will read. ID - 1 will be the 
@@ -112,42 +138,11 @@ class Node2D(NodeArchetype):
         A name for the node. This can be displayed in the plots. The default is ''.
     """    
     
-    _dimension = '2D'
+    _dimension = '2D'   # the number for forces that can be applied
+    _Nforce = 3         # the number for forces that can be applied
     
     def __init__(self, x, fixity, label = ''):
-        
-        self.x = x
-        self.fixity = fixity
-        self.ID = None        
-        self.label = label
-        self.labelIsPlotted = False
-        
-        self.pointLoadIDs = []
-        
-        self.disp = None
-        self.rFrc = None
-        self.Fint = None
-
-        self.hasReaction = False
-        if np.any(fixity != [0,0,0]):
-            self.hasReaction = True
-
-    def _setID(self, newID):
-        """
-        Sets the node ID. The node ID is a unique identifier that can be used.
-        Users can use this to set the ID, but the old ID will be replaced 
-        every time the sort function is called.
-
-        Parameters
-        ----------
-        newID : int
-            A unique integer that represents the node.
-            
-        """
-        self.ID  = newID
-        
-    def __repr__(self):
-        return f'Node object at {self.x}'
+        super().__init__(x, fixity, label)
 
     def getFixityType(self):
         """
@@ -166,38 +161,81 @@ class Node2D(NodeArchetype):
         else:
             return 'unsupported'
 
-    def getLabel(self):
-        return self.label
-    
-    def getPosition(self):
-        return self.x
-    
-    def getInternalForces(self, ind):
-        """
-        Returns the left and right internal forces each node has for the input
-        force type:
-            0: axial force
-            1: shear force
-            2: bending
-        """
-        
-        return self.Fint[[ind,ind+3]]
 
+class Node3D(Node):
+    """
+    Represents a node 3D. Nodes have labels and IDs and fixities. 
+    The Label is a name the user assigns to the node and will be displayed
+    in plots.
+    
+    The ID is a unique name that OpenSees will read. ID - 1 will be the 
+    position in the beam node array. As new nodes are added, the IDs will be 
+    sorted and updated so that they are always increasing from left to right.
 
+    Parameters
+    ----------
+    x : float
+        The postion of the node.
+    fixity : list
+        A list of the input fixities for each possible degree of freedom. 
+        Each node will have six degree of freedoms; [x, y, :math:`\\theta`x]
+        1 represents a fixed condition, 0 represents a free conditon. 
+        e.x. [1,1,0,1,1,1]
+        A pin conneciton that's fixed in x/y and all fixed in rotation.
+    label : str, optional
+        A name for the node. This can be displayed in the plots. The default is ''.
+    """    
+    
+    _dimension = '3D'   # the number for forces that can be applied
+    _Nforce = 6         # the number for forces that can be applied
+    
+    def __init__(self, x, fixity, label = ''):
+        super().__init__(x, fixity, label)
+
+    def getFixityType(self):
+        """
+        Unsupported for 3D beams.
+
+        """
+        raise Exception('Plotting for 3D beams not yet supported')
 
 # =============================================================================
 # 
 # =============================================================================
 
-class Beam2D():
+class Beam:
     """
     A representation of a beam object, that can be used to define information
     about basic beams. Units must form a consist unit basis for FEM analysis.
+    
+    The base Beam class isn't used by the user, the inherited classes Node2D and
+    Node3D are used instead.
+    
     """
+    _dimension = ''
+    _ndf = None
+    _NodeTypes = {'2D':Node2D, '3D':Node3D}
+    _activeNodeType = None
+    
+    def _initDimensionVariables(self, dimension):
+        self._dimension = dimension
+        if dimension == '2D':
+           self._ndf = 3
+        elif dimension == '3D':
+           self._ndf = 6           
+        self._activeNodeType = self._NodeTypes[self._dimension]
+
+    def getDOF(self):
+        """
+        Returns the number of degrees of Freedom at each point in the beam.
+        """
+        return self._ndf
+
 
     def _initArrays(self):
         self.nodeLabels = {}
         self.nodes = []
+        self.Nnodes = 0
         self.pointLoads = []
         self.distLoads = []
         self.nodeCoords = set()
@@ -301,7 +339,8 @@ class Beam2D():
     def _addedNodeMessage(self, x):
         print(f'New node added at: {x}')
     
-    def addNode(self, x, fixity = np.array([0.,0.,0.], int), label = '', sort = True):
+    
+    def addNode(self, x, fixity = None, label = '', sort = True):
         """
         Adds a new node to the beam. Keyword arguments are passed to the node.
         See :py:class:`Node2D` for more details
@@ -312,13 +351,22 @@ class Beam2D():
             The x coordinate of the node.
         fixity : list
             A list of the input fixities for each possible degree of freedom. 
-            Each node will have three degree of freedoms; [x, y, :math:`\\theta`]
-            1 represents a fixed condition, 0 represents a free conditon. 
-            e.x. [1,1,0]
-            A pin conneciton that's fixed in x/y but free in rotation.
+            2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+            3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+            For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+            e.x. 
+            
+            [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+            
+            [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
         label : str, optional
             A name for the node. This can be displayed in the plots. The default is ''.
-
+        sort : bool, optional
+            A toggle that turns on or off node sorting as new nodes are added.
+            Nodes are sorted after each new node as added, this can be toggled 
+            off to inprove performance. However, nodes must be sorted before 
+            the analysis is run.
+        
         Returns
         -------
         flag: int
@@ -326,11 +374,12 @@ class Beam2D():
             added, and -1 if the process failed.
 
         """
-        newNode = Node2D(x, fixity, label)
+        if fixity is None:
+            fixity = np.zeros(self._ndf, int)
+        newNode = self._activeNodeType(x, fixity, label)
         if x in self.nodeCoords:
             """
-            ???
-            Potential problem, the new node will not have any unique propreties 
+            Note, the new node will not have any unique propreties 
             the old node had. That's why we have to reset the label.
             """
             index = self._findNode(x)
@@ -346,7 +395,6 @@ class Beam2D():
             self._addNewNode(newNode, sort)
             return 1
         return -1
-
 
     def addLabel(self, x, label, sort = True):
         """
@@ -373,8 +421,8 @@ class Beam2D():
 
         """
 
-        fixity = np.array([0.,0.,0.], int)
-        newNode = Node2D(x, fixity, label)
+        fixity = np.zeros(self._ndf, int)
+        newNode = self._activeNodeType(x, fixity, label) # either 2D or 3D depending on the dimension type.        
         if x in self.nodeCoords:
             index = self._findNode(x)
             self.nodes[index].label = label
@@ -384,8 +432,6 @@ class Beam2D():
             return 1
         return -1
 
-
-
     def _addNewNode(self, newNode:Node2D, sort=True):
         self.Nnodes += 1
         newNode._setID(self.Nnodes)
@@ -393,7 +439,6 @@ class Beam2D():
         self.nodeCoords.add(newNode.x)
         if sort:
             self._sortNodes()
-        
 
     def addNodes(self, xCoords, fixities = None, labels = None ):
         """
@@ -408,6 +453,9 @@ class Beam2D():
         fixities : list of lists, optional
             Adds fixity to each of the new nodes. Fixity is given in a list 
             of boolean, where true means that the node if fixed in that DOF.
+            2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+            3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+            
             The default is None, which results in all nodes being free.
             Ex.
             [[1,1,0], [0,0,0]]
@@ -422,7 +470,8 @@ class Beam2D():
                
         newNoads = len(xCoords)       
         if fixities == None:
-            fixities = [np.array([0.,0.,0.])]*newNoads
+            fixity = np.zeros(self._ndf, int)
+            fixities = [fixity]*newNoads
                         
         if labels is None:
             labels = [None]*newNoads
@@ -442,16 +491,20 @@ class Beam2D():
                 
         if set(fixity).issubset({0,1}) != True:
             raise ValueError("Fixity must be a list of zeros and ones.")
-        if len(fixity) == 2 or len(fixity) > 3:
-            raise ValueError("Fixity must be a integer or vector of length 3")
-       
+            
+        # I forget why I explicitly check for 2 here. 
+        # I'd guess we're runing out if just one value is provided
+        if (len(fixity) == 2 or len(fixity) > self._ndf):
+            raise ValueError(f"Fixity must be a integer or vector of length {self._ndf}")
+
+
     def _convertFixityInput(self, fixity):
         """
         If an integer is supplied, convert the input to a list.
         """
         
         if isinstance(fixity,int):
-            return [fixity]*3
+            return [fixity]*self._ndf
         else:
             return fixity
 
@@ -466,10 +519,14 @@ class Beam2D():
             The x coordinant of the noded to be modified/added.
         fixity : list
             A list of the input fixities for each possible degree of freedom. 
-            Each node will have three degree of freedoms; [x, y, :math:`\\theta`]
-            1 represents a fixed condition, 0 represents a free conditon. 
-            e.x. [1,1,0]
-            A pin conneciton that's fixed in x/y but free in rotation.
+            2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+            3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+            For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+            e.x. 
+            
+            [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+            
+            [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.
@@ -491,18 +548,23 @@ class Beam2D():
         """
         Adds a load ot the model at location x.
         If a node exists at the current location, the old load value is overwritten.
-        Old loads are deleted, and the node is relabled
+        Old loads are deleted, and the node is relabled.
+        Can represent objects in 2D or 3D.
         
         Parameters
         ----------
         x : float
             The location of the load.
         pointLoad : list
-            A list of the forces in [Fx, Fy, M].
-           [0., 10., 0.]
-           New node 1: A vertical load of 10 is applied in beam units.
-           [0., 0., 13]
-           New node 2: A moment of 13 is applied in beam units.
+            A list of the forces. For a 2D beam has form [Fx, Fy, M].
+            For a 3D beam has form [Fx, Fy, Fz, Mx, My, Mz].    
+            
+            New Load 1: 
+                [0., 10., 0.]
+                A vertical load of 10 is applied in beam units.
+            New Load 2:
+               [0., 0., 13]
+               New node 2: A moment of 13 is applied in beam units.
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.        
@@ -510,21 +572,23 @@ class Beam2D():
         """
         
         if hasattr(pointLoad, '__iter__') == False:
-            raise Exception('Point load vector must be a list of Numpy array.')
+            raise Exception('Point load vector must be a list or Numpy array.')
             
         loadID = len(self.pointLoads) + 1
-        # Add the load ID to the node in question. Make a node if no ID.
+        
+        # Check if the node exists, add it if not.
         if x in self.nodeCoords:
             nodeIndex = self._findNode(x)
         else:
             self.addNode(x)
             nodeIndex = self._findNode(x)
-        nodeID = nodeIndex + 1
             
+        # index is what is used to look up, use one greater for the 
         self.nodes[nodeIndex].pointLoadIDs.append(loadID)
         if label:
             self.nodes[nodeIndex].label = label
-            
+        
+        nodeID = nodeIndex + 1    
         newLoad = PointLoad(pointLoad, x, nodeID)
         self.pointLoads.append(newLoad)                
          
@@ -545,8 +609,11 @@ class Beam2D():
             labels are displayed in the plots. The default is ''.            
             
         """   
-
-        pointLoad = np.array([0., Py, 0.])
+        if self._ndf == 3:
+            pointLoad = np.array([0., Py, 0.])
+        elif self._ndf == 6:
+            pointLoad = np.array([0., Py, 0., 0., 0., 0.])
+            
         self.addPointLoad(x, pointLoad, label)
         
     def addMoment(self, x, M, label=''):
@@ -567,7 +634,12 @@ class Beam2D():
             The label of the input node. 
             labels are displayed in the plots. The default is ''.
         """        
-        pointLoad = np.array([0.,0., M])
+        
+        if self._ndf == 3:
+            pointLoad = np.array([0.,0., M])
+        elif self._ndf == 6:
+            pointLoad = np.array([0., 0., 0., 0., 0., M])        
+        
         self.addPointLoad(x, pointLoad, label)     
         
     def addHorizontalLoad(self, x, Px, label=''):
@@ -584,8 +656,12 @@ class Beam2D():
             labels are displayed in the plots. The default is ''.          
         """       
         
-        pointLoads = np.array([Px, 0., 0.])
-        self.addPointLoad(x, pointLoads, label)            
+        if self._ndf == 3:
+            pointLoad = np.array([Px, 0., 0.])
+        elif self._ndf == 6:
+            pointLoad = np.array([Px, 0., 0., 0., 0., 0.])              
+        
+        self.addPointLoad(x, pointLoad, label)            
              
     def _findNode(self, xInput:float):
         """
@@ -624,15 +700,17 @@ class Beam2D():
             Start point of distributed load.
         x2 : float
             Start point of distributed load.
-        distLoad : 2D array
-            The distributed load in the form of 
-            [Axial force, shear force]
+        distLoad : array
+            The distributed load. 
+            
+            In 2D has the form [Fx (axial force), Fy (shear force)]
+            
+            In 3D has the form [Fx (axial force), Fy (shear force), Fz (shear force)]
         label : str
             A optional label for the force.
         """
         
-        defaultFixity = np.array([0,0,0], int)
-        # genericPointLoad = np.array([0.,0.,0.], float)
+        defaultFixity = np.zeros(self._ndf, int)
         distLoad = np.array(distLoad)
         
         if x1 not in self.nodeCoords:
@@ -664,7 +742,10 @@ class Beam2D():
             A optional label for the force.
         """
 
-        distLoad = np.array([0., qy])
+        if self._ndf == 3:
+            distLoad = np.array([0., qy])
+        if self._ndf == 6:
+            distLoad = np.array([0., qy, 0.])
         self.addDistLoad(x1, x2, distLoad, label)
 
     def addDistLoadHorizontal(self, x1, x2, qx, label=''):
@@ -687,25 +768,24 @@ class Beam2D():
         label : str
             A optional label for the force.            
         """
-        distLoad = np.array([qx, 0.])
-        self.addDistLoad(x1, x2, distLoad, label)
-
-    
-
-    """OuputPropreties"""
-    
+        
+        if self._ndf == 3:
+            distLoad = np.array([qx, 0.])
+        if self._ndf == 6:
+            distLoad = np.array([qx, 0., 0.])
+        self.addDistLoad(x1, x2, distLoad, label)    
     
     def Fmax(self, index):
         """
         get the maximum and minimum internal force for teh beam along the 
-        appropriate axis. 0:x, 1:y, 2:z
+        appropriate axis. 0:x, 1:y, 2:z (In 3D, 3:rx, 4:ry, 5:rz)
         
         """
         Fmax = 0
         Fmin = 0
         for node in self.nodes:
             F1 = node.Fint[index]
-            F2 = node.Fint[index + 3]
+            F2 = node.Fint[index + self._ndf]
             
             if F1 < Fmin or F2 < Fmin:
                 Fmin = min(F1, F2)
@@ -714,16 +794,13 @@ class Beam2D():
                 Fmax = max(F1, F2)
         return Fmin, Fmax
 
-
     def getNodes(self):
         return self.nodes
-    
-    # def getMaxDisp(self):
-    #     disps = [None]*self.Nnodes*2
-    #     for ii in self.Nnodes:
-    #         disps[ii:ii+1] = self.nodes[ii].disp
-    #         node.
-    #     return 
+
+
+class Beam2D(Beam):
+    def __post_init__(self):
+        print('Beam2D is depricated and will return an error in future version. Use Beam instead.')
 
 # =============================================================================
 # 
@@ -732,7 +809,7 @@ class Beam2D():
 
 
 
-def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
+def newEulerBeam(x2, x1 = 0, meshSize = 101, section=None, dimension = '2D'):
     """
     Initializes a new 2D Euler beam. The beam will have no fixities or labels.
 
@@ -747,10 +824,12 @@ def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
         The mesh size for the beam. This many nodes will be added between the 
         points x1 and x2. The default is 101, which divides the beam into
         100 even sections..
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
 
     Returns
     -------
-    EulerBeam2D : EulerBeam2D
+    EulerBeam2D : EulerBeam
         The the beam intialized with the mesh of points between x1 and x2.
     """
     
@@ -758,10 +837,20 @@ def newEulerBeam2D(x2, x1 = 0, meshSize = 101):
         raise Exception('x2 must be greater than x1')
     
     x = np.linspace(x1, x2, meshSize)  
-    
-    return EulerBeam2D(x)
+    return EulerBeam(x, section=section, dimension = dimension)
 
-def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0):
+def newEulerBeam2D(x2, x1 = 0, meshSize = 101, section=None):
+    """
+    Depricated, see newEulerBeam
+
+    """
+    
+    print('newEulerBeam2D has been depricated and will return an error in the future. Use newEulerBeam instead.')
+    
+    return newEulerBeam(x2,x1,meshSize,section, '2D')
+
+
+def newSimpleEulerBeam(x2, x1 = 0, meshSize = 101, q = 0, section=None, dimension = '2D'):
     """
     Initializes a new simply supported Euler beam with a distributed load. 
     The beam will have no fixities or labels.
@@ -779,10 +868,12 @@ def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0):
         100 even sections..
     q : float, optional
         The distributed load on the simply supported beam.
-
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+        
     Returns
     -------
-    EulerBeam2D : EulerBeam2D
+    EulerBeam2D : EulerBeam
         The the beam intialized with the mesh of points between x1 and x2.
     """
     
@@ -791,24 +882,33 @@ def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0):
     
     x = np.linspace(x1, x2, meshSize)  
     
-    beam  = EulerBeam2D(x)
+    beam  = EulerBeam(x, dimension = '2D', section=section)
     beam.addNode(x1, [1,1,0])
     beam.addNode(x2, [0,1,0])
     if q != 0:
-        beam.addDistLoad(x1, x2, q)
+        beam.addDistLoadVertical(x1, x2, q)
     return beam
 
 
-
-class EulerBeam2D(Beam2D):
+def newSimpleEulerBeam2D(x2, x1 = 0, meshSize = 101, q = 0, section=None):
     """
-    A creates a 2D Euler beam. Information about the beam is stored in a mesh
+    Depricated, see newSimpleEulerBeam
+
+    """
+    print('newSimpleEulerBeam2D has been depricated and will return an error in the future. Use newSimpleEulerBeam instead.')
+
+    return newSimpleEulerBeam(x2, x1, meshSize, q, section, dimension='2D')
+
+
+class EulerBeam(Beam):
+    """
+    A creates a 2D/3D Euler beam. Information about the beam is stored in a mesh
     of nodes across the beam that are added by the user. Note that only output
     information at the nodes will be contained in the analysis. 
     
     The units of the beam must form a consistent unit base for FEM
     
-    Inherits from the base :py:class:`Beam2D` class.
+    Inherits from the base :py:class:`Beam` class.
     
     
     Parameters
@@ -817,12 +917,15 @@ class EulerBeam2D(Beam2D):
         The x coodinates of nodes along the beam the beam. The default is [],
         which starts with no nodes.
     fixity : list
-        A list of fixities for the beam. Each fizity is a list of the input 
-        fixities for each possible degree of freedom. 
-        Each node will have three degree of freedoms; [x, y, :math:`\\theta`]
-        1 represents a fixed condition, 0 represents a free conditon. 
-        e.x. [1,1,0]
-        A pin conneciton that's fixed in x/y but free in rotation.
+        A list of the input fixities for each possible degree of freedom. 
+        2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+        3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+        For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+        e.x. 
+        
+        [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+        
+        [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
     labels : list, optional
         A list of labels for each node. The default is [], which gives no label
         to each node.
@@ -830,11 +933,11 @@ class EulerBeam2D(Beam2D):
         The section to use in the anaysis. The default uses SectionBasic2D().
     """
     
-    # TODO: this is somewhat problematic as beam references the same list..
     def __init__(self, xcoords:list = None, fixities:list = None, labels:list = None,
-                 section = None):
+                 section = None, dimension = '2D'):
         # geomTransform has values 'Linear' or 'PDelta'
         self._initArrays()
+        self._initDimensionVariables(dimension)
         self.nodes = []
         self.eleLoads = []
         
@@ -845,11 +948,9 @@ class EulerBeam2D(Beam2D):
         if labels is None:
             labels = []
         if section is None:
-            section = SectionBasic2D()
+            section = SectionBasic()
         
-        self.Nnodes = 0
         NnewNodes = len(xcoords)
-        
         fixities = self._initFixities(fixities, NnewNodes)
                 
         if len(labels) == 0:
@@ -860,7 +961,6 @@ class EulerBeam2D(Beam2D):
         
         self.section = section
         self.d = 1
-        self.materialPropreties = [section.A, section.E, section.Ixx]        
         self.plotter = None
         self.EleType = 'elasticBeamColumn'
       
@@ -873,13 +973,39 @@ class EulerBeam2D(Beam2D):
       
     def _initFixities(self, fixities, NnewNodes):
         if len(fixities) == 0:
-            fixities = [np.array([0., 0., 0.])] * NnewNodes
+            fixities = [np.zeros(self._ndf)] * NnewNodes
         if len(fixities) != NnewNodes:
             raise Exception('A fixity must be provided for each node.')
         return fixities
+
+    def getMaterialPropreties(self):
+        if self._dimension == '2D':
+            return [self.section.A, self.section.E, self.section.Iz]    
+        elif self._dimension == '3D': 
             
-    
+            #TODO
+            # Area, E_mod, G_mod, Jxx, Iy, Iz,
+            return [self.section.A, self.section.E, self.section.G,
+                    self.section.J, self.section.Iy, self.section.Iz]    
+        
+        
+        
     def getMoment(self):
+        """
+        Depricated. See getBMD.
+
+        Returns
+        -------
+        xcoords : array
+            the x coordinants, has vale for x and y.
+        Moment : array
+            the output left and right moment at each node
+        """
+        print('getMoment has been depricated, and will return an error in future releases. Use getBMD instead.')
+        self.getBMD()
+
+    
+    def getBMD(self):
         """
         Returns the left and right bending moment at each node in the model. 
         Because the diagram is discrete, left and right forces must be used to 
@@ -892,8 +1018,14 @@ class EulerBeam2D(Beam2D):
         Moment : array
             the output left and right moment at each node
         """
-        return self.getInternalForce(2)
-        
+        if self._dimension == '2D':
+            M = self.getInternalForce(2)
+        elif self._dimension == '3D':
+            M = self.getInternalForce(5)
+        return M
+
+
+
     def getSFD(self):
         """
         Returns the left and right shear force at each node in the model. 
@@ -907,10 +1039,7 @@ class EulerBeam2D(Beam2D):
         Moment : array
             the output left and right moment at each node
         """
-        
         return self.getInternalForce(1)
-
-
 
     def getInternalForce(self, index):
         """
@@ -967,6 +1096,18 @@ class EulerBeam2D(Beam2D):
                 reactions[node.x] = node.rFrc
         return reactions
 
+
+
+class EulerBeam2D(EulerBeam):
+    def __post_init__(self):
+        print('EulerBeam is depricated and will return an error in future version. Use EulerBeam instead.')
+
+
+# =============================================================================
+# 
+# =============================================================================
+
+
 @dataclass()
 class EleLoad:
     """
@@ -1014,7 +1155,7 @@ class PointLoad:
 
     """        
     
-    P = np.array([0.,0.,0.])
+    # P = np.array([0.,0.,0.])
     nodeID = None
     
     def __init__(self, P, x, nodeID = None, label = ''):

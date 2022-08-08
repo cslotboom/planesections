@@ -19,7 +19,7 @@ fixities = [np.array([1,1,1]), np.array([1,1,1])]
 
 L       = 5*m
 x       = np.linspace(0, L, 80)
-beam    = ps.EulerBeam2D(x)
+beam    = ps.EulerBeam(x)
 
 pinned = [1,1,0]
 fixed = [1,1,1]

@@ -7,7 +7,7 @@ import planesections as ps
 
 # Define node locations, and support conditions
 L = 5
-beam = ps.newEulerBeam2D(L)
+beam = ps.newEulerBeam(L)
 
 # Define beam and fixities
 pinned = [1,1,0]
@@ -32,5 +32,5 @@ analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
 # Plot the SFD and BMD
-ps.plotShear2D(beam, scale = 0.001, yunit = 'kN')
-ps.plotMoment2D(beam, scale = 0.001, yunit = 'kNm')
+ps.plotShear(beam, scale = 0.001, yunit = 'kN')
+ps.plotMoment(beam, scale = 0.001, yunit = 'kNm')
