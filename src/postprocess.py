@@ -2,10 +2,7 @@ import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
 from dataclasses import dataclass
-from planesections.builder import Node2D, Beam2D
-
-
-
+from planesections.builder import Node2D, Beam
 
 
 # =============================================================================
@@ -13,13 +10,13 @@ from planesections.builder import Node2D, Beam2D
 # =============================================================================
 
 
-def getDisp(beam: Beam2D, ind: int):
+def getDisp(beam: Beam, ind: int):
     """
     Gets the beam displacement along the axis specified for the index.
 
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to read displacement from. The beam must be analyzed to get data.
     ind : int
         The index of the axis to read from. Can have value 0: horizontal displacement
@@ -43,13 +40,13 @@ def getDisp(beam: Beam2D, ind: int):
 
 
 
-def getVertDisp(beam: Beam2D):
+def getVertDisp(beam: Beam):
     """
     Gets the beam vertical displacement for the beam
 
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to read displacement from. The beam must be analyzed to get data.
 
     Returns
@@ -62,13 +59,13 @@ def getVertDisp(beam: Beam2D):
     return getDisp(beam, 1)
 
 
-def getMaxVertDisp(beam: Beam2D):
+def getMaxVertDisp(beam: Beam):
     """
     Gets the absolute value of beam vertical displacement and it's location.
 
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to read displacement from. The beam must be analyzed to get data.
 
     Returns
@@ -90,13 +87,13 @@ def getMaxVertDisp(beam: Beam2D):
 
 
     
-# def getMaxBeamDisp(beam: Beam2D, ind: int):
+# def getMaxBeamDisp(beam: Beam, ind: int):
 #     """
 #     Gets the beam displacement along the axis specified for the index.
 
 #     Parameters
 #     ----------
-#     beam : Beam2D
+#     beam : Beam
 #         DESCRIPTION.
 #     ind : TYPE
 #         DESCRIPTION.
@@ -166,17 +163,19 @@ def _plotLabel(ax, xcoord, label, offsetx, offsety):
     y = 0 + offsety
     ax.text(x, y, label)
 
-def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'Nm', **kwargs):
+def plotMoment(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
     """
     Plots the internal moment at each node in the beam. 
     Two values are given for each point, one at the left side, one at the right
     side. 
     Note that internal force is only known exactly at nodes, and linear 
     interpolation is used for all other values.
+    
+    For 3D beams, returns the strong axis Moment.
 
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
         The scale to apply to the plot. The default is 1.
@@ -206,12 +205,28 @@ def plotMoment2D(beam:Beam2D, scale:float=-1, yunit = 'Nm', **kwargs):
         the plotted line.
 
     """
-    return plotInternalForce2D(beam, 2, scale , yunit = yunit, **kwargs)
-     
+    ind = beam.getDOF() - 1
+    return plotInternalForce(beam, ind, scale , yunit = yunit, **kwargs)
 
+
+def plotMoment2D(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
+    """
+    Depricated, use plotMoment instead
+
+    """ 
+    ind = beam.getDOF() - 1
+    return plotInternalForce2D(beam, ind, scale , yunit = yunit, **kwargs)
+     
+def plotShear2D(beam:Beam, scale:float=1, **kwargs):
+    """
+    Depricated, use plotShear instead
+
+    """    
+    
+    return plotInternalForce2D(beam, 1, scale, **kwargs)
     
 
-def plotShear2D(beam:Beam2D, scale:float=1, **kwargs):
+def plotShear(beam:Beam, scale:float=1, **kwargs):
     """
     Plots the internal shear force within a beam. 
     Two values are given for each point, one at the left side, one at the right
@@ -220,9 +235,12 @@ def plotShear2D(beam:Beam2D, scale:float=1, **kwargs):
     Note that internal force is only known exactly at nodes, and linear 
     interpolation is used for all other values.
     
+    For 3D beams, returns the Vy, the vertical component of force.
+
+    
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
         The scale to apply to the plot. The default is 1.
@@ -254,9 +272,9 @@ def plotShear2D(beam:Beam2D, scale:float=1, **kwargs):
 
     """    
     
-    return plotInternalForce2D(beam, 1, scale, **kwargs)
+    return plotInternalForce(beam, 1, scale, **kwargs)
 
-def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit = 'N',
+def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
                         showAxis = True, showGrid = False, labelPlot = True):
     """
     Plots the internal forces within a beam. 
@@ -268,11 +286,17 @@ def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit =
     
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     index : int
-        The type of response to plot, can have value 0:axial force, 1: shear force
-        2: moment.
+        The type of response to plot, can have value 
+        
+        In 2D has values:
+            [0:Fx, 1: Fy, 2: M]
+            
+        In 3D has values:
+            [0:Fx, 1: Fy, 2: Fz, 3: Mx, 4: Mx, 5: Mz]
+            
     scale : float, optional
         The scale to apply to the plot. The default is 1.
     xunit : str, optional
@@ -317,10 +341,19 @@ def plotInternalForce2D(beam:Beam2D, index:int, scale:float, xunit= 'm', yunit =
     line = plt.plot(xcoords, force*scale)     
     
     return fig, ax, line
-  
-         
-        
-def plotVertDisp2D(beam:Beam2D, scale=1000, yunit = 'mm', **kwargs):
+
+
+def plotInternalForce2D(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
+                        showAxis = True, showGrid = False, labelPlot = True):
+    print('All 2D plot functions are depricated and will return an error in future releases. \
+          Use the generic plot functions instead, i.e. plotInternalForce instead of plotInternalForce2D' )
+    return plotInternalForce(beam, index, scale, 'm', 'N',
+                            True, False, True)
+    
+
+    
+
+def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     """
     Plots the rotation of a beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
@@ -328,7 +361,7 @@ def plotVertDisp2D(beam:Beam2D, scale=1000, yunit = 'mm', **kwargs):
     
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
@@ -355,10 +388,10 @@ def plotVertDisp2D(beam:Beam2D, scale=1000, yunit = 'mm', **kwargs):
         the plotted line.
     """    
     
-    return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
+    return plotDisp(beam, 1, scale, yunit= yunit, **kwargs) 
 
 
-def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
+def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     """
     Plots the rotation of a beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
@@ -366,7 +399,7 @@ def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
     
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
@@ -393,19 +426,16 @@ def plotRotation2D(beam:Beam2D, scale=1000, yunit = 'mRad', **kwargs):
         the plotted line.
     """
     
+    ind = beam.getDOF() - 1
     
-    
-    return plotDisp2D(beam, 2, scale, yunit= yunit, **kwargs)
+    return plotDisp(beam, ind, scale, yunit= yunit, **kwargs)
 
 
 
 
 
 
-
-
-
-def plotDisp2D(beam:Beam2D, index=1, scale=1000, xunit= 'm', yunit = 'mm',
+def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
                         showAxis = True, showGrid = False, labelPlot = True):
     """
     Plots the displacement of one dimension of the beam. Each node will contain the
@@ -414,7 +444,7 @@ def plotDisp2D(beam:Beam2D, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     
     Parameters
     ----------
-    beam : Beam2D
+    beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
@@ -460,7 +490,37 @@ def plotDisp2D(beam:Beam2D, index=1, scale=1000, xunit= 'm', yunit = 'mm',
         
     line = plt.plot(xcoords, disp*scale)     
 
-    return fig, ax, line   
-        
+    return fig, ax, line 
 
+
+
+
+
+
+
+ 
+def plotDisp2D(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
+                        showAxis = True, showGrid = False, labelPlot = True):
+    print('All 2D plot functions are depricated and will return an error in future releases. \
+          Use the generic plot functions instead, i.e. plotInternalForce instead of plotInternalForce2D' )
+    return plotDisp(beam, index, scale, xunit, yunit,
+                            True, False, True)
      
+def plotVertDisp2D(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
+    """
+    Depricated, instead use plotVertDisp
+    """
+    
+    return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
+
+
+def plotRotation2D(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
+    """
+    Depricated, instead use plotRotation
+    """
+    
+    ind = beam.getDOF() - 1
+    
+    return plotDisp2D(beam, ind, scale, yunit= yunit, **kwargs)
+
+
