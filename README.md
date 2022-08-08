@@ -21,6 +21,7 @@ PlaneSections has been design with Metric units in mind in terms of scaling diag
 * [Features](https://github.com/cslotboom/planesections#Features)
 * [Documentation](https://github.com/cslotboom/planesections#Documentation)
 * [Demo](https://github.com/cslotboom/planesections#Demo)
+* [Coordinates](https://github.com/cslotboom/planesections#Coordinates)
 * [License](https://github.com/cslotboom/planesections#License)
 * [Work Status](https://github.com/cslotboom/planesections#Status)
 
@@ -32,7 +33,7 @@ pip install planesections
 ```
 
 ## Features:
-2D beams can be anayzed under the following force types:
+2D and 3D beams can be anayzed under the following force types:
 - Point loads
 - Point Moments
 - Line loads
@@ -50,7 +51,7 @@ import planesections as ps
 
 # Define node locations, and support conditions
 L = 5
-beam = ps.newEulerBeam2D(L)
+beam = ps.newEulerBeam(L)
 
 # Define beam and fixities
 pinned = [1,1,0]
@@ -87,8 +88,15 @@ ps.plotMoment2D(beam)
   <img src="doc/img/Beam-Image-2-BMD.png" width="500">
 </p>  
 
+## Coordinates
+The coordinant system used for beams is as follows:
+<p align="center">
+  <img src="doc/img/coords/forces.JPG" width="700">
+</p>
+
+
 ## Further Examples
-See the examples folder for
+See the examples folder for more examples!
 
 ## License:
 Some restrictions exist for OpenSees license, so this for now this libary is restricted for resale. 
