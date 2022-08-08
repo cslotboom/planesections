@@ -28,7 +28,7 @@ is possible to place them anywhere in the beam desired.
 """
 L = 10*m
 Loffset = 0.5*m
-beam = ps.EulerBeam2D(section = section)
+beam = ps.EulerBeam(section = section)
 x       = np.linspace(0, L, 80)
 beam.addNodes(x)
 
@@ -60,7 +60,7 @@ analysis.runAnalysis()
 """
 Plot results
 """
-ps.plotDisp2D(beam, scale=1000, yunit = 'mm')
-ps.plotRotation2D(beam, scale=1000, yunit = 'mrad')
+ps.plotDisp(beam, scale=1000, yunit = 'mm')
+ps.plotRotation(beam, scale=1000, yunit = 'mrad')
 
-
+ps.plotVertDisp(beam)

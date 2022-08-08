@@ -1,11 +1,10 @@
-from .builder import (Section2D, SectionBasic2D, SectionRectangle,
-                      Node2D, Beam2D, newEulerBeam2D, newSimpleEulerBeam2D, 
-                      EulerBeam2D, EleLoad, PointLoad)
-
-from .analysis import (OutputRecorder2D, OpenSeesAnalyzer2D)
+from .section import Section, SectionBasic, SectionRectangle
+from .builder import (Node2D, Node3D, Beam, newEulerBeam, newSimpleEulerBeam, 
+                      EulerBeam, EleLoad, PointLoad)
+from .analysis import (OutputRecorder, OpenSeesAnalyzer2D, OpenSeesAnalyzer3D)
 from .postprocess import (getDisp, getVertDisp, getMaxVertDisp,
-                          plotInternalForce2D, plotShear2D, plotMoment2D, 
-                       plotShear2D, plotDisp2D, plotVertDisp2D, plotRotation2D)
+                          plotInternalForce, plotShear, plotMoment, 
+                       plotShear, plotDisp, plotVertDisp, plotRotation)
 from .environment import DiagramUnitEnvironmentHandler
 
 diagramUnits = DiagramUnitEnvironmentHandler()

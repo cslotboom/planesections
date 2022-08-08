@@ -17,7 +17,7 @@ fixed = np.array([1, 1, 0.])
 q = np.array([0., -5000., 0.])
 
 # print('0 Nodes')
-beam = ps.EulerBeam2D()
+beam = ps.EulerBeam()
 # print('1 Nodes')
 
 beam.setFixity(x1, fixed)

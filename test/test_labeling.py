@@ -19,7 +19,7 @@ def test_labels_new():
     """
     Also tests the sort feature, because beam nodes need to be sorted correctly.
     """
-    beam = ps.EulerBeam2D(x, fixities, labels=labels)
+    beam = ps.EulerBeam(x, fixities, labels=labels)
     
     outLabels = []
     for node in beam.nodes:
@@ -33,7 +33,7 @@ def test_labels_existing():
     """
     Also tests if new nodes are being integrated with old nodes.
     """
-    beam = ps.EulerBeam2D(x, fixities, labels=labels)
+    beam = ps.EulerBeam(x, fixities, labels=labels)
     
     beam.addNode(x[0],fixities[0], label = 'C')
     
@@ -51,7 +51,7 @@ def test_labels_new_node():
     """
     Also tests if new nodes are being integrated with old nodes.
     """
-    beam = ps.EulerBeam2D(x, fixities, labels=labels)
+    beam = ps.EulerBeam(x, fixities, labels=labels)
     
     beam.addNode(3, label = 'D')
     beam.addNode(6, label = 'C')
@@ -69,7 +69,7 @@ def test_labels_new_Existing():
     """
     Also tests if new nodes are being integrated with old nodes.
     """
-    beam = ps.EulerBeam2D(x, fixities, labels=labels)
+    beam = ps.EulerBeam(x, fixities, labels=labels)
     
     beam.addNode(3, label = 'D')
     beam.addNode(0, label = 'C')
@@ -88,7 +88,7 @@ def test_relabel():
     x1 = 0
     x2 = 5
     x = [x1,x2]
-    beam = ps.EulerBeam2D(x)
+    beam = ps.EulerBeam(x)
     beam.addNode(0.,label='A') 
     
     check1 = beam.nodes[0].ID == 1

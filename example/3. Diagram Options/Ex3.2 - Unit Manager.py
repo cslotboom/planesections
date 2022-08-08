@@ -11,7 +11,7 @@ from planesections.units.metric import m, mm, kN, GPa
 
 L = 10*m
 P = -5.*kN
-beam = ps.newSimpleEulerBeam2D(L)
+beam = ps.newSimpleEulerBeam(L)
 beam.addVerticalLoad(L/2, P, 'A')
 beam.addVerticalLoad(L/3, P/2.5, 'B')
 beam.addVerticalLoad(L/6, P/5, 'C')
@@ -32,4 +32,4 @@ ps.plotBeamDiagram(beam, plotLabel=True, labelForce=True, plotForceValue=True)
 """
 The units can also be managed by selecting the appropriate unit type in the plot function
 """
-ps.plotBeamDiagram(beam, plotLabel=True, labelForce=True, plotForceValue=True, units='imperial_ftlb')
+# ps.plotBeamDiagram(beam, plotLabel=True, labelForce=True, plotForceValue=True, units='imperial_ftlb')

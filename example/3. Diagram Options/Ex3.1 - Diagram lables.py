@@ -9,7 +9,7 @@ from planesections.units.metric import m, mm, kN, GPa
 
 L = 10*m
 P = -5.*kN
-beam = ps.newSimpleEulerBeam2D(L)
+beam = ps.newSimpleEulerBeam(L)
 beam.addMoment(2*L/3, P/2, 'Am') 
 beam.addVerticalLoad(L/2, P, 'B')
 beam.addVerticalLoad(L/3, P/2.5)

@@ -20,7 +20,7 @@ x = np.linspace(0, 5, 50)
 fixed = np.array([1, 1, 0.])
 q = np.array([0., -5000., 0.])
 
-beam = ps.EulerBeam2D(x)
+beam = ps.EulerBeam(x)
 beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.addPointLoad(x3, q)

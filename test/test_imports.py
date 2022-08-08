@@ -11,24 +11,25 @@ are working.
 """
 
 
-
-
+def test_section():
+    from planesections import Section, SectionBasic, SectionRectangle
+    
+    assert True
 
 def test_builder():
-    from planesections.builder import (Section2D, SectionBasic2D, SectionRectangle,
-                          Node2D, Beam2D, newEulerBeam2D, EulerBeam2D, EleLoad, PointLoad)
+    from planesections import (
+                          Node2D, Beam, newEulerBeam, EulerBeam, EleLoad, PointLoad)
     assert True
-        
-
-
+            
 def test_diagram():
-    from planesections.diagram import plotBeamDiagram, BeamPlotter2D
+    from planesections import plotBeamDiagram, BeamPlotter2D
     assert True
     
 def test_Analysis():
-    from planesections.analysis import (OutputRecorder2D, OpenSeesAnalyzer2D)
+    from planesections import (OutputRecorder, OpenSeesAnalyzer2D)
     assert True
-    
+
+# test_section()
 # test_builder()
 # test_Analysis()
 # test_diagram()
