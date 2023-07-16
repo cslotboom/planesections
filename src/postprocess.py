@@ -178,7 +178,7 @@ def plotMoment(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
     beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
     yunit : str, optional
         The yunit for the plot labels. The default is Nm.
         
@@ -243,7 +243,7 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
         
     Kwarg Parameters
     ----------        
@@ -298,7 +298,7 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
             [0:Fx, 1: Fy, 2: Fz, 3: Mx, 4: Mx, 5: Mz]
             
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
@@ -370,7 +370,7 @@ def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
-        The yunit for the plot labels. The default is mm.
+        The scale to apply to y values of the plot. The default is mm.
     showAxis : bool, optional
         Turns on or off the axis.
     showGrid : bool, optional
@@ -404,7 +404,7 @@ def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
     scale : float, optional
-        The scale to apply to the plot. The default is 0.001.
+        The scale to apply to y values of the plot. The default is 0.001.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
@@ -449,7 +449,7 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
     scale : float, optional
-        The scale to apply to the plot. The default is 0.001.
+        The scale to apply to y values of the plot. The default is 0.001.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional

@@ -143,7 +143,7 @@ class OpenSeesAnalyzer2D():
             op.node(int(node.ID), float(node.x), 0.)
             
             # OpenSees is very finicky with these inputs, int them for saftey.
-            f1, f2, f3 = node.fixity
+            f1, f2, f3 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3))
         
     def buildEulerBeams(self):
@@ -307,7 +307,7 @@ class OpenSeesAnalyzer3D():
             op.node(int(node.ID), float(node.x), 0., 0.)
             
             # OpenSees is very finicky with these inputs, int them for saftey.
-            f1, f2, f3, f4, f5, f6 = node.fixity
+            f1, f2, f3, f4, f5, f6 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3), int(f4), int(f5), int(f6))
         
     def buildEulerBeams(self):

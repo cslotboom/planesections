@@ -9,8 +9,9 @@ L = 5*m
 x = np.linspace(0,L,80)
 beam = ps.EulerBeam(x)
 
-pinned = [1,1,0]
-fixed = [1,1,1]
+pinned = ps.FixityTypes2D.getPinned()
+fixed  = ps.FixityTypes2D.getFixed()
+
 beam.setFixity(0.4, pinned, label = 'A')
 beam.setFixity(L, fixed, label = 'B')
 

@@ -47,8 +47,9 @@ def test_addNode_Fixity():
     beam.addNode(0, fixity1)
     beam.addNode(10, fixity2)
     
-    check = np.all(beam.nodes[1].fixity == fixity2)
+    check = np.all(beam.nodes[1].fixity.fixityValues == fixity2)
     
     assert check
 
-
+if __name__ == "__main__":
+    test_addNode_Fixity()

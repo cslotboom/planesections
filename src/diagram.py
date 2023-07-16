@@ -319,6 +319,9 @@ class BasicBeamDiagram(BeamDiagram):
         x = xy0[0] + self.labelOffset
         y = xy0[1] + self.labelOffset
         self.ax.text(x, y, label, {'size':12*self.scale})
+        
+        
+        
         # self.labelOffset
         
     # def plotForceLabel(self, xy0, label):

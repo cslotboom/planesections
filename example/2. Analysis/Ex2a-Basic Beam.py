@@ -37,7 +37,7 @@ Define the node fixities. The fixity is a list for each DOF, where 1 represents
 fixed, and 0 represents free in this case two pin constraints are applied to the
 beam. Lists or Numpy arrays can be used for fixities.
 """
-pin   = np.array([1, 1, 0])
+pin   = ps.FixityTypes2D.getPinned()
 beam.setFixity(Loffset, pin)
 beam.setFixity(L - Loffset, pin)
 
