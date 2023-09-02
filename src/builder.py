@@ -38,7 +38,6 @@ class NodeArchetype(ABC):
         """
         pass    
 
-
 class Fixity:
     def __init__(self, name:str, fixityValues:list[int]):
         """
@@ -48,7 +47,8 @@ class Fixity:
         self.fixityValues = fixityValues
     def __repr__(self):
         return f'<Fixity type {self.name} with {self.fixityValues}.>'
-        
+
+
 class FixityTypes2D:
     """
     Used to generate possible fixity types. Currently the supported types for
@@ -159,6 +159,8 @@ class Node(NodeArchetype):
         self.rFrc = None
         self.Fint = None
         
+        self.averageShear = False
+        
         self.hasReaction = False
         if np.any(np.array(self.fixity.fixityValues) != np.array([0,0,0], int)):
             self.hasReaction = True
@@ -186,6 +188,12 @@ class Node(NodeArchetype):
     def getPosition(self):
         return self.x
     
+    def _checkIfResultsAveraged(self):
+        if self.hasReaction == False and len(self.pointLoadIDs) == 0:
+            return True
+        return False
+        
+    
     def getInternalForces(self, ind):
         """
         Returns the left and right internal forces each node has for the input
@@ -201,10 +209,11 @@ class Node(NodeArchetype):
             4: My (Out of Plane Bending)
             5: Mz (bending)            
         """
-        
+
         return self.Fint[[ind,ind + self._Nforce]]
-
-
+    
+        
+        
 class Node2D(Node):
     """
     Represents a node 2D. Nodes have labels and IDs and fixities. 
@@ -248,10 +257,7 @@ class Node2D(Node):
         """
 
         return self.fixity.name
-
-
-    # def 
-    
+  
     
 class Node3D(Node):
     """
@@ -326,7 +332,7 @@ class Beam:
 
     def _initArrays(self):
         self.nodeLabels = {}
-        self.nodes = []
+        self.nodes:list[Node] = []
         self.Nnodes = 0
         self.pointLoads = []
         self.distLoads = []
@@ -492,10 +498,9 @@ class Beam:
 
     def addLabel(self, x:float, label:str, sort:bool = True):
         """
-        Adds a label to the beam at the coordinate in question. If a node exists
-        at this location the label is added to it. 
-        If no node exists at location x, a new node is added.
-        The new node will have default fixity.
+        Adds a label to the beam at the coordinate in question. If a node 
+        exists at this location the label is added to it. If no node exists at 
+        location x, a new node is added. The new node will have default fixity.
 
         Parameters
         ----------
@@ -592,7 +597,6 @@ class Beam:
         # I'd guess we're runing out if just one value is provided
         if (len(fixVals) == 2 or len(fixVals) > self._ndf):
             raise ValueError(f"Fixity must be a integer or vector of length {self._ndf}")
-
 
     def _convertFixityInput(self, fixity):
         """
@@ -761,7 +765,8 @@ class Beam:
             pointLoad = np.array([Px, 0., 0., 0., 0., 0.])              
         
         self.addPointLoad(x, pointLoad, label)            
-             
+    
+    #TODO: use a dictionary to speed this process up?!
     def _findNode(self, xInput:float):
         """
         Searches through all nodes, and returns the index of the node that has
@@ -817,7 +822,7 @@ class Beam:
         if x2 not in self.nodeCoords:
             self.addNode(x2, defaultFixity)
         
-        newEleLoad = EleLoad(x1, x2, distLoad, label)
+        newEleLoad = EleLoadDist(x1, x2, distLoad, label)
         self.eleLoads.append(newEleLoad)
 
     def addDistLoadVertical(self, x1:float, x2:float, qy:float, label:str=''):
@@ -836,7 +841,7 @@ class Beam:
         x2 : float
             Start point of distributed load.
         qy : float
-            A constantly distributed axial force.
+            A constantly distributed vertical force.
         label : str
             A optional label for the force.
         """
@@ -874,6 +879,109 @@ class Beam:
             distLoad = np.array([qx, 0., 0.])
         self.addDistLoad(x1, x2, distLoad, label)    
     
+    def addLinLoad(self, x1:float, x2:float, linLoad:float, label:str='',
+                   isRightHigh = True):
+        """
+        Adds a linear load to the model. The load is defined between two 
+        locations, x1 and x2. If nodes exist at these locations, then the load 
+        is definied between those existing nodes. If there are no nodes at 
+        these locations, then nodes are added to the model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        distLoad : array
+            The distributed load. The loads given are the maximum of the 
+            distributed load
+            
+            In 2D has the form [qx (axial force), qy (shear force)]
+            
+            In 3D has the form [Fx (axial force), Fy (shear force), Fz (shear force)]
+        label : str
+            A optional label for the force.
+        """
+        
+        defaultFixity = np.zeros(self._ndf, int)
+        linLoad = np.array(linLoad)
+        
+        if x1 not in self.nodeCoords:
+            self.addNode(x1, defaultFixity)        
+        if x2 not in self.nodeCoords:
+            self.addNode(x2, defaultFixity)
+        
+        newEleLoad = EleLoadLinear(x1, x2, linLoad, label, isRightHigh)
+        self.eleLoads.append(newEleLoad)
+
+    def addLinLoadVertical(self, x1:float, x2:float, qy:float, label:str='',
+                           isRightHigh = True):
+        """
+        Adds a linear load to the model. The load is defined between two 
+        locations in the model, x1 and x2. If nodes exist at these
+        x1 or x2, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qy : float
+            The peak load for a linearly disributed vertical load.
+        label : str
+            A optional label for the force.
+        isRightHigh : bool, optional
+            A flag that changs the orientation of the laod so that the high 
+            point of the distributed load starts on the left side. The default 
+            is True, which makes the high point start on the right.          
+        """
+
+        if self._ndf == 3:
+            linLoad = np.array([0., qy])
+        if self._ndf == 6:
+            linLoad = np.array([0., qy, 0.])
+        self.addLinLoad(x1, x2, linLoad, label, isRightHigh)
+
+    def addLinLoadHorizontal(self, x1:float, x2:float, qx:float, label:str=''):
+        """
+        Adds a linear load to the model. The load is defined
+        between two locations, x1 and x2, in the model. If nodes exist at these
+        locations, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qx : float
+            A constantly distributed axial force.
+        label : str
+            A optional label for the force.
+        isRightHigh : bool, optional
+            A flag that changs the orientation of the laod so that the high 
+            point of the distributed load starts on the left side. The default 
+            is True, which makes the high point start on the right. 
+            
+            
+        """
+        
+        if self._ndf == 3:
+            linLoad = np.array([qx, 0.])
+        if self._ndf == 6:
+            linLoad = np.array([qx, 0., 0.])
+        self.addLinLoad(x1, x2, linLoad, label)
+        
+        
     def Fmax(self, index):
         """
         get the maximum and minimum internal force for teh beam along the 
@@ -904,9 +1012,6 @@ class Beam2D(Beam):
 # =============================================================================
 # 
 # =============================================================================
-
-
-
 
 def newEulerBeam(x2, x1 = 0, meshSize = 101, section=None, dimension = '2D'):
     """
@@ -1099,7 +1204,7 @@ class EulerBeam(Beam):
         Moment : array
             the output left and right moment at each node
         """
-        print('getMoment has been depricated, and will return an error in future releases. Use getBMD instead.')
+        print('getMoment has been depricated, and will return an error in, future releases. Use getBMD instead.')
         self.getBMD()
 
     
@@ -1209,6 +1314,17 @@ class EulerBeam2D(EulerBeam):
 @dataclass()
 class EleLoad:
     """
+    Depriciated, see EleLoadDist
+
+    """    
+    
+    def __post_init__(self):
+        print('EleLoad is depricated and will return an error in future version. Use EleLoadDist instead.')
+
+
+@dataclass()
+class EleLoadDist:
+    """
     Representes a distrubted element load between two points x1 x2. 
     For 2D elements, distributed loads can either px or py.
 
@@ -1224,15 +1340,154 @@ class EleLoad:
         A label for the elment load. The default is ''.
 
     """    
-    
-    
-    def __init__(self, x1, x2, distLoad, label = ''):
+        
+    def __init__(self, x1:float, x2:float, distLoad:list, label:str = ''):
 
         self.x1 = x1
         self.x2 = x2
         self.P = distLoad
         self.label = label
 
+
+@dataclass()
+class EleLoadLinear:
+    """
+    Represents a linearly distrubted element load between two points x1 x2, 
+    where the load increase from x1 to x2. The direction of the load can be 
+    toggled so the high point is at x1 instead of x2.   
+
+    Parameters
+    ----------
+    x1 : float
+        The start position.
+    x2 : float
+        The end position.
+    distLoad : list
+        For 2D, a List of forces in [Px, Py].
+    label : str, optional
+        A label for the elment load. The default is ''.
+    isRightHigh : bool, optional
+        A flag that changs the orientation of the laod so that the high point
+        of the distributed load starts on the left side. The default is True,
+        which has the high point start on the right.
+        
+        
+    """    
+        
+    def __init__(self, x1:float, x2:float, distLoad:list, label:str = '',
+                 isRightHigh = True):
+
+        self.x1 = x1
+        self.x2 = x2
+        self.P = distLoad
+        self.label = label
+        self.isRightHigh = isRightHigh
+        
+    def _getFEMLinearEquivLoad(self, s1:float, s2:float):
+        """
+        Calcualted equivalent end nodes for the linear load between points
+        s1 and s2.
+        
+        This will perform very poorly, it's repeating a lot of calcualtions.
+        
+        https://www.youtube.com/watch?v=bFGLWWhWPhU
+        https://mae.ufl.edu/nkim/eml5526/Lect05.pdf
+        https://www.engr.uvic.ca/~mech410/lectures/FEA_Theory.pdf
+        Parameters
+        ----------
+        s : float
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        qy = self.P[1]
+        qx = self.P[0]
+
+        L = s2 - s1
+        Lnet = self.x2 - self.x1
+        xstart, smin, smax = self._getxstart(s1,s2)
+        qxconst, qxlin = self._getLoadComponents(qx, xstart, Lnet, smin, smax)
+        qyconst, qylin = self._getLoadComponents(qy, xstart, Lnet, smin, smax)
+         
+        Pconst = self._constLoadBar(L)*qxconst
+        Plin = self._linLoadBar(L)*qxlin     
+        
+        Fconst = self._constLoadBeam(L)*qyconst
+        Flin = self._linLoadBeam(L)*qylin       
+        
+        P1, P2 = Pconst + Plin
+        V1, M1, V2, M2 = Fconst + Flin
+        
+        return self._reverse([P1, V1, M1], [P2, V2, M2])
+
+    def getLoadComponents(self, s1, s2, q):
+        Lnet = self.x2 - self.x1
+        xstart, smin, smax = self._getxstart(s1,s2)
+        qconst, qlin = self._getLoadComponents(q, xstart, Lnet, smin, smax)
+        
+        qmax = qlin + qconst
+        qmin = qconst
+        
+        return self._reverse(qmin, qmax)
+
+
+    def _getxstart(self, s1, s2):
+        if self.isRightHigh:
+            xstart = self.x1
+            smin = s1
+            smax = s2
+        else:
+            xstart = self.x2
+            smin = s2
+            smax = s1   
+        return xstart, smin, smax
+            
+    def _getLoadComponents(self, q, xstart, L, smin, smax):
+        """
+        Assume linear distribution of force.
+        """
+        qconst = abs(smin - xstart) / L * q
+        qlin  = abs(smax - xstart) / L * q- qconst
+        return qconst, qlin
+
+    def _reverse(self, F1, F2):
+        """
+        default assumes right is high
+        """
+        if self.isRightHigh:
+            return F1, F2
+        else:
+            return F2, F1
+        
+    def _constLoadBeam(self, L:float):
+        """
+        FEM for a distributed load
+        UNUSED
+        """
+        return np.array([L/2, L**2/12, L/2, -L**2/12])
+        
+    def _linLoadBeam(self, L:float):
+        """
+        FEM for a distributed load
+        UNUSED
+        """
+        return np.array([3*L/20, L**2/30, 7*L/20, -L**2/20])
+    
+    # Bar loads assume that the load is applied with left being low
+    def _constLoadBar(self, L:float):
+        """
+        FEM for a distributed load
+        """
+        return np.array([L/2, L/2])
+        
+    def _linLoadBar(self, L:float):
+        """
+        FEM for a distributed load
+        """
+        return np.array([L/6, L/3])
 
 
 @dataclass()
@@ -1253,7 +1508,6 @@ class PointLoad:
 
     """        
     
-    # P = np.array([0.,0.,0.])
     nodeID = None
     
     def __init__(self, P, x, nodeID = None, label = ''):

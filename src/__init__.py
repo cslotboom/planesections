@@ -1,7 +1,7 @@
 from .section import (Section, SectionBasic, SectionRectangle,
                       Section2D, SectionBasic2D)
 from .builder import (Node2D, Node3D, Beam, newEulerBeam, newSimpleEulerBeam, 
-                      EulerBeam, EleLoad, PointLoad,
+                      EulerBeam, EleLoad, EleLoadDist, EleLoadLinear, PointLoad,
                       Beam2D, newEulerBeam2D, newSimpleEulerBeam2D, 
                       EulerBeam2D, FixityTypes2D, NAMED_RELEASES_2D)
 from .analysis import (OutputRecorder, OutputRecorder2D,

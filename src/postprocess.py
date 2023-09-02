@@ -351,8 +351,6 @@ def plotInternalForce2D(beam:Beam, index:int, scale:float, xunit= 'm', yunit = '
                             True, False, True)
     
 
-    
-
 def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     """
     Plots the rotation of a beam. Each node will contain the
@@ -491,11 +489,6 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     line = plt.plot(xcoords, disp*scale)     
 
     return fig, ax, line 
-
-
-
-
-
 
 
  
