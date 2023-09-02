@@ -89,21 +89,11 @@ def test_record_output():
     # OutputRecorder(beam)
 
 
-# pointBeamAnalysis  = OpenSeesAnalyzer(pointBeam)
-# pointBeamAnalysis.initModel()
-# pointBeamAnalysis.buildNodes()
-# out = op.nodeCoord(0)[0]
-# print(pointBeam.nodes.P)
+if __name__ == "__main__":
 
-# print(pointBeam.pointLoads[0].P)
-# print(pointBeam.pointLoads[0].nodeID)
-
-
-
-
-# test_nodes()
-# test_EulerElements()
-# test_node_loads()
-# test_ele_loads()
-# test_full_beam()
-# test_record_output()
+    test_nodes()
+    test_EulerElements()
+    test_node_loads()
+    test_ele_loads()
+    test_full_beam()
+    test_record_output()
