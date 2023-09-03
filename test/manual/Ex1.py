@@ -5,11 +5,11 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam2D, OpenSeesAnalyzer2D, plotMoment2D, plotShear2D
+from planesections import (EulerBeam2D, OpenSeesAnalyzer2D, 
+                           plotBeamDiagram, plotShear, plotMoment)
 
 # from planesections import EulerBeam
 import numpy as np
-from planesections.core import plotBeamDiagram
 
 
 """
@@ -42,8 +42,8 @@ beam.addLabel(x2, label='B')
 analysis = OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
-plotShear2D(beam)
-plotMoment2D(beam)
+plotShear(beam)
+plotMoment(beam)
 
 plotBeamDiagram(beam)
 

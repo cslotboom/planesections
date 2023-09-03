@@ -154,7 +154,7 @@ def test_setFixity_existing():
     newFixity = np.array([0,0,0])
     beam.setFixity(0, newFixity)
     
-    check  = np.all(newFixity == beam.nodes[0].fixity)
+    check  = np.all(newFixity == beam.nodes[0].fixity.fixityValues)
     assert check
     
     
@@ -164,7 +164,7 @@ def test_setFixity_new():
     newFixity = np.array([0,1,0])
     beam.setFixity(10, newFixity)
     
-    check  = np.all(newFixity == beam.nodes[2].fixity)
+    check  = np.all(newFixity == beam.nodes[2].fixity.fixityValues)
     assert check    
     
 def test_setFixity_input_size():
@@ -188,19 +188,19 @@ def test_setFixity_int():
     newFixity = 0
     beam.setFixity(0, newFixity)
     
-    check  = np.all(np.array([0,0,0]) == beam.nodes[0].fixity)
+    check  = np.all(np.array([0,0,0]) == beam.nodes[0].fixity.fixityValues)
     assert check        
  
-
-# test_init()
-# test_addPointLoad_new()
-# test_addPointLoad_existing()
-# test_makeBeamDist_new_nodes()
-# test_makeBeamDist_new()
-# test_makeBeamDist_existing_nodes()
-# test_makeBeamDist_existing()
-
-# test_setFixity_existing()
-# test_setFixity_new()
-# test_setFixity_int()
+if __name__ == '__main__':
+    test_init()
+    test_addPointLoad_new()
+    test_addPointLoad_existing()
+    test_makeBeamDist_new_nodes()
+    test_makeBeamDist_new()
+    test_makeBeamDist_existing_nodes()
+    test_makeBeamDist_existing()
+    
+    test_setFixity_existing()
+    test_setFixity_new()
+    test_setFixity_int()
 

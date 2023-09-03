@@ -2,7 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from planesections.section import SectionBasic
-
+from typing import Union
         
 # =============================================================================
 # 
@@ -38,6 +38,104 @@ class NodeArchetype(ABC):
         """
         pass    
 
+class Fixity:
+    def __init__(self, name:str, fixityValues:list[int]):
+        """
+        A object that represents fixities around a certain degree of freedom.
+        """
+        self.name = name
+        self.fixityValues = fixityValues
+    def __repr__(self):
+        return f'<Fixity type {self.name} with {self.fixityValues}.>'
+
+
+class FixityTypes2D:
+    """
+    Used to generate possible fixity types. Currently the supported types for
+    2D fixities are free, roller, pinned, and fixed. The Fixity class can be
+    used to dispatch each of these objects with it's relevant "get" methods.
+    
+    Note each fixity types will all be set equal to the same object as opposed
+    to new objects being created.
+    
+    Takes input of:
+        - 'free'
+        - 'roller'
+        - 'pinned'
+        - 'fixed'
+    
+    """
+    releaseNames = ['free', 'roller', 'pinned', 'fixed']
+    releaseTypes = [[0,0,0], [0,1,0], [1,1,0], [1,1,1]]
+    free   = Fixity(releaseNames[0],   releaseTypes[0])
+    roller = Fixity(releaseNames[1],   releaseTypes[1])
+    pinned = Fixity(releaseNames[2],   releaseTypes[2])
+    fixed  = Fixity(releaseNames[3],   releaseTypes[3])
+    types2D = {releaseNames[0]:free, releaseNames[1]:roller, 
+               releaseNames[2]:pinned, releaseNames[3]:fixed}
+    
+    @classmethod
+    def getFree(cls):
+        """
+        Returns a free support.
+        """       
+        return cls.free
+    @classmethod
+    def getRoller(cls):
+        """
+        Returns a roller support.
+        """   
+        return cls.roller
+    @classmethod
+    def getPinned(cls):
+        """
+        Returns a pinned support.
+        """
+        return cls.pinned
+    @classmethod
+    def getFixed(cls):
+        """
+        Returns a fixed support.
+        """        
+        return cls.fixed
+
+NAMED_RELEASES_2D = set(FixityTypes2D.releaseNames)
+
+def _getFixitystr(fixityInput):
+    if fixityInput in FixityTypes2D.types2D.keys():
+        return FixityTypes2D.types2D[fixityInput]
+    else:
+        raise Exception('fixity of type, {fixityInput} not supported, use one of', FixityTypes2D.keys())
+        
+def _getFixitylist(fixityInput):
+    if list(fixityInput) == [0,0,0]:
+        return FixityTypes2D.free
+    elif list(fixityInput) == [0,1,0]:
+        return FixityTypes2D.roller
+    elif list(fixityInput) == [1,1,0]:
+        return FixityTypes2D.pinned
+    elif list(fixityInput) == [1,1,1]:
+        return FixityTypes2D.fixed
+    else:
+        return Fixity('other', fixityInput)
+
+def _convertFixityInput2D(fixityInput) -> Fixity:
+    """
+    Looks at fixity inputs and returns an appropriate fixity object.
+    Supported options for fixity inputs include strings, i.e. 'pinned',
+    
+    """
+    if isinstance(fixityInput, Fixity):
+        return fixityInput
+    
+    if isinstance(fixityInput, list) or isinstance(fixityInput,np.ndarray):
+        return _getFixitylist(fixityInput)
+    
+    if isinstance(fixityInput, str):
+        return _getFixitystr(fixityInput)
+    
+    else:
+        raise Exception('Given input not supported')
 
 class Node(NodeArchetype):
     """
@@ -54,10 +152,10 @@ class Node(NodeArchetype):
     
     _dimension = '2D'   # the number for forces that can be applied
     _Nforce = 3         # the number for forces that can be applied    
-    def __init__(self, x, fixity, label = ''):
+    def __init__(self, x:float, fixity:Union[list, str, Fixity], label:str = ''):
         
         self.x = x
-        self.fixity = fixity
+        self.fixity = _convertFixityInput2D(fixity)
         self.ID = None        
         self.label = label
         self.labelIsPlotted = False
@@ -67,11 +165,17 @@ class Node(NodeArchetype):
         self.disp = None
         self.rFrc = None
         self.Fint = None
-
-        self.hasReaction = False
-        if np.any(np.array(fixity) != np.array([0,0,0], int)):
-            self.hasReaction = True
+        
+        self.averageShear = False
+        
+        self._setHasReaction()
             
+    def _setHasReaction(self):
+        self.hasReaction = False
+        fixities = np.array(self.fixity.fixityValues)
+        if np.any(fixities == np.array([1]*self._Nforce, int)):
+            self.hasReaction = True        
+    
     def _setID(self, newID):
         """
         Sets the node ID. The node ID is a unique identifier that can be used.
@@ -95,6 +199,12 @@ class Node(NodeArchetype):
     def getPosition(self):
         return self.x
     
+    def _checkIfResultsAveraged(self):
+        if self.hasReaction == False and len(self.pointLoadIDs) == 0:
+            return True
+        return False
+        
+    
     def getInternalForces(self, ind):
         """
         Returns the left and right internal forces each node has for the input
@@ -110,10 +220,11 @@ class Node(NodeArchetype):
             4: My (Out of Plane Bending)
             5: Mz (bending)            
         """
-        
+
         return self.Fint[[ind,ind + self._Nforce]]
-
-
+    
+        
+        
 class Node2D(Node):
     """
     Represents a node 2D. Nodes have labels and IDs and fixities. 
@@ -128,12 +239,17 @@ class Node2D(Node):
     ----------
     x : float
         The postion of the node.
-    fixity : list
-        A list of the input fixities for each possible degree of freedom. 
+    fixity : [list, str, Fixity]
+        In 2D, the fixity can be input as either a fixtiy object, a string 
+        from the variable NAMED_RELEASES_2D, or A list of the input fixities 
+        for each possible degree of freedom. 
+        
         Each node will have three degree of freedoms; [x, y, :math:`\\theta`]
         1 represents a fixed condition, 0 represents a free conditon. 
-        e.x. [1,1,0]
-        A pin conneciton that's fixed in x/y but free in rotation.
+        
+        The passed object can be a fixity object, a  string e.x. 'pinned', or 
+        a list of integers, e.x. [1,1,0] gives a pin conneciton that's 
+        fixed in x/y but free in rotation.
     label : str, optional
         A name for the node. This can be displayed in the plots. The default is ''.
     """    
@@ -141,7 +257,7 @@ class Node2D(Node):
     _dimension = '2D'   # the number for forces that can be applied
     _Nforce = 3         # the number for forces that can be applied
     
-    def __init__(self, x, fixity, label = ''):
+    def __init__(self, x:float, fixity:Union[list, str, Fixity], label:str = ''):
         super().__init__(x, fixity, label)
 
     def getFixityType(self):
@@ -150,18 +266,10 @@ class Node2D(Node):
         Currently only free, roller, pinned, and fixed are supported.
 
         """
-        if list(self.fixity) == [0,0,0]:
-            return 'free'
-        elif list(self.fixity) == [0,1,0]:
-            return 'roller'    
-        elif list(self.fixity) == [1,1,0]:
-            return 'pinned'    
-        elif list(self.fixity) == [1,1,1]:
-            return 'fixed'
-        else:
-            return 'unsupported'
 
-
+        return self.fixity.name
+  
+    
 class Node3D(Node):
     """
     Represents a node 3D. Nodes have labels and IDs and fixities. 
@@ -176,12 +284,13 @@ class Node3D(Node):
     ----------
     x : float
         The postion of the node.
-    fixity : list
-        A list of the input fixities for each possible degree of freedom. 
+    fixity : fixity, list
+        In 3D, the fixity can be input as either a fixtiy object, or a list of 
+        the input fixities for each possible degree of freedom. 
         Each node will have six degree of freedoms; [x, y, :math:`\\theta`x]
         1 represents a fixed condition, 0 represents a free conditon. 
         e.x. [1,1,0,1,1,1]
-        A pin conneciton that's fixed in x/y and all fixed in rotation.
+        A pin conneciton that's fixed in x/y and fixed all in rotation DOF.
     label : str, optional
         A name for the node. This can be displayed in the plots. The default is ''.
     """    
@@ -189,7 +298,7 @@ class Node3D(Node):
     _dimension = '3D'   # the number for forces that can be applied
     _Nforce = 6         # the number for forces that can be applied
     
-    def __init__(self, x, fixity, label = ''):
+    def __init__(self, x:float, fixity:Union[list, str, Fixity], label:str = ''):
         super().__init__(x, fixity, label)
 
     def getFixityType(self):
@@ -234,7 +343,7 @@ class Beam:
 
     def _initArrays(self):
         self.nodeLabels = {}
-        self.nodes = []
+        self.nodes:list[Node] = []
         self.Nnodes = 0
         self.pointLoads = []
         self.distLoads = []
@@ -340,7 +449,8 @@ class Beam:
         print(f'New node added at: {x}')
     
     
-    def addNode(self, x, fixity = None, label = '', sort = True):
+    def addNode(self, x:float, fixity:Union[list, str, Fixity] = None, 
+                label:str = '', sort:bool = True):
         """
         Adds a new node to the beam. Keyword arguments are passed to the node.
         See :py:class:`Node2D` for more details
@@ -349,8 +459,9 @@ class Beam:
         ----------
         x : float
             The x coordinate of the node.
-        fixity : list
-            A list of the input fixities for each possible degree of freedom. 
+        fixity : Fixity, list
+            A fixity object, or a list of the input fixities for each 
+            possible degree of freedom. 
             2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
             3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
             For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
@@ -375,7 +486,7 @@ class Beam:
 
         """
         if fixity is None:
-            fixity = np.zeros(self._ndf, int)
+            fixity = Fixity('free',np.zeros(self._ndf, int))
         newNode = self._activeNodeType(x, fixity, label)
         if x in self.nodeCoords:
             """
@@ -396,12 +507,11 @@ class Beam:
             return 1
         return -1
 
-    def addLabel(self, x, label, sort = True):
+    def addLabel(self, x:float, label:str, sort:bool = True):
         """
-        Adds a label to the beam at the coordinate in question. If a node exists
-        at this location the label is added to it. 
-        If no node exists at location x, a new node is added.
-        The new node will have default fixity.
+        Adds a label to the beam at the coordinate in question. If a node 
+        exists at this location the label is added to it. If no node exists at 
+        location x, a new node is added. The new node will have default fixity.
 
         Parameters
         ----------
@@ -421,7 +531,7 @@ class Beam:
 
         """
 
-        fixity = np.zeros(self._ndf, int)
+        fixity = Fixity('free',np.zeros(self._ndf, int))
         newNode = self._activeNodeType(x, fixity, label) # either 2D or 3D depending on the dimension type.        
         if x in self.nodeCoords:
             index = self._findNode(x)
@@ -432,7 +542,7 @@ class Beam:
             return 1
         return -1
 
-    def _addNewNode(self, newNode:Node2D, sort=True):
+    def _addNewNode(self, newNode:Node2D, sort:bool=True):
         self.Nnodes += 1
         newNode._setID(self.Nnodes)
         self.nodes.append(newNode)
@@ -440,7 +550,9 @@ class Beam:
         if sort:
             self._sortNodes()
 
-    def addNodes(self, xCoords, fixities = None, labels = None ):
+    def addNodes(self, xCoords:list[float], 
+                 fixities:list[Union[list, str, Fixity]] = None, 
+                 labels:list[str] = None ):
         """
         Adds several new nodes to the beam at the same time.
         The nodes in question are added at the x coordinates in the model.
@@ -450,17 +562,17 @@ class Beam:
         ----------
         xCoords : list of float
             A list of the x coordinates to be added to the model.
-        fixities : list of lists, optional
-            Adds fixity to each of the new nodes. Fixity is given in a list 
-            of boolean, where true means that the node if fixed in that DOF.
+        fixities : list of fixity or booliean, optional
+            A fixity object, or a list of the input fixities for each 
+            possible degree of freedom. 
             2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
             3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+            For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+            e.x. 
             
-            The default is None, which results in all nodes being free.
-            Ex.
-            [[1,1,0], [0,0,0]]
-            New node 1: fixed in x, fixed in y, free in rotation.
-            New node 2: free in all DOF.
+            [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+            
+            [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
 
         label : list[str], optional
             A list of the labels for each node. 
@@ -470,7 +582,7 @@ class Beam:
                
         newNoads = len(xCoords)       
         if fixities == None:
-            fixity = np.zeros(self._ndf, int)
+            fixity = Fixity('free', np.zeros(self._ndf, int))
             fixities = [fixity]*newNoads
                         
         if labels is None:
@@ -482,21 +594,20 @@ class Beam:
 
         self._sortNodes()
         
-    def _checkfixityInput(self, fixity):
+    def _checkfixityInput(self, fixity:Fixity):
         
         """
         Confirms that the appropriate input has been supplied to the fixity
         vector.
         """
-                
-        if set(fixity).issubset({0,1}) != True:
+        fixVals = fixity.fixityValues
+        if set(fixVals).issubset({0,1}) != True:
             raise ValueError("Fixity must be a list of zeros and ones.")
             
         # I forget why I explicitly check for 2 here. 
         # I'd guess we're runing out if just one value is provided
-        if (len(fixity) == 2 or len(fixity) > self._ndf):
+        if (len(fixVals) == 2 or len(fixVals) > self._ndf):
             raise ValueError(f"Fixity must be a integer or vector of length {self._ndf}")
-
 
     def _convertFixityInput(self, fixity):
         """
@@ -508,7 +619,8 @@ class Beam:
         else:
             return fixity
 
-    def setFixity(self, x, fixity, label = None):
+    def setFixity(self, x:float, fixity:list[Union[list, Fixity]], 
+                  label = None):
         """
         Sets the the model fixity at locaiton x. If the node exists, update it. If the node doesn't
         exist, then a new node will be added
@@ -517,8 +629,9 @@ class Beam:
         ----------
         x : float
             The x coordinant of the noded to be modified/added.
-        fixity : list
-            A list of the input fixities for each possible degree of freedom. 
+        fixity : list, Fixity
+            A fixity object, or a list of the input fixities for each 
+            possible degree of freedom. 
             2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
             3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
             For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
@@ -533,6 +646,7 @@ class Beam:
         """
 
         fixity = self._convertFixityInput(fixity)
+        fixity = _convertFixityInput2D(fixity)
         self._checkfixityInput(fixity)
         
         if x in self.nodeCoords:
@@ -544,7 +658,7 @@ class Beam:
         else:
             self.addNode(x, fixity, label)        
                  
-    def addPointLoad(self, x, pointLoad, label = ''):
+    def addPointLoad(self, x:float, pointLoad:list, label:str = ''):
         """
         Adds a load ot the model at location x.
         If a node exists at the current location, the old load value is overwritten.
@@ -592,7 +706,7 @@ class Beam:
         newLoad = PointLoad(pointLoad, x, nodeID)
         self.pointLoads.append(newLoad)                
          
-    def addVerticalLoad(self, x, Py, label=''):
+    def addVerticalLoad(self, x:float, Py:float, label:str=''):
         """
         Adds a vertical load to the model at location x. If no node
         exists at position x, a new node is added.
@@ -616,7 +730,7 @@ class Beam:
             
         self.addPointLoad(x, pointLoad, label)
         
-    def addMoment(self, x, M, label=''):
+    def addMoment(self, x:float, M:float, label:str=''):
         """
         Adds a moment ot the model at location x. If no node
         exists at position x, a new node is added.
@@ -642,7 +756,7 @@ class Beam:
         
         self.addPointLoad(x, pointLoad, label)     
         
-    def addHorizontalLoad(self, x, Px, label=''):
+    def addHorizontalLoad(self, x:float, Px:float, label:str=''):
         """
         Adds a horizontal point load at the model at location x. If no node
         exists at position x, a new node is added.
@@ -662,7 +776,8 @@ class Beam:
             pointLoad = np.array([Px, 0., 0., 0., 0., 0.])              
         
         self.addPointLoad(x, pointLoad, label)            
-             
+    
+    #TODO: use a dictionary to speed this process up?!
     def _findNode(self, xInput:float):
         """
         Searches through all nodes, and returns the index of the node that has
@@ -685,7 +800,7 @@ class Beam:
                 return ii
         return None
             
-    def addDistLoad(self, x1, x2, distLoad, label=''):
+    def addDistLoad(self, x1:float, x2:float, distLoad:float, label:str=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -718,10 +833,10 @@ class Beam:
         if x2 not in self.nodeCoords:
             self.addNode(x2, defaultFixity)
         
-        newEleLoad = EleLoad(x1, x2, distLoad, label)
+        newEleLoad = EleLoadDist(x1, x2, distLoad, label)
         self.eleLoads.append(newEleLoad)
 
-    def addDistLoadVertical(self, x1, x2, qy, label=''):
+    def addDistLoadVertical(self, x1:float, x2:float, qy:float, label:str=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -737,7 +852,7 @@ class Beam:
         x2 : float
             Start point of distributed load.
         qy : float
-            A constantly distributed axial force.
+            A constantly distributed vertical force.
         label : str
             A optional label for the force.
         """
@@ -748,7 +863,7 @@ class Beam:
             distLoad = np.array([0., qy, 0.])
         self.addDistLoad(x1, x2, distLoad, label)
 
-    def addDistLoadHorizontal(self, x1, x2, qx, label=''):
+    def addDistLoadHorizontal(self, x1:float, x2:float, qx:float, label:str=''):
         """
         Adds a distributed load to the model. The load is defined
         between two locations, x1 and x2, in the model. If nodes exist at these
@@ -775,6 +890,109 @@ class Beam:
             distLoad = np.array([qx, 0., 0.])
         self.addDistLoad(x1, x2, distLoad, label)    
     
+    def addLinLoad(self, x1:float, x2:float, linLoad:float, label:str='',
+                   isRightHigh = True):
+        """
+        Adds a linear load to the model. The load is defined between two 
+        locations, x1 and x2. If nodes exist at these locations, then the load 
+        is definied between those existing nodes. If there are no nodes at 
+        these locations, then nodes are added to the model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        distLoad : array
+            The distributed load. The loads given are the maximum of the 
+            distributed load
+            
+            In 2D has the form [qx (axial force), qy (shear force)]
+            
+            In 3D has the form [Fx (axial force), Fy (shear force), Fz (shear force)]
+        label : str
+            A optional label for the force.
+        """
+        
+        defaultFixity = np.zeros(self._ndf, int)
+        linLoad = np.array(linLoad)
+        
+        if x1 not in self.nodeCoords:
+            self.addNode(x1, defaultFixity)        
+        if x2 not in self.nodeCoords:
+            self.addNode(x2, defaultFixity)
+        
+        newEleLoad = EleLoadLinear(x1, x2, linLoad, label, isRightHigh)
+        self.eleLoads.append(newEleLoad)
+
+    def addLinLoadVertical(self, x1:float, x2:float, qy:float, label:str='',
+                           isRightHigh = True):
+        """
+        Adds a linear load to the model. The load is defined between two 
+        locations in the model, x1 and x2. If nodes exist at these
+        x1 or x2, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qy : float
+            The peak load for a linearly disributed vertical load.
+        label : str
+            A optional label for the force.
+        isRightHigh : bool, optional
+            A flag that changs the orientation of the laod so that the high 
+            point of the distributed load starts on the left side. The default 
+            is True, which makes the high point start on the right.          
+        """
+
+        if self._ndf == 3:
+            linLoad = np.array([0., qy])
+        if self._ndf == 6:
+            linLoad = np.array([0., qy, 0.])
+        self.addLinLoad(x1, x2, linLoad, label, isRightHigh)
+
+    def addLinLoadHorizontal(self, x1:float, x2:float, qx:float, label:str=''):
+        """
+        Adds a linear load to the model. The load is defined
+        between two locations, x1 and x2, in the model. If nodes exist at these
+        locations, then the load is definied between those existing nodes.
+        If there are no nodes at these locations, then nodes are added to the 
+        model.
+        Old loads at this point are deleted.
+        
+        Parameters
+        ----------
+        x1 : float
+            Start point of distributed load.
+        x2 : float
+            Start point of distributed load.
+        qx : float
+            A constantly distributed axial force.
+        label : str
+            A optional label for the force.
+        isRightHigh : bool, optional
+            A flag that changs the orientation of the laod so that the high 
+            point of the distributed load starts on the left side. The default 
+            is True, which makes the high point start on the right. 
+            
+            
+        """
+        
+        if self._ndf == 3:
+            linLoad = np.array([qx, 0.])
+        if self._ndf == 6:
+            linLoad = np.array([qx, 0., 0.])
+        self.addLinLoad(x1, x2, linLoad, label)
+        
+        
     def Fmax(self, index):
         """
         get the maximum and minimum internal force for teh beam along the 
@@ -805,9 +1023,6 @@ class Beam2D(Beam):
 # =============================================================================
 # 
 # =============================================================================
-
-
-
 
 def newEulerBeam(x2, x1 = 0, meshSize = 101, section=None, dimension = '2D'):
     """
@@ -916,8 +1131,9 @@ class EulerBeam(Beam):
     xcoords : list, optional
         The x coodinates of nodes along the beam the beam. The default is [],
         which starts with no nodes.
-    fixity : list
-        A list of the input fixities for each possible degree of freedom. 
+    fixity : list of Fixity, or list of lists
+        A list of fixity objects, or A list of the input fixities for 
+        each possible degree of freedom. 
         2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
         3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
         For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
@@ -970,10 +1186,10 @@ class EulerBeam(Beam):
         if len(xcoords) == 1:
             xcoords = [0] + xcoords
                
-      
     def _initFixities(self, fixities, NnewNodes):
         if len(fixities) == 0:
-            fixities = [np.zeros(self._ndf)] * NnewNodes
+            name     = FixityTypes2D.releaseNames[0]
+            fixities = [Fixity(name, np.zeros(self._ndf))] * NnewNodes
         if len(fixities) != NnewNodes:
             raise Exception('A fixity must be provided for each node.')
         return fixities
@@ -987,9 +1203,7 @@ class EulerBeam(Beam):
             # Area, E_mod, G_mod, Jxx, Iy, Iz,
             return [self.section.A, self.section.E, self.section.G,
                     self.section.J, self.section.Iy, self.section.Iz]    
-        
-        
-        
+
     def getMoment(self):
         """
         Depricated. See getBMD.
@@ -1001,7 +1215,7 @@ class EulerBeam(Beam):
         Moment : array
             the output left and right moment at each node
         """
-        print('getMoment has been depricated, and will return an error in future releases. Use getBMD instead.')
+        print('getMoment has been depricated, and will return an error in, future releases. Use getBMD instead.')
         self.getBMD()
 
     
@@ -1111,6 +1325,17 @@ class EulerBeam2D(EulerBeam):
 @dataclass()
 class EleLoad:
     """
+    Depriciated, see EleLoadDist
+
+    """    
+    
+    def __post_init__(self):
+        print('EleLoad is depricated and will return an error in future version. Use EleLoadDist instead.')
+
+
+@dataclass()
+class EleLoadDist:
+    """
     Representes a distrubted element load between two points x1 x2. 
     For 2D elements, distributed loads can either px or py.
 
@@ -1126,15 +1351,154 @@ class EleLoad:
         A label for the elment load. The default is ''.
 
     """    
-    
-    
-    def __init__(self, x1, x2, distLoad, label = ''):
+        
+    def __init__(self, x1:float, x2:float, distLoad:list, label:str = ''):
 
         self.x1 = x1
         self.x2 = x2
         self.P = distLoad
         self.label = label
 
+
+@dataclass()
+class EleLoadLinear:
+    """
+    Represents a linearly distrubted element load between two points x1 x2, 
+    where the load increase from x1 to x2. The direction of the load can be 
+    toggled so the high point is at x1 instead of x2.   
+
+    Parameters
+    ----------
+    x1 : float
+        The start position.
+    x2 : float
+        The end position.
+    distLoad : list
+        For 2D, a List of forces in [Px, Py].
+    label : str, optional
+        A label for the elment load. The default is ''.
+    isRightHigh : bool, optional
+        A flag that changs the orientation of the laod so that the high point
+        of the distributed load starts on the left side. The default is True,
+        which has the high point start on the right.
+        
+        
+    """    
+        
+    def __init__(self, x1:float, x2:float, distLoad:list, label:str = '',
+                 isRightHigh = True):
+
+        self.x1 = x1
+        self.x2 = x2
+        self.P = distLoad
+        self.label = label
+        self.isRightHigh = isRightHigh
+        
+    def _getFEMLinearEquivLoad(self, s1:float, s2:float):
+        """
+        Calcualted equivalent end nodes for the linear load between points
+        s1 and s2.
+        
+        This will perform very poorly, it's repeating a lot of calcualtions.
+        
+        https://www.youtube.com/watch?v=bFGLWWhWPhU
+        https://mae.ufl.edu/nkim/eml5526/Lect05.pdf
+        https://www.engr.uvic.ca/~mech410/lectures/FEA_Theory.pdf
+        Parameters
+        ----------
+        s : float
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        qy = self.P[1]
+        qx = self.P[0]
+
+        L = s2 - s1
+        Lnet = self.x2 - self.x1
+        xstart, smin, smax = self._getxstart(s1,s2)
+        qxconst, qxlin = self._getLoadComponents(qx, xstart, Lnet, smin, smax)
+        qyconst, qylin = self._getLoadComponents(qy, xstart, Lnet, smin, smax)
+         
+        Pconst = self._constLoadBar(L)*qxconst
+        Plin = self._linLoadBar(L)*qxlin     
+        
+        Fconst = self._constLoadBeam(L)*qyconst
+        Flin = self._linLoadBeam(L)*qylin       
+        
+        P1, P2 = Pconst + Plin
+        V1, M1, V2, M2 = Fconst + Flin
+        
+        return self._reverse([P1, V1, M1], [P2, V2, M2])
+
+    def getLoadComponents(self, s1, s2, q):
+        Lnet = self.x2 - self.x1
+        xstart, smin, smax = self._getxstart(s1,s2)
+        qconst, qlin = self._getLoadComponents(q, xstart, Lnet, smin, smax)
+        
+        qmax = qlin + qconst
+        qmin = qconst
+        
+        return self._reverse(qmin, qmax)
+
+
+    def _getxstart(self, s1, s2):
+        if self.isRightHigh:
+            xstart = self.x1
+            smin = s1
+            smax = s2
+        else:
+            xstart = self.x2
+            smin = s2
+            smax = s1   
+        return xstart, smin, smax
+            
+    def _getLoadComponents(self, q, xstart, L, smin, smax):
+        """
+        Assume linear distribution of force.
+        """
+        qconst = abs(smin - xstart) / L * q
+        qlin  = abs(smax - xstart) / L * q- qconst
+        return qconst, qlin
+
+    def _reverse(self, F1, F2):
+        """
+        default assumes right is high
+        """
+        if self.isRightHigh:
+            return F1, F2
+        else:
+            return F2, F1
+        
+    def _constLoadBeam(self, L:float):
+        """
+        FEM for a distributed load
+        UNUSED
+        """
+        return np.array([L/2, L**2/12, L/2, -L**2/12])
+        
+    def _linLoadBeam(self, L:float):
+        """
+        FEM for a distributed load
+        UNUSED
+        """
+        return np.array([3*L/20, L**2/30, 7*L/20, -L**2/20])
+    
+    # Bar loads assume that the load is applied with left being low
+    def _constLoadBar(self, L:float):
+        """
+        FEM for a distributed load
+        """
+        return np.array([L/2, L/2])
+        
+    def _linLoadBar(self, L:float):
+        """
+        FEM for a distributed load
+        """
+        return np.array([L/6, L/3])
 
 
 @dataclass()
@@ -1155,7 +1519,6 @@ class PointLoad:
 
     """        
     
-    # P = np.array([0.,0.,0.])
     nodeID = None
     
     def __init__(self, P, x, nodeID = None, label = ''):

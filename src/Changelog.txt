@@ -1,0 +1,19 @@
+1.1 release
+===========
+
+Loads:
+Linear loads are needed for snow drifts and retaining wall design!
+They're been added in the latest patch, along with t
+- Added Linear Loads!
+- Added (vertical) linear loads to the beam diagram.
+
+Fixities:
+Working with a list of fixities is a little awkward.
+For a nice user experience I've added a object that abstracts away the list of fixity.
+You can now use "FixityTypes2D" to create fixities in 2D.
+- Added a fixity object that can be used in place of using lists.
+- Added the FixityTypes2D object, which can be used to make new fixities objects for 2D beams.
+
+Diagram:
+In prior versions, diagrams were set up so if there were postivie and negative loads, they would go on the same side of a plot.
+Now diagrams are set up to.

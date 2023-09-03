@@ -107,4 +107,10 @@ def test_full_beam_3D():
     solution = solution1 + solution2
     assert np.sum(np.abs(op.nodeReaction(3) - solution)) < 0.001
 
-
+if __name__ == "__main__":
+    test_nodes_3D()
+    test_EulerElements_3D()
+    test_node_loads_3D()
+    test_node_loads_3D_2()
+    test_ele_loads_3D()
+    test_full_beam_3D()

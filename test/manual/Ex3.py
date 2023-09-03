@@ -5,10 +5,9 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 """
 
-from planesections import EulerBeam2D, OpenSeesAnalyzer2D, plotMoment2D, plotShear2D, plotVertDisp2D, Node2D
+import planesections as ps
 # from planesections import EulerBeam
 import numpy as np
-from planesections.core import BeamPlotter
 
 
 """
@@ -26,7 +25,7 @@ roller = np.array([0, 1, 0])
 P = np.array([0., 1000.,0.])
 q = np.array([0.,-1000.])
 
-beam = EulerBeam2D(x)
+beam = ps.EulerBeam2D(x)
 beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.setFixity(x2/3, roller)
@@ -38,11 +37,9 @@ beam.addDistLoad(0,x2,q)
 beam.addLabel(0, label='A') 
 beam.addLabel(x2, label='B') 
 
-analysis = OpenSeesAnalyzer2D(beam)
+ps.plotBeamDiagram(beam)
+
+analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
-newPlotter = BeamPlotter(beam)
-
 x,y = beam.getSFD()
-
-newPlotter.plot()
