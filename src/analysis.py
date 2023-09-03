@@ -20,21 +20,21 @@ class OutputRecorder(ABC):
         
 
 class OutputRecorderOpenSees(OutputRecorder):
+    """
+    An interface that can be used to get beam internal forces for each node
+    in the model. 
+    When called on a beam, it will get all internal forces for that beam.
+    Information at each node in the model is stored in the beam.
+    The recorder is only is not instantiated at the time of recording. 
 
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+
+    """
     def __init__(self, beam:bb.Beam):
-        """
-        An interface that can be used to get beam internal forces for each node
-        in the model. 
-        When called on a beam, it will get all internal forces for that beam.
-        Information at each node in the model is stored in the beam.
-        The recorder is only is not instantiated at the time of recording. 
 
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
-
-        """
         
         self.Nnodes = beam.Nnodes
         self.nodeID0 = 1
@@ -88,33 +88,33 @@ class BeamAnalyzer:
 
         
 class OpenSeesAnalyzer2D(BeamAnalyzer):
-
+    """
+    This class is used to  can be used to create and run an analysis of an 
+    input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
+    forces for the beam are defined in the analysis model
+    
+    Note, nodes and elements will both start at 0 instead of 1.        
+    
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+    recorder : planesections Recorder
+        The recorder to use for the output beam.
+    geomTransform: str, optional
+        The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
+    clearOld : bool, optional
+        A flag that can be used to turn on or off clearing the old analysis
+        when the beam is created.
+        There are some very niche cases where users may want to have mutiple
+        beams at once in the OpenSees model.
+        However, this should remain true for nearly all analyses. 
+        Do not turn on unless you know what you're doing.
+        
+    """
     def __init__(self, beam2D:bb.Beam, recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
-        """
-        This class is used to  can be used to create and run an analysis of an 
-        input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
-        forces for the beam are defined in the analysis model
-        
-        Note, nodes and elements will both start at 0 instead of 1.        
-        
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
-        recorder : planesections Recorder
-            The recorder to use for the output beam.
-        geomTransform: str, optional
-            The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
-        clearOld : bool, optional
-            A flag that can be used to turn on or off clearing the old analysis
-            when the beam is created.
-            There are some very niche cases where users may want to have mutiple
-            beams at once in the OpenSees model.
-            However, this should remain true for nearly all analyses. 
-            Do not turn on unless you know what you're doing.
-            
-        """
+
         self.beam:bb.Beam = beam2D
         self._checkBeam(beam2D)
         
@@ -278,34 +278,34 @@ class OpenSeesAnalyzer2D(BeamAnalyzer):
 
                   
 class OpenSeesAnalyzer3D(BeamAnalyzer):
- 
+    """
+    This class is used to  can be used to create and run an analysis of an 
+    input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
+    forces for the beam are defined in the analysis model
+    
+    Note, nodes and elements will both start at 0 instead of 1.        
+    
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+    recorder : planesections Recorder
+        The recorder to use for the output beam.
+    geomTransform: str, optional
+        The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
+    clearOld : bool, optional
+        A flag that can be used to turn on or off clearing the old analysis
+        when the beam is created.
+        There are some very niche cases where users may want to have mutiple
+        beams at once in the OpenSees model.
+        However, this should remain true for nearly all analyses. 
+        Do not turn on unless you know what you're doing.
+        
+    """ 
 
     def __init__(self, beam3D:bb.Beam, recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
-        """
-        This class is used to  can be used to create and run an analysis of an 
-        input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
-        forces for the beam are defined in the analysis model
-        
-        Note, nodes and elements will both start at 0 instead of 1.        
-        
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
-        recorder : planesections Recorder
-            The recorder to use for the output beam.
-        geomTransform: str, optional
-            The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
-        clearOld : bool, optional
-            A flag that can be used to turn on or off clearing the old analysis
-            when the beam is created.
-            There are some very niche cases where users may want to have mutiple
-            beams at once in the OpenSees model.
-            However, this should remain true for nearly all analyses. 
-            Do not turn on unless you know what you're doing.
-            
-        """
+
         self.beam = beam3D
         self._checkBeam(beam3D)
         

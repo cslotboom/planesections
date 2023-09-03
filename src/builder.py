@@ -57,6 +57,13 @@ class FixityTypes2D:
     
     Note each fixity types will all be set equal to the same object as opposed
     to new objects being created.
+    
+    Takes input of:
+        - 'free'
+        - 'roller'
+        - 'pinned'
+        - 'fixed'
+    
     """
     releaseNames = ['free', 'roller', 'pinned', 'fixed']
     releaseTypes = [[0,0,0], [0,1,0], [1,1,0], [1,1,1]]
@@ -161,10 +168,14 @@ class Node(NodeArchetype):
         
         self.averageShear = False
         
-        self.hasReaction = False
-        if np.any(np.array(self.fixity.fixityValues) != np.array([0,0,0], int)):
-            self.hasReaction = True
+        self._setHasReaction()
             
+    def _setHasReaction(self):
+        self.hasReaction = False
+        fixities = np.array(self.fixity.fixityValues)
+        if np.any(fixities == np.array([1]*self._Nforce, int)):
+            self.hasReaction = True        
+    
     def _setID(self, newID):
         """
         Sets the node ID. The node ID is a unique identifier that can be used.

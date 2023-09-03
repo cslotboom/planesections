@@ -1,8 +1,6 @@
-import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
-from planesections.builder import Node2D, Beam
+from planesections import Node2D, Beam
 
 
 # =============================================================================
@@ -133,7 +131,6 @@ def _initOutputFig(showAxis, showGrid):
         ax.grid(which='major', axis='both', c= 'black', linewidth = 0.4)
         ax.minorticks_on()
         ax.tick_params(axis='y', which='minor', colors='grey')
-        # ax.tick_params(axis='y', which='minor', colors='grey')
         ax.grid(which='minor', axis='both', c='grey')
     
     
@@ -274,6 +271,22 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     
     return plotInternalForce(beam, 1, scale, **kwargs)
 
+
+def _getForceValues(beam, index):
+    Nnodes = len(beam.nodes)
+    xcoords = np.zeros(Nnodes*2)
+    force = np.zeros(Nnodes*2)
+    labels = [None]*Nnodes
+    for ii, node in enumerate(beam.nodes):
+        ind1 = 2*ii
+        ind2 = ind1 + 2        
+        xcoords[ind1:ind2]       = node.x        
+        force[ind1:ind2] = node.getInternalForces(index)
+        labels[ii] = node.label
+        
+    return xcoords, force, labels
+
+
 def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
                         showAxis = True, showGrid = False, labelPlot = True):
     """
@@ -320,17 +333,7 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
         the plotted line.
 
     """
-    
-    Nnodes = len(beam.nodes)
-    xcoords = np.zeros(Nnodes*2)
-    force = np.zeros(Nnodes*2)
-    labels = [None]*Nnodes
-    for ii, node in enumerate(beam.nodes):
-        ind1 = 2*ii
-        ind2 = ind1 + 2        
-        xcoords[ind1:ind2]       = node.x        
-        force[ind1:ind2] = node.getInternalForces(index)
-        labels[ii] = node.label
+    xcoords, force, labels = _getForceValues(beam, index)
         
     fig, ax = _initOutputFig(showAxis, showGrid)
     _plotAxis(ax, xcoords, xunit, yunit)

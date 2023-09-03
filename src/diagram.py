@@ -668,6 +668,7 @@ class BasicBeamDiagram(BeamDiagram):
         are supported.
 
         """
+        baseLineWidth = 0.015
         minLengthCutoff = 0.075*self.scale
         barWidth = 1
         N = int((x2 - x1) / spacing) + 1
@@ -698,7 +699,12 @@ class BasicBeamDiagram(BeamDiagram):
                 qtmp = q*dropRatios[ii]
                 yTop = ystart + q*lengthRatios[ii]                
             if abs(qtmp) > minLengthCutoff:
-                self.plotPointForce(x, yTop, 0, qtmp, baseWidth = 0.015, c = barC)
+                self.plotPointForce(x, yTop, 0, qtmp, baseWidth = 
+                                    baseLineWidth, c = barC)
+                
+            else:
+                width = baseLineWidth*self.scale
+                self.ax.plot([x, x], [yTop, yTop+qtmp], c = barC)
             
     def plotLabel(self, xy0, label):
         x = xy0[0] + self.labelOffset
@@ -774,7 +780,7 @@ class BeamPlotter2D:
         xlims   = self.beam.getxLims()
         xy0     = [xlims[0]  / self.xscale, 0]
         xy1     = [xlims[1]  / self.xscale, 0]        
-        d       = self.beam.d
+        # d       = self.beam.d
         self.plotter.plotBeam(xy0, xy1)
                
     def plotSupports(self):
@@ -1089,7 +1095,6 @@ class BeamPlotter2D:
         lengths = [None]*Nforces
         xcoords = np.array(xcoords)
         ycoords = np.zeros(Nforces) # [bottom, top]
-        print(fplot)
         
         # Get the lengths
         lengths = xcoords[:,1] - xcoords[:,0]
