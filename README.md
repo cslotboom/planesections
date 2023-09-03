@@ -6,7 +6,7 @@
 A lightweight finite element beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
 The goal of PlaneSections is to make easy-to-use beam anayses, which can be used to quickly document structural calculations.
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
-**Note, calculations are only completed a the nodes specified by the user - all intermediate values are linearly interpolated**
+**Note, Results are stored at FEM nodes specified by the user - all intermediate values are linearly interpolated**
 
 The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
 will be given for breaking changes.
