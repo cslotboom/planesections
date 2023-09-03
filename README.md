@@ -111,6 +111,7 @@ If there is any demand for resale, please reach out to the developers. The OpenS
 
 ## Status
 The next development steps are to:
+- [] Add labels to diagrams.
 - [] Finsih the readthedocs website.
 - [] Add custom solver for beams.
 - [] Add quadratic loads
