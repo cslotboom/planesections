@@ -8,9 +8,6 @@ The goal of PlaneSections is to make easy-to-use beam anayses, which can be used
 Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
 **Note, results are only stored at nodes specified by the user - all intermediate values are linearly interpolated**
 
-The core classes and API are complete, but development is still in progress. Expect some sytax changes before final release, however deprication warnings
-will be given for breaking changes.
-
 
 **NOTE:**
 Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
@@ -42,7 +39,7 @@ pip install planesections
 All major functions and classes are documented on read-the-docs: https://planesections.readthedocs.io/en/latest/
 
 ## Demo
-The PlaneSections can plot representations that can be used in documentation.
+The PlaneSections can plot beam representations that can be used in documentation.
 It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
 
 ``` Python
@@ -113,39 +110,13 @@ If there is any demand for resale, please reach out to the developers. The OpenS
 
 
 ## Status
-Before the first beta release, the following will be completed.
-
-*Analysis and API*:
-- [x] fancy plots (distributed Load)
-- [x] Better deflection plots (distributed Load)
-
-*Infastructure*:
-- [x] pip package
-  - [x] setup on pypi: complete, package is installable with "pip install planesections"
-  - [x] Add requirements
-- [x] Document code
-  - [x] Finish all class docstrings.
-  - [x] Add Sphinx docs.
-  - [x] Add read the docs website.
-- [ ] Examples
-  - [ ] Finish landing page with code examples and figures.
-  - [ ] Compare simple cases with analytic equations.
-  - [ ] Compare complex cases with sap/rfem/etc.
-
-
-# Post 1.0 release
-*Analysis and API*:
-- [ ] plot labels
-
+The next development steps are to:
+- [] Finsih the readthedocs website.
+- [] Add custom solver for beams.
+- [] Add quadratic loads
 
 
 Future work:
- - 3D beams
  - Timoshenko beams
- - Nonlinear beams analysis
- - One-way Slabs?
- - Two-way Slabs?
- - Orthtropic Slabs?
- - Basic simple frame analysis?
- - Basic Nonlinear frame analysis?
+ - Nonlinear beam analysis / better section support.
 
