@@ -28,20 +28,17 @@ beam.setFixity(L, fixed, label = 'B')
 
 P = -2*kN
 M = 5*kN*m
-q = np.array([0.,kN/m])
-# beam.addVerticalLoad(0, P, label = 'C')
-# beam.addVerticalLoad(2.5, P, label = 'D')
-# beam.addVerticalLoad(4, -P, label = 'E')
+qDist = np.array([0., -kN/m])
+qLin = np.array([[0.,0.],[-kN/m, kN/m]])
 
-# beam.addMoment(3, M)
-beam.addDistLoad(0, 3, -q) 
-beam.addDistLoad(0, 2, -q) 
-beam.addDistLoad(0.2,1, q*2)
+beam.addDistLoad(0, 2, qDist) 
+beam.addLinLoad(2, 3, qLin) 
+beam.addLinLoad(0, 1, qLin) 
 
-beam.addDistLoad(2.8,3.5, q)
+# beam.addDistLoad(2.8,3.5, q)
 
-beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
-beam.addLinLoadVertical(3, 4.5, q*2)
+# beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
+# beam.addLinLoadVertical(3, 4.5, q*2)
 
 ps.plotBeamDiagram(beam)
 
