@@ -14,8 +14,8 @@ import numpy as np
 # import pytest
 
 x = np.array([0,5])
-labels = ['A', 'B']
-fixities = [np.array([1,1,1]), np.array([1,1,1])]
+labels      = ['A', 'B']
+fixities    = [np.array([1,1,1]), np.array([1,1,1])]
 
 L       = 5*m
 x       = np.linspace(0, L, 80)
@@ -40,8 +40,8 @@ beam.addDistLoad(0.2,1, q*2)
 
 beam.addDistLoad(2.8,3.5, q)
 
-beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
-beam.addLinLoadVertical(3, 4.5, q*2)
+# beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
+# beam.addLinLoadVertical(3, 4.5, q*2)
 
 ps.plotBeamDiagram(beam)
 

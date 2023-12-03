@@ -35,7 +35,7 @@ beam.setFixity(x2/3, roller)
 beam.addVerticalLoad(offset, -1000.)
 beam.addVerticalLoad(x2/2, -1000.)
 beam.addVerticalLoad(x2 - offset, -1000.)
-beam.addDistLoad(0,x2,q) 
+beam.addDistLoad(0, x2, q) 
 beam.addLabel(0, label='A') 
 beam.addLabel(x2, label='B') 
 
