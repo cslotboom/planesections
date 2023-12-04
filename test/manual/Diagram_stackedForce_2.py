@@ -31,14 +31,14 @@ M = 5*kN*m
 qDist = np.array([0., -kN/m])
 qLin = np.array([[0.,0.],[-kN/m, kN/m]])
 
-beam.addDistLoad(0, 2, qDist) 
+beam.addDistLoad(0, 2, qDist, label='test') 
 beam.addLinLoad(2, 3, qLin) 
-beam.addLinLoad(0, 1, qLin) 
+beam.addLinLoad(0, 1, -qLin) 
 
-# beam.addDistLoad(2.8,3.5, q)
+beam.addDistLoad(2.8, 3.5, qDist)
 
 # beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
 # beam.addLinLoadVertical(3, 4.5, q*2)
 
-ps.plotBeamDiagram(beam)
+ps.plotBeamDiagram(beam, labelForce=True)
 

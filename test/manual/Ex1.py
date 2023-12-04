@@ -32,10 +32,10 @@ beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.setFixity(x2/3, roller)
 
-beam.addVerticalLoad(offset, -1000.)
+beam.addVerticalLoad(offset, -2000., label='C')
 beam.addVerticalLoad(x2/2, -1000.)
 beam.addVerticalLoad(x2 - offset, -1000.)
-beam.addDistLoad(0, x2, q) 
+beam.addDistLoad(0, x2, q, label='D') 
 beam.addLabel(0, label='A') 
 beam.addLabel(x2, label='B') 
 
@@ -45,5 +45,5 @@ analysis.runAnalysis()
 plotShear(beam)
 plotMoment(beam)
 
-plotBeamDiagram(beam)
+plotBeamDiagram(beam, labelForce=True, plotForceValue=True)
 

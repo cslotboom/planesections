@@ -68,3 +68,10 @@ Plot results
 ps.plotDisp(beam, scale=1/inch, yunit = 'in', xunit = 'ft')
 
 
+"""
+We can also run the analysis in Pynite
+"""
+analysis = ps.OpenSeesAnalyzer2D(beam)
+analysis.runAnalysis()
+
+ps.plotDisp(beam, scale=1/inch, yunit = 'in', xunit = 'ft')
