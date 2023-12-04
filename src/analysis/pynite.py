@@ -28,10 +28,8 @@ class OutputRecorderPyNite2D(OutputRecorder):
         self.ndf = beam._ndf        
         self.analysisBeam = analysisBeam
         for ii, ID in enumerate(analysisBeam.Nodes.keys()):
-            print(ii)
-            print(ID)
             analysisNode = analysisBeam.Nodes[ID]
-            disps = [analysisNode.DX[self.lcName], analysisNode.DY[self.lcName], analysisNode.RY[self.lcName]]
+            disps = [analysisNode.DX[self.lcName], analysisNode.DY[self.lcName], analysisNode.RZ[self.lcName]]
             rFrc  = [analysisNode.RxnFX[self.lcName], analysisNode.RxnFY[self.lcName], analysisNode.RxnMZ[self.lcName]]
             
             # assign values
@@ -39,9 +37,6 @@ class OutputRecorderPyNite2D(OutputRecorder):
             node.disps = np.array(disps)
             node.rFrc  = np.array(rFrc)
             node.Fint  = self.getEleInteralForce(ii)
-            print()
-
-        pass
 
     def _getFint(self, ele):
         PyL, PyR = ele.axial_array(2)[1]
@@ -65,7 +60,6 @@ class OutputRecorderPyNite2D(OutputRecorder):
         if nodeID == self.nodeID0: # Left most node
             eleRID = 'M' + str(nodeID)   
             eleR = self.analysisBeam.Members[eleRID]
-            print(eleRID)
             # 0 is used to so that the plot "closes", i.e. starts at zero the goes up
             Fint[:ndf] =  0    
 
@@ -79,13 +73,11 @@ class OutputRecorderPyNite2D(OutputRecorder):
             _, FeleL_R = self._getFint(eleL)
             Fint[:ndf] = FeleL_R # Right side forces
             Fint[ndf:] = 0   
-            print(eleLID)
                             # Left side forces
         else: # center nodes
         
             eleLID = 'M' + str(int(nodeID - 1))   
             eleRID = 'M' + str(int(nodeID))
-            print(eleLID, eleRID)
             eleL = self.analysisBeam.Members[eleLID]
             eleR = self.analysisBeam.Members[eleRID]
             _, FeleL_R = self._getFint(eleL)
@@ -249,7 +241,6 @@ class PyNiteAnalyzer2D:
         
         # We subtract one because node names are the index +1
         for ii in range(N1-1, N2-1):
-            # print(ii)
             memberName = memberNames[ii]
             self.analysisBeam.add_member_dist_load(memberName, 'Fy', q[1], q[1])
             self.analysisBeam.add_member_dist_load(memberName, 'Fx', q[0], q[0])
@@ -267,8 +258,8 @@ class PyNiteAnalyzer2D:
             qx1, qx2 = eleload.getLoadComponents(Node1.x, Node2.x, q[0])
             qy1, qy2 = eleload.getLoadComponents(Node1.x, Node2.x, q[1]) 
             
-            self.analysisBeam.add_member_dist_load(memberName, 'Fy', qx1, qx2)
-            self.analysisBeam.add_member_dist_load(memberName, 'Fx', qy1, qy2)
+            self.analysisBeam.add_member_dist_load(memberName, 'Fy', qy1, qy2)
+            self.analysisBeam.add_member_dist_load(memberName, 'Fx', qx1, qx2)
     
     def _getBeam(self):
         return self.analysisBeam

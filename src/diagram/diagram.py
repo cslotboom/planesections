@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from dataclasses import dataclass
 from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
-from abc import ABC, abstractmethod
 from planesections import diagramUnits
 from planesections.builder import EleLoadDist
 
@@ -23,29 +22,125 @@ Not used properly right now, but ideally this is defined only in one place.
 fixities  = {'free':[0,0,0], 'roller': [0,1,0], 
              'pinned':[1,1,0], 'fixed':[1,1,1]}
 
-
-@dataclass
-class EleLoadPlotCollection:
-    fplot:float
-    xcoord:list
-    ycoord:float
-    spacing:float
-    isLinear:bool
-
-@dataclass
 class EleLoadBox:
-    y:[float, float]
-    x:[float, float]
+    """
+    Assume that y is bounded by zero, or crosses boundaries
+    
+    The internal datum is where the datum lies between y1 and y2 as a ratio.
+    
+    By default assumes that the distribution is a constant oin the positive 
+    side.
+    
+    Parameters
+    ----------
+    x : tuple[float]
+        A tuple containing [x1, x2] for the box.
+    y : tuple[float]
+        A tuple containing [y1, y2] for the box. Y is always ordered where
+        y1 < y2.
+    fint : tuple[float], optional
+        A tuple contiaining [fint1, fint2], where each value ranges from 0 to 1.
+        The default is None.
 
-    def __post_init__(self):
+    Returns
+    -------
+    None.
+
+    """    
+    def __init__(self, x:tuple[float], y:tuple[float], fint:tuple[float]=None,
+                 intDatum:float=None):
+
+        self.x = x
+        self.y = y    
+
         self.x.sort()
         self.y.sort()
+        
+        if fint == None:
+            fint = [1, 1]
 
+        self.fint = fint
+        self.fout = [self._interpolate(fint[0]), self._interpolate(fint[1])]
+        
+        
+        # If the internal datum is manually set
+        if intDatum:
+            self.intDatum = intDatum
+            self.datum = self._interpolate(intDatum)
+            
+            sign1 = np.sign(self.fout[0])
+            sign2 = np.sign(self.fout[1])
+            if sign1 == sign2 >= 0:
+                self.changedDirection = False
+            else:
+                self.changedDirection = True
+                
+        # If there is no internal datum, this is the typical case.
+        else:    
+            self._initInternalDatum()
+        # self.datum = 0
+    
+    def setDatum(self, datum):
+        dy = datum - self.datum
+        self.y = [self.y[0] + dy, self.y[1] + dy]
+        self.datum = datum
+        
+        fint = self.fint
+        self.fout = [self._interpolate(fint[0]), self._interpolate(fint[1])]
+    
+    def shiftDatum(self, dy):
+        self.y = [self.y[0] + dy, self.y[1] + dy]
+        self.datum = self.datum + dy
+        
+        fint = self.fint
+        self.fout = [self._interpolate(fint[0]), self._interpolate(fint[1])]
 
+        
+    def getInternalDatum(self):
+        return self.datum
+
+    
+    def _interpolate(self, fint):
+        return (self.y[1] - self.y[0])*fint + self.y[0]
+    
+    def _initInternalDatum(self):
+        """
+        Sets the internal datum, making assumptions about the shape of the 
+        system. Notably:
+            - the box is "placed" next to the x axis
+        """
+        sign1 = np.sign(self.fout[0])
+        sign2 = np.sign(self.fout[1])
+        
+        self.datum = 0
+        if sign1 >= 0 and sign2 >= 0:
+            self.changedDirection = False
+            self.intDatum = 0
+        
+        elif sign1 <= 0 and sign2 <= 0:
+            self.changedDirection = False
+            self.intDatum = 1
+        else:
+            self.changedDirection = True
+            dy = self.y[0] - self.y[1]
+            self.intDatum =  self.y[0] / dy
+    
+    @property
+    def isConstant(self):
+        return self.fint[0] == self.fint[1]
+        
+    
 @dataclass
 class DiagramEleLoad:
     loadBox:EleLoadBox
     
+
+
+
+
+
+
+
 
 def _checkInRange(xrange1, xrange2):
     """
@@ -79,10 +174,154 @@ def checkBoxesForOverlap(box1:EleLoadBox, box2:EleLoadBox):
         return False
 
 
+class Boxstacker:
+    
+    def __init__(self, boxes:list[EleLoadBox]):
+        self.boxes = boxes
+
+    def setStackedDatums(self):
+        """
+        Gives the forces an order, and finds where to put them porportionally.
+        Longer forces will go on the bottom, while shorter forces are
+        placed on top of them.
+        """
+        
+        boxes = self.boxes
+        Nforces = len(boxes)
+        lengths = [None]*Nforces
+        xcoords = np.array([box.x for box in boxes])
+        ycoords = np.array([box.y for box in boxes]) # [bottom, top]
+        
+        # Get the lengths, the start with the longest and go to shortest
+        lengths = xcoords[:,1] - xcoords[:,0]
+        sortedInds = np.argsort(lengths)[::-1]
+        
+        # Make a copy of the plot.
+        # yPlotOut = np.zeros_like(ycoords)
+        # yPlotOut[:] = ycoords
+
+        # the current x and y points being plotted.    
+        posStackx = []
+        posStackTop = []
+        negStackx = []
+        negStackTop = []
+        
+        
+        # start at the widest items and plot them first
+        for ind in sortedInds:
+            box = boxes[ind]
+            
+            # Datum is where we point towards!
+            y = ycoords[ind]
+            x = xcoords[ind]
+                       
+            # Case 1: Constantly distributed, use dy
+            if box.isConstant:
+                dy = box.fout[0]
+                
+                if 0 < dy:
+                    self._addToStack(box, dy, x, posStackx, posStackTop)
+                else:
+                    self._addToStack(box, dy, x, negStackx, negStackTop)                
+                
+            # Case 2: linearly distributed, no sign change, use max values
+            elif not box.changedDirection:
+                # If a value is greater than zero, stack on pos side.
+                if 0 < max(y):
+                    dy = max(y)
+                else:
+                    dy = min(y)               
+            
+                if 0 < dy:
+                    self._addToStack(box, dy, x, posStackx, posStackTop)
+                else:
+                    self._addToStack(box, dy, x, negStackx, negStackTop)
+            
+            # Case 3: Linearly distributed through zero, we work with fout
+            # print(box.changedDirection)
+            elif box.changedDirection:
+                inPos, _ = self._checkInStack(x, posStackx)
+                inNeg, _ = self._checkInStack(x, negStackx)
+                
+                # If 
+                dyPos = max(box.fout)
+                dyNeg = min(box.fout)
+                
+                # Case 3i: 
+                # If there is no stacks, add it to the bottom of both stacks
+                if (not inPos) and (not inNeg):
+                    self._addToStack(box, dyPos, x, posStackx, posStackTop)
+                    self._addToStack(box, dyNeg, x, negStackx, negStackTop)
+                
+                # Case 3ii: 
+                # If there is a positive stack add it to the top of that stack
+                elif inPos:
+                    dy = dyPos - dyNeg
+                    dDatum =  -dyNeg
+
+                    self._addToStack(box, dy, x, posStackx, posStackTop, dDatum)
+                # Case iii:
+                # If there is only negative, shift above the x axis
+                elif inNeg:
+                    # box.shiftDatum(-box.datum)
+                    dDatum =  -dyNeg
+                    dy =  -dyNeg
+                    self._addToStack(box, dy, x, posStackx, posStackTop, dDatum) 
+                        
+        return boxes
+     
+     
+    def _checkIfInRange(self, xtest, x1,x2):
+        if (x1 < xtest) and (xtest < x2):
+            return True
+        return False
+
+    def _addToStack(self, box, dy, xcoords, stackx, stacktops, dDatum = 0):
+        y0 = self._getStackTop(xcoords, stackx, stacktops)
+        box.shiftDatum(y0 + dDatum)
+        stackx.append(xcoords)           
+        stacktops.append((y0 + dy))
+
+    def _checkInStack(self,   xCurrent     :list[float, float], 
+                              stackRanges  :list[list[float, float]]):
+        """
+        Checks all the stacks to seee if the current range is within the stack.
+        
+        """
+        
+        # Check all the stacks to see if the current stack is 
+        inStack = False
+        Nloads = len(stackRanges)
+        for ii in range(Nloads):
+            localInd = Nloads - 1 - ii
+            x1, x2  = stackRanges[localInd]
+            if self._checkIfInRange(xCurrent[0], x1, x2): # left side
+                return  True, localInd
+            if self._checkIfInRange(xCurrent[1], x1, x2): # right side
+                return  True, localInd
+        return inStack, None         
+                
+    
+    def _getStackTop(self,   xCurrent     :list[float, float], 
+                             stackRanges  :list[list[float, float]], 
+                             currentY     :list[list[float, float]]):
+        """
+        Look at all of the current forces on the side in question.
+        
+        Starting at the top of the force stack, check each force to see if
+        it intersects with any other forces.
+        """
+        
+        inStack, localInd = self._checkInStack(xCurrent, stackRanges)
+        if inStack == True:
+            return currentY[localInd]       
+        
+        return 0
+
+
+
 class BeamPlotter2D:
-    
-    FORCE_LINE_SPACING = 25
-    
+        
     def __init__(self, beam, figsize = 8, units = 'environment'):
         """
         Used to make a diagram of the beam. Only certain fixities are supported
@@ -115,10 +354,13 @@ class BeamPlotter2D:
         else:
             self.unitHandler = diagramUnits.getEnvironment(units)
         
-        L = beam.getLength()       
-        xscale = L  / self.figsize
+        L           = beam.getLength()       
+        xscale      = L  / self.figsize
         self.xscale = xscale
-        self.plotter = basic.BasicDiagramPlotter()
+        baseSpacing = self.beam.getLength() / self.xscale
+        
+        self.plotter:basic.BasicDiagramPlotter = basic.BasicDiagramPlotter(L=L)
+        self.plotter.setEleLoadLineSpacing(baseSpacing)
    
         xlims = beam.getxLims()
         self.xmin = xlims[0]
@@ -154,11 +396,10 @@ class BeamPlotter2D:
             self.plotPointForceLables(fplot, labelForce, plotForceValue)
         if self.beam.eleLoads:
             fplot, xcoords = self.plotEleForces()
-        # if self.beam.eleLoads and plotLabel:
-        #     self.plotDistForceLables(fplot, xcoords, labelForce, plotForceValue)
+        if self.beam.eleLoads and plotLabel:
+            self.plotDistForceLables(fplot, xcoords, labelForce, plotForceValue)
             
         if plotLabel:
-            # print('here')
             self.plotLabels()
             
         self.plotBeam()
@@ -206,6 +447,7 @@ class BeamPlotter2D:
         Adds all labels to the plot. Labels are offset from the point in the 
         x and y.
         """
+        
         for node in self.beam.nodes:
             label = node.label
             x     = node.getPosition()
@@ -252,7 +494,8 @@ class BeamPlotter2D:
                 fText = np.sum(force.P[:2]**2)**0.5
             
             # get the label from the node - it's store there and not on the force.
-            labelBase = self.beam.nodes[force.nodeID - 1].label
+            labelBase = force.label
+            # labelBase = self.beam.nodes[force.nodeID - 1].label
             label = ''
             
             if labelBase and labelForce and isMoment:
@@ -368,25 +611,20 @@ class BeamPlotter2D:
                 
         return fplot
 
-    def _plotEleForce(self, loadInput:EleLoadPlotCollection):
+    def _plotEleForce(self, box:EleLoadBox):
         
-        Py = loadInput.fplot
-        x1, x2 = loadInput.xcoord
-        spacing = loadInput.spacing
-        ydatum = loadInput.ycoord # y1 is the start point of the arrow
+        Py = box.fout
         
         if (Py[0] == 0) and (Py[1] == 0):
             print("WARNING: Plotted load has no vertical component.")            
         
-        if not loadInput.isLinear:
-            # This is a little akward, but Py is added to account for the offset of -Py in the base funciton.
-            self.plotter.plotVerticalDistLoad(x1, x2, Py[1], ydatum, spacing)
+        if box.isConstant:
+            self.plotter.plotElementDistributedForce(self.ax, box)
         else:
-            self.plotter.plotVerticalLinearLoad(x1, x2, Py, ydatum, spacing)
+            pass
+            self.plotter.plotElementLinearForce(self.ax, box)
 
-    def _getForceVectorLengthEle(self, 
-                                 forces:list[list[float, float]], 
-                                 vectScale = 1):
+    def _setForceVectorLengthEle(self, boxes:list[EleLoadBox], vectScale = 1):
         """
         Gets the force vector length in terms of the drawing units.
         Force vectors will have a static component that doesn't change,
@@ -400,7 +638,8 @@ class BeamPlotter2D:
         fscale0 = 0.4
         fstatic0 = 0.3
         
-        forces = np.array(forces)
+        forces = np.array([box.y for box in boxes])
+        boxesOut = [None]*len(boxes)
         
         Fmax = np.max(np.abs(forces))
 
@@ -419,52 +658,51 @@ class BeamPlotter2D:
         fstatic = fstatic0*np.ones_like(forces)
         fstatic[Inds0[0], Inds0[1]] = 0
         
-        fplot =  ((fscale + fstatic) * signs)
+        fplot =  ((fscale + fstatic) * signs)*vectScale
         
-        return fplot*vectScale
-       
-    def _getEleForcePlotInput(self):
+        for ii in range(len(boxes)):
+            boxOld = boxes[ii]
+            boxesOut[ii] = EleLoadBox(boxOld.x, fplot[ii], boxOld.fint, boxOld.intDatum)
+        
+        return boxesOut
+    
+    
+    def normalizeData(self, data):
+        return (data - np.min(data)) / (np.max(data) - np.min(data))
+    
+    def _getEleForceBoxes(self):
         """
         Handles all the logic of generating stacked object positions.
         
-        This is a bandaid solution right now. The better approach would to have
-        seperate plotting classes for each type of element, as opposed to
-        one giant megaclass. We could then use a interface with object.plot()
-        
+                
         """
         
-        # The spacing between force lines
-        beam = self.beam
-        spacing  = beam.getLength() / self.FORCE_LINE_SPACING / self.xscale
-        forces   = []
-        xcoords  = []
-        isLinear = []
+        eleBoxes = []        
         
         for load in self.beam.eleLoads:
-            xcoords.append([load.x1 / self.xscale, load.x2 / self.xscale])
+            xDiagram = [load.x1 / self.xscale, load.x2 / self.xscale]     
             
-            if isinstance(load, EleLoadDist):
-                isLineartmp = False
-                # Take vertical load. Adapt the load so it's a 2D vector
-                forces.append(np.array([0, load.P[1]]))
-
-            else:
-                isLineartmp = True
-                # Take vertical load. Signs can change for linear loads.
-                forces.append(load.P[1])
-                
-            isLinear.append(isLineartmp)
+            if isinstance(load, EleLoadDist):  # Constant Load
+                # Adapt the load so it's a 2D vector
+                Ptmp = [0, -load.P[1]] #!!! The sign is flipped to properly stack
+                if -load.P[1] < 0:  #!!! The sign is flipped to properly stack
+                    fintTemp = [0, 0] # start at the bottom if negative
+                else:
+                    fintTemp = [1, 1] # start at the top if negative
+                eleBoxes.append(EleLoadBox(xDiagram, Ptmp, fintTemp))
+            
+            else:   # Arbitary Distributed Load between two points
+                Ptmp = -load.P[1]  #!!! The sign is flipped to properly stack
+                fintTemp = list(self.normalizeData(Ptmp))
+                eleBoxes.append(EleLoadBox(xDiagram, Ptmp, fintTemp))
         
-        fplot   = self._getForceVectorLengthEle(forces, vectScale = 0.4)
-        ycoords = self._getStackedPositions(xcoords, fplot, isLinear)
         
-        elePlotInputCollections = []
-        for ii, load in enumerate(beam.eleLoads):
-            collection = EleLoadPlotCollection(fplot[ii], xcoords[ii], ycoords[ii], 
-                                               spacing, isLinear[ii])
-            elePlotInputCollections.append(collection)
-        return elePlotInputCollections
-             
+        eleBoxes    = self._setForceVectorLengthEle(eleBoxes, vectScale = 0.4)
+        stacker     = Boxstacker(eleBoxes)
+        eleBoxes    = stacker.setStackedDatums()
+        
+        return eleBoxes
+                     
     def plotEleForces(self):
         """
         Plots all distributed forces. Only vertical forces can be plotted.
@@ -472,97 +710,16 @@ class BeamPlotter2D:
         in the plot.
         """
 
-        elePlotInputCollections =  self._getEleForcePlotInput()
+        eleBoxes =  self._getEleForceBoxes()
+        for box in eleBoxes:
+            self._plotEleForce(box)
         
-        NLoads = len(elePlotInputCollections)
-        for ii in range(NLoads):
-            collection = elePlotInputCollections[ii]
-            self._plotEleForce(collection)
-        
-        # Bandaid fix..
-        fplot = [item.fplot for item in elePlotInputCollections]
-        xcoords = [item.xcoord for item in elePlotInputCollections]
+        fplot       = [box.y for box in eleBoxes]
+        xcoords     = [box.x for box in eleBoxes]
+                        
         return fplot, xcoords
        
-    def _getStackedPositions(self, xcoords: list[list[float, float]], 
-                                   fplot:   list[list[float, float]],
-                                   isLinear:list[bool]):
-        """
-        Gives the forces an order, and finds where to put them porportionally.
-        Longer forces will go on the bottom, while shorter forces are
-        placed on top of them.
-        """      
-        Nforces = len(xcoords)
-        lengths = [None]*Nforces
-        xcoords = np.array(xcoords)
-        ycoords = np.zeros(Nforces) # [bottom, top]
-        
-        # Get the lengths
-        lengths = xcoords[:,1] - xcoords[:,0]
-        sortedInds = np.argsort(lengths)[::-1]
-        
-        # Make a copy of the plot.
-        fplotOut = np.zeros_like(fplot)
-        fplotOut[:] = fplot
 
-        # the current x and y points being plotted.    
-        posStackx = []
-        posStackTop = []
-        negStackx = []
-        negStackTop = []
-        
-        # start at the widest items and plot them first
-        for ind in sortedInds:
-
-            fplotRow = fplotOut[ind]
-            dy = fplot[ind]
-            if not isLinear[ind]:
-                dy = fplotRow[1]
-            else: # do a complicated calculation to find the datum should be
-                y1 = self._getStackedDatum(xcoords[ind], posStackx, posStackTop)    
-                y2 = self._getStackedDatum(xcoords[ind], posStackx, posStackTop)    
-                
-                if y1 == 0 and y2 == 0:
-                    
-                    dy = abs(fplotRow[1] + fplotRow[0])
-            
-            if dy <0:
-                y0 = self._getStackedDatum(xcoords[ind], posStackx, posStackTop)
-                ycoords[ind] =  y0 - dy
-                posStackx.append(xcoords[ind])           
-                posStackTop.append(ycoords[ind])
-            else:
-                y0 = self._getStackedDatum(xcoords[ind], negStackx, negStackTop)
-                ycoords[ind] =  y0 - dy
-                negStackx.append(xcoords[ind])           
-                negStackTop.append(ycoords[ind])
-            
-        return ycoords
-      
-    def _checkIfInRange(self, xtest, x1,x2):
-        if (x1 < xtest) and (xtest < x2):
-            return True
-        return False
-    
-    def _getStackedDatum(self, xCurrent:list[float, float], 
-                               stackRanges:list, 
-                               currentY:list):
-        """
-        Look at all of the current forces on the side in question.
-        
-        Starting at the top of the force stack, check each force to see if
-        it intersects with any other forces.
-        """
-        
-        Nloads = len(stackRanges)
-        for ii in range(Nloads):
-            localInd = Nloads - 1 - ii
-            x1, x2  = stackRanges[localInd]
-            if self._checkIfInRange(xCurrent[0], x1, x2): # left side
-                return currentY[localInd]
-            if self._checkIfInRange(xCurrent[1], x1, x2): # right side
-                return currentY[localInd]       
-        return 0
                        
 
 def plotBeamDiagram(beam, plotLabel = True, labelForce = False, 

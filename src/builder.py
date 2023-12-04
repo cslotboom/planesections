@@ -699,11 +699,11 @@ class Beam:
             
         # index is what is used to look up, use one greater for the 
         self.nodes[nodeIndex].pointLoadIDs.append(loadID)
-        if label:
-            self.nodes[nodeIndex].label = label
+        # if label:
+        #     self.nodes[nodeIndex].label = label
         
         nodeID = nodeIndex + 1    
-        newLoad = PointLoad(pointLoad, x, nodeID)
+        newLoad = PointLoad(pointLoad, x, nodeID, label)
         self.pointLoads.append(newLoad)                
          
     def addVerticalLoad(self, x:float, Py:float, label:str=''):
@@ -1414,7 +1414,6 @@ class EleLoadLinear:
         """
         self.checkInRange(s1)
         self.checkInRange(s2)
-        # Lnet = x2 - x1
         s1 = (s1-self.x1)/self.Lnet         
         s2 = (s2-self.x1)/self.Lnet         
         
@@ -1424,53 +1423,6 @@ class EleLoadLinear:
         y2 = s2*m + q[0]
         
         return y1, y2
-
-    # def _linInterpolate(self, s1):
-        
-    #     x = Lnet
-        
-
-
-    
-    # def _getFEMLinearEquivLoad(self, s1:float, s2:float):
-    #     """
-    #     Calcualted equivalent end nodes for the linear load between points
-    #     s1 and s2.
-        
-    #     This will perform very poorly, it's repeating a lot of calcualtions.
-        
-    #     https://www.youtube.com/watch?v=bFGLWWhWPhU
-    #     https://mae.ufl.edu/nkim/eml5526/Lect05.pdf
-    #     https://www.engr.uvic.ca/~mech410/lectures/FEA_Theory.pdf
-    #     Parameters
-    #     ----------
-    #     s : float
-    #         DESCRIPTION.
-
-    #     Returns
-    #     -------
-    #     None.
-
-    #     """
-    #     qy = self.P[1]
-    #     qx = self.P[0]
-
-    #     L = s2 - s1
-    #     Lnet = self.x2 - self.x1
-    #     xstart, smin, smax = self._getxstart(s1, s2)
-    #     qxconst, qxlin = self._getLoadComponents(qx, xstart, Lnet, smin, smax)
-    #     qyconst, qylin = self._getLoadComponents(qy, xstart, Lnet, smin, smax)
-         
-    #     Pconst = self._constLoadBar(L)*qxconst
-    #     Plin = self._linLoadBar(L)*qxlin     
-        
-    #     Fconst = self._constLoadBeam(L)*qyconst
-    #     Flin = self._linLoadBeam(L)*qylin       
-        
-    #     P1, P2 = Pconst + Plin
-    #     V1, M1, V2, M2 = Fconst + Flin
-        
-    #     return self._reverse([P1, V1, M1], [P2, V2, M2]) 
     
 
 @dataclass()

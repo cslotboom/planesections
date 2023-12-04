@@ -11,19 +11,7 @@ import numpy as np
 from matplotlib.patches import Rectangle, Polygon, Circle
 
 from .abstract import AbstractDiagramElement
-from dataclasses import dataclass
-
-# =============================================================================
-# 
-# =============================================================================
-
-# __all__ = ['BasicDiagramOptions', 'DiagramPinSupport', 'DiagramRollerSupport',
-#            'DiagramFixedSupport', 'DiagramPointLoad', 'DiagramMoment']
-
-
-
-        
-        
+from dataclasses import dataclass       
         
 @dataclass
 class supportDiagramOptions:
@@ -73,6 +61,8 @@ class MomentPointLoadOptions:
     r:float
     rotationAngle:float
 
+
+
 @dataclass
 class DistLoadOptions:
     
@@ -83,7 +73,23 @@ class DistLoadOptions:
         
     spacing:float
     barWidth:float       
+
+
+
+@dataclass
+class LinLoadOptions:
     
+    # GlobalParameters
+    baseWidth:float
+    c:float # colour
+    arrowWidth:float
+        
+    spacing:float
+    barWidth:float       
+    minLengthCutoff:float
+
+
+
 @dataclass
 class LabelOptions:
     labelOffset:float 
@@ -103,6 +109,7 @@ class BasicOptionsDiagram:
         
         """
         A class that contains appearance options for the basic beam diagram.
+        Scale affects thickness of drawing elements..!
         
         """
         
@@ -117,6 +124,7 @@ class BasicOptionsDiagram:
         # Point Load Propreties
         self.w_PointLoad = 0.03 * scale
         self.c_PointLoad = 'C0'
+        self.c_PointLoadDist = 'grey'
         # changes the offset from the point in x/y
         self.labelOffset = 0.1*scale
         
@@ -147,9 +155,15 @@ class BasicOptionsDiagram:
         
         # Distributed Load Propreties
         self.c_dist_bar = 'grey'
-        self.spacing_dist = 1*scale
+        self.spacing_dist = (1/20)
         self.barWidth = 1*scale
-
+        
+        self.lw_pL_dist = 0.015
+        self.arrowWidth_pL_dist = 5*self.lw_pL_dist
+        
+        #Linear Distributed Load Options
+        self.minLengthCutoff = 0.075*self.scale
+        
         
         
         # label Options
@@ -169,7 +183,10 @@ class BasicOptionsDiagram:
     def getPointLoadOptions(self):
         
         args = [self.lw_pL, self.c_PointLoad, self.arrowWidth]
-        
+        return PointLoadOptions(*args)
+    
+    def getPointLoadDistOptions(self):
+        args = [self.lw_pL_dist, self.c_dist_bar, self.arrowWidth_pL_dist]
         return PointLoadOptions(*args)
 
     
@@ -181,11 +198,18 @@ class BasicOptionsDiagram:
         return MomentPointLoadOptions(*args)
 
     def getDistLoadOptions(self):
-        
         args = [self.lw, self.c_dist_bar, self.arrowWidth, self.spacing_dist,
                 self.barWidth]
         
         return DistLoadOptions(*args)
+    
+    def getLinLoadOptions(self):
+        args = [self.lw, self.c_dist_bar, self.arrowWidth, self.spacing_dist,
+                self.barWidth, self.minLengthCutoff]
+        
+        return LinLoadOptions(*args)    
+    
+    
     def getLabelOptions(self):
         
         args = [self.labelOffset, self.textSize]        
@@ -319,7 +343,7 @@ class DiagramEleRollerSupport(DiagramElePinSupport):
         scale = self.options.scale
         xyTri, xy0Rect, xyLine = self._getPinSupportCords(xy0, scale)
         self._plotPinGeom(ax, xy0, xyTri, xy0Rect, xyLine)
-        xy0gap, xyRollerLine = self._getRollerSupportCords(xy0, self.scale)
+        xy0gap, xyRollerLine = self._getRollerSupportCords(xy0, scale)
         self._plotRollerGeom(ax, xy0gap, xyRollerLine)       
        
 
@@ -385,9 +409,9 @@ class DiagramEleFixedSupport(AbstractDiagramElement):
 
 class DiagramElePointLoad(AbstractDiagramElement):
     
-    def __init__(self, xy0, Pxy0, options:PointLoadOptions):
+    def __init__(self, xy0, dxy0, options:PointLoadOptions):
         self.xy0 = xy0
-        self.Pxy0 = Pxy0
+        self.dxy0 = dxy0
         self.width = options.lw
         self.arrowWidth = options.arrowWidth
         self.c = options.c
@@ -401,7 +425,7 @@ class DiagramElePointLoad(AbstractDiagramElement):
         
         """
         x , y = self.xy0
-        Px, Py = self.Pxy0
+        Px, Py = self.dxy0
         c = self.c
                 
         width  = self.width
@@ -502,10 +526,12 @@ class DiagramEleLabel:
 
 class DiagramEleLoadDistributed(AbstractDiagramElement):
     
-    def __init__(self, loadBox, diagramOptions:DistLoadOptions):
+    def __init__(self, loadBox, diagramOptions:DistLoadOptions, 
+                                plOptions:PointLoadOptions):
         self.loadBox = loadBox
-        self.pointUp = loadBox.pointUp
+        # self.pointUp = loadBox.pointUp
         self.options = diagramOptions
+        self.plOptions = plOptions
 
     def plot(self, ax):
 
@@ -524,13 +550,11 @@ class DiagramEleLoadDistributed(AbstractDiagramElement):
         N = int((x2 - x1) / spacing) + 1
         xVals = np.linspace(x1, x2, N)
         
-        if self.pointUp:
-            ystart = self.loadBox.y[0]
-            yend = self.loadBox.y[1]
-        else:
-            ystart = self.loadBox.y[1]
-            yend = self.loadBox.y[0]
-                  
+        ystart = self.loadBox.fout[0]
+        yend = self.loadBox.datum
+        dy = ystart - yend
+        
+        
         xbar = [x1, x2]
         yBarS = [ystart, ystart]
         yBarE = [yend, yend]
@@ -539,8 +563,66 @@ class DiagramEleLoadDistributed(AbstractDiagramElement):
         
         for ii in range(N):
             x = xVals[ii]
-            pointLoad = DiagramElePointLoad((x, ystart), (0, yend))
+            # pointLoad = DiagramElePointLoad((x, ystart), (0, yend), self.plOptions)
+            pointLoad = DiagramElePointLoad((x, ystart), (0, -dy), self.plOptions)
             pointLoad.plot(ax)
+
+class DiagramEleLoadLinear(AbstractDiagramElement):
+    
+    def __init__(self, loadBox, diagramOptions:LinLoadOptions, 
+                                plOptions:PointLoadOptions):
+        self.loadBox = loadBox
+        self.options = diagramOptions
+        self.plOptions = plOptions
+
+    def plot(self, ax):
+
+        """
+        The line load is compsed of the top bar, two side bars, and a series
+        of arrows spaced between the side bars. Only vertical line loads
+        are supported.
+
+        """
+        barWidth = self.options.barWidth
+        minLengthCutoff = self.options.minLengthCutoff
+        spacing = self.options.spacing
+        barC = self.options.c
+        x1, x2 = self.loadBox.x
+        # y1, y2 = self.loadBox.y
+        
+        # baseLineWidth = 0.015
+        
+        Nlines = int((x2 - x1) / spacing) + 1
+        xVals = np.linspace(x1, x2, Nlines)
+        
+        q1, q2 = self.loadBox.fout
+        yVals = np.linspace(q1, q2, Nlines)
+        
+        # The top/bottom lines .
+        ydatum = self.loadBox.datum
+        xbar  = [x1, x2]
+        yBardatum = [ydatum, ydatum]                     
+        yBarLinear = [q1, q2]
+
+        plt.plot(xbar, yBardatum, linewidth = barWidth, c = barC)
+        plt.plot(xbar, yBarLinear, linewidth = barWidth, c = barC)
+        
+        for ii in range(Nlines):
+            xline = xVals[ii]
+            yLine = yVals[ii]
+            
+            # plot just the line with no arrow                
+            if abs(yLine - ydatum) > minLengthCutoff:
+                xy0 = (xline, yLine)
+                dxy0 = (0, ydatum - yLine)
+                load = DiagramElePointLoad(xy0, dxy0, self.plOptions)
+                load.plot(ax)
+                
+            # plot line and arrow.
+            else:
+                width = self.plOptions.lw
+                ax.plot([xline, xline], [yLine, ydatum], c = barC,
+                              linewidth=width)
 
 class DiagramEleBeam:
     
@@ -567,16 +649,24 @@ class BasicDiagramPlotter():
                        'roller':DiagramEleRollerSupport,
                        'fixed':DiagramEleFixedSupport}
     
-    def __init__(self, scale = 1, supScale = 0.8):
+    def __init__(self, scale = 1, supScale = 0.8, L=1):
         
-        diagramOptions = BasicOptionsDiagram(scale, supScale)
-        self.supportParams = diagramOptions.getSupportDiagramOptions()
-        self.labelParams = diagramOptions.getLabelOptions()
-        self.plOptions = diagramOptions.getPointLoadOptions()
-        self.momentParams = diagramOptions.getMomentPointLoadOptions()
-        self.distParams = diagramOptions.getDistLoadOptions()
+        diagramOptions      = BasicOptionsDiagram(scale, supScale)
+        self.supportParams  = diagramOptions.getSupportDiagramOptions()
+        self.labelParams    = diagramOptions.getLabelOptions()
+        self.plOptions      = diagramOptions.getPointLoadOptions()
+        self.momentParams   = diagramOptions.getMomentPointLoadOptions()
+        self.distParams     = diagramOptions.getDistLoadOptions()
+        self.linParams      = diagramOptions.getLinLoadOptions()
+
+        self.pldistOptions = diagramOptions.getPointLoadDistOptions()
+        
 
         self.beamParams = diagramOptions.getBeamOptions()
+    
+    def setEleLoadLineSpacing(self, baseSpacing):
+        self.distParams.spacing = self.distParams.spacing*baseSpacing
+        self.linParams.spacing = self.linParams.spacing*baseSpacing
     
     def _checkSupType(self, supType):
         if supType not in self.supportTypeDict:
@@ -606,10 +696,13 @@ class BasicDiagramPlotter():
         pl = DiagramEleMoment(xy, self.momentParams, isPositive = isPositive)
         pl.plot(ax)
 
-    def plotDistributedForce(self, ax, loadBox):
-        pl = DiagramEleLoadDistributed(loadBox, self.distParams)
+    def plotElementDistributedForce(self, ax, loadBox):
+        pl = DiagramEleLoadDistributed(loadBox, self.distParams, self.pldistOptions)
         pl.plot(ax)
-                
+
+    def plotElementLinearForce(self, ax, loadBox):
+        pl = DiagramEleLoadLinear(loadBox, self.linParams, self.pldistOptions)
+        pl.plot(ax)                
 
     def _initPlot(self, figSize, xlims, ylims, dpi = 300):
         
