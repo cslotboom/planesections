@@ -37,7 +37,7 @@ Define the node fixities. The fixity is a list for each DOF, where 1 represents
 fixed, and 0 represents free in this case two pin constraints are applied to the
 beam. Lists or Numpy arrays can be used for fixities.
 """
-pin   = ps.FixityTypes2D.getPinned()
+pin   = ps.FixityTypes2D.getPinned() # could be replaced with pin = [1,1,0]
 beam.setFixity(Loffset, pin)
 beam.setFixity(L - Loffset, pin)
 
@@ -54,7 +54,7 @@ ps.plotBeamDiagram(beam)
 """
 Run the analysis
 """
-analysis = ps.OpenSeesAnalyzer2D(beam)
+analysis = ps.PyNiteAnalyzer2D(beam)
 analysis.runAnalysis()
 
 """
