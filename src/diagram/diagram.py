@@ -6,12 +6,12 @@ Created on Sat Mar  5 20:57:19 2022
 
 """
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
+# from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 import numpy as np
 from dataclasses import dataclass
-from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 from planesections import diagramUnits
-from planesections.builder import EleLoadDist
+from planesections.builder import EleLoadDist, EleLoadLinear
 
 
 from .components import basic as basic
@@ -299,6 +299,11 @@ class Boxstacker:
                 return  True, localInd
             if self._checkIfInRange(xCurrent[1], x1, x2): # right side
                 return  True, localInd
+            
+            # Stack boxes that are directly on top of eachother.
+            # We need both to be true so boxes side by side do not stack
+            if (xCurrent[0] == x1) and (xCurrent[1] == x2): # right side
+                return  True, localInd
         return inStack, None         
                 
     
@@ -317,6 +322,70 @@ class Boxstacker:
             return currentY[localInd]       
         
         return 0
+
+
+
+def _getSigns(forces):
+    """
+    Safely gets the signs in a way that won't result in dividing by zero.
+
+    Returns
+    -------
+    None.
+
+    """
+    tmpForces = np.copy(forces)
+    inds = np.where(tmpForces == 0)
+    tmpForces[inds] = 1 
+    signs = forces / np.abs(tmpForces)
+    return signs
+    
+    
+    
+def _setForceVectorLengthEle(boxes:list[EleLoadBox], vectScale = 1):
+    """
+    Gets the force vector length in terms of the drawing units.
+    Force vectors will have a static component that doesn't change,
+    and a dynamic component that adapts to the magnitude of forces.
+    
+    The output plotting forces are in the direction they act.
+    
+    The element load plotting does not work with non-vertical loads.
+
+    """
+    fscale0 = 0.4
+    fstatic0 = 0.3
+    
+    forces = np.array([box.y for box in boxes])
+    boxesOut = [None]*len(boxes)
+    
+    Fmax = np.max(np.abs(forces))
+
+    # Get the sign of the maximum force. Ignores loads with sign changes
+    signs = _getSigns(forces)
+    
+    # Find all force that are zero. These should remain zero
+    Inds0 = np.where(np.abs(forces) == 0)
+    
+    # Plot the static portion, and the scale port of the force
+    fscale = fscale0*abs(forces) / Fmax
+    fstatic = fstatic0*np.ones_like(forces)
+    fstatic[Inds0[0], Inds0[1]] = 0 # don't move the bottom of the plot!
+    fplot =  ((fscale + fstatic) * signs)*vectScale
+    
+    for ii in range(len(boxes)):
+        boxOld = boxes[ii]
+        
+        dy = fplot[ii][1] - fplot[ii][0]
+        # We scale fout appropriately and calcualte a new fint
+        fout_fscale  = fscale0*(np.array(boxOld.fout) / Fmax)
+        signs        = _getSigns(fout_fscale)
+        fout_plot    =  ((abs(fout_fscale) + fstatic0) * signs)*vectScale
+        fint         = (fout_plot - fplot[ii][0]) / dy
+        boxesOut[ii] = EleLoadBox(boxOld.x, fplot[ii], list(fint))
+    
+    return boxesOut       
+
 
 
 
@@ -367,6 +436,7 @@ class BeamPlotter2D:
         self.xmax = xlims[0]
                 
         self.xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
+        
         self.ylimsPlot = [-L/10 / xscale, L/10 / xscale]
         
         self.plottedNodeIDs = []
@@ -390,20 +460,40 @@ class BeamPlotter2D:
         self.fig, self.ax = self.plotter._initPlot(*args)
         self.plotSupports()
         
+        pfplot, efplot = None, None
         if self.beam.pointLoads:
-            fplot = self.plotPointForces()
+            pfplot = self.plotPointForces()
         if self.beam.pointLoads and plotLabel:
-            self.plotPointForceLables(fplot, labelForce, plotForceValue)
+            self.plotPointForceLables(pfplot, labelForce, plotForceValue)
         if self.beam.eleLoads:
-            fplot, xcoords = self.plotEleForces()
+            efplot, xcoords = self.plotEleForces()
         if self.beam.eleLoads and plotLabel:
-            self.plotDistForceLables(fplot, xcoords, labelForce, plotForceValue)
-            
+            self.plotDistForceLables(efplot, xcoords, labelForce, plotForceValue)
+        
         if plotLabel:
             self.plotLabels()
-            
+    
         self.plotBeam()
         
+        if (not (pfplot is None)) or (not (efplot is None)):
+            self._adjustPlot(pfplot, efplot)
+            
+
+    def _adjustPlot(self, pfplot, efplot):
+        if (pfplot is None):
+            pfplot = (0)
+        if (efplot is None):
+            efplot = (0)
+            
+        fmax = max(np.max(pfplot), np.max(efplot))
+        fmin = min(np.min(pfplot), np.min(efplot))
+        if fmin < self.ylimsPlot[0]:
+            self.ylimsPlot[0] = fmin
+        if self.ylimsPlot[1] < fmax:
+            self.ylimsPlot[1] = fmax
+                
+        self.ax.set_ylim(self.ylimsPlot)
+       
     def plotBeam(self):
         """
         Plots the base beam element.
@@ -621,55 +711,48 @@ class BeamPlotter2D:
         if box.isConstant:
             self.plotter.plotElementDistributedForce(self.ax, box)
         else:
-            pass
             self.plotter.plotElementLinearForce(self.ax, box)
-
-    def _setForceVectorLengthEle(self, boxes:list[EleLoadBox], vectScale = 1):
-        """
-        Gets the force vector length in terms of the drawing units.
-        Force vectors will have a static component that doesn't change,
-        and a dynamic component that adapts to the magnitude of forces.
-        
-        The output plotting forces are in the direction they act.
-        
-        The element load plotting does not work with non-vertical loads.
-
-        """
-        fscale0 = 0.4
-        fstatic0 = 0.3
-        
-        forces = np.array([box.y for box in boxes])
-        boxesOut = [None]*len(boxes)
-        
-        Fmax = np.max(np.abs(forces))
-
-        # Get the sign of the maximum force. Ignores loads with sign changes
-        tmpForces = np.copy(forces)
-        inds = np.where(tmpForces == 0)
-        
-        tmpForces[inds] = 1 
-        signs = forces / np.abs(tmpForces)
-        
-        # Find all force that are zero. These should remain zero
-        Inds0 = np.where(np.abs(forces) == 0)
-        
-        # Plot the static portion, and the scale port of the force
-        fscale = fscale0*abs(forces) / Fmax
-        fstatic = fstatic0*np.ones_like(forces)
-        fstatic[Inds0[0], Inds0[1]] = 0
-        
-        fplot =  ((fscale + fstatic) * signs)*vectScale
-        
-        for ii in range(len(boxes)):
-            boxOld = boxes[ii]
-            boxesOut[ii] = EleLoadBox(boxOld.x, fplot[ii], boxOld.fint, boxOld.intDatum)
-        
-        return boxesOut
-    
+   
     
     def normalizeData(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))
     
+    
+    def _getLinFint(self, Ptmp):
+        """
+        Contains the logic for finding the signs of Fint
+        """
+                
+                
+        # fintTemp = list(self.normalizeData(Ptmp))
+        # If both are on the positive side
+        if 0 < np.sign(Ptmp[0]) and 0 < np.sign(Ptmp[1]):
+            
+            if Ptmp[0] < Ptmp[1]:
+                fintTemp = [Ptmp[0]/Ptmp[1], 1]
+            elif Ptmp[0] == Ptmp[1]: # If equal the load acts like a constant load
+                fintTemp = [1, 1]
+            else:
+                fintTemp = [1, Ptmp[1]/Ptmp[0]]
+            Ptmp = [0, max(Ptmp)]
+                
+        # If both are on the negative side side
+        elif  np.sign(Ptmp[0]) < 0 and np.sign(Ptmp[1]) < 0 :
+            
+            if Ptmp[0] < Ptmp[1]:
+                fintTemp = [0, Ptmp[1]/Ptmp[0]]
+            elif Ptmp[0] == Ptmp[1]: # If equal the load acts like a constant load
+                fintTemp = [0, 0]
+            else:
+                fintTemp = [1-Ptmp[0]/Ptmp[1], 0]
+            Ptmp = [min(Ptmp), 0]
+                
+        # If the inputs change sign, just use the normalized value.
+        else:
+            fintTemp = list(self.normalizeData(Ptmp))   
+        return Ptmp, fintTemp
+                    
+                    
     def _getEleForceBoxes(self):
         """
         Handles all the logic of generating stacked object positions.
@@ -690,14 +773,15 @@ class BeamPlotter2D:
                 else:
                     fintTemp = [1, 1] # start at the top if negative
                 eleBoxes.append(EleLoadBox(xDiagram, Ptmp, fintTemp))
-            
-            else:   # Arbitary Distributed Load between two points
+            # Arbitary Distributed Load between two points
+            elif isinstance(load, EleLoadLinear):   
                 Ptmp = -load.P[1]  #!!! The sign is flipped to properly stack
-                fintTemp = list(self.normalizeData(Ptmp))
+                
+                Ptmp, fintTemp = self._getLinFint(Ptmp)               
                 eleBoxes.append(EleLoadBox(xDiagram, Ptmp, fintTemp))
         
         
-        eleBoxes    = self._setForceVectorLengthEle(eleBoxes, vectScale = 0.4)
+        eleBoxes    = _setForceVectorLengthEle(eleBoxes, vectScale = 0.4)
         stacker     = Boxstacker(eleBoxes)
         eleBoxes    = stacker.setStackedDatums()
         
@@ -718,7 +802,7 @@ class BeamPlotter2D:
         xcoords     = [box.x for box in eleBoxes]
                         
         return fplot, xcoords
-       
+    
 
                        
 

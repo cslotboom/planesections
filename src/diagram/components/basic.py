@@ -156,7 +156,7 @@ class BasicOptionsDiagram:
         # Distributed Load Propreties
         self.c_dist_bar = 'grey'
         self.spacing_dist = (1/20)
-        self.barWidth = 1*scale
+        self.barWidth = 1.2*scale
         
         self.lw_pL_dist = 0.015
         self.arrowWidth_pL_dist = 5*self.lw_pL_dist
@@ -283,7 +283,7 @@ class DiagramElePinSupport(AbstractDiagramElement):
         ax.add_patch(Polygon(xyTri, fill=False, lw = lw))
         ax.add_patch(Rectangle(xy0Rect, wRect, hFixedRect, ec='black', fc='white', hatch=hatch, lw = lw))
         ax.plot(xyLine[0], xyLine[1], c = 'white', lw = lw)
-        ax.add_patch(Circle(xy0, r, facecolor='white', ec = 'black', fill=True, zorder=2, lw=lw))
+        ax.add_patch(Circle(xy0, r, facecolor='white', ec = 'black', fill=True, zorder=1, lw=lw))
 
     def plot(self, ax):
         """
@@ -622,7 +622,7 @@ class DiagramEleLoadLinear(AbstractDiagramElement):
             else:
                 width = self.plOptions.lw
                 ax.plot([xline, xline], [yLine, ydatum], c = barC,
-                              linewidth=width)
+                              linewidth = barWidth*0.5)
 
 class DiagramEleBeam:
     
