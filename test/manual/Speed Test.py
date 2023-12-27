@@ -27,15 +27,11 @@ beam.addVerticalLoad(0, P,label = 'C')
 beam.addVerticalLoad(2.5, P,label = 'D')
 beam.addVerticalLoad(4, -P,label = 'E')
 
-beam.addMoment(3, M)
+beam.addMoment(3, M, label = 'F')
 
 beam.addDistLoad(0, 3, q) 
-beam.addDistLoad(0.2,0.5, q*2) 
-beam.addDistLoad(0.5,3, q*4) 
-beam.addDistLoad(4, 4.8, -q*4) 
-beam.addDistLoad(3.2, 4.8, q*2) 
 
-ps.plotBeamDiagram(beam)
+ps.plotBeamDiagram(beam, labelForce=True)
 
 # =============================================================================
 # Testing
@@ -43,21 +39,20 @@ ps.plotBeamDiagram(beam)
 
 Ntrial = 100
 t1 = time()
-
 for ii in range(Ntrial):
     analysis = ps.OpenSeesAnalyzer2D(beam)
     analysis.runAnalysis()
 
-
 t2 = time()
-
 for ii in range(Ntrial):
     analysis = ps.PyNiteAnalyzer2D(beam)
     analysis.runAnalysis()
 
 t3 = time()
 
-print('OpenSees', t2 - t1)
-print('pynite', t3 - t2)
+dt_OpenSees = round(t2 - t1,3)
+dt_Pynite   = round(t3 - t2,3)
 
+print(f"OpenSees takes {dt_OpenSees}, s")
+print(f"Pynite takes {dt_Pynite}, s")
 

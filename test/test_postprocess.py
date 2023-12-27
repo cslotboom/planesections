@@ -13,7 +13,7 @@ import hysteresis as hys
 import textalloc as ta
 
 x1 = 0
-x2 = 1
+x2 = 2
 offset = x2/20
 
 x      = np.linspace(0, x2, 80)
@@ -53,6 +53,8 @@ for ind1, ind2 in indLabelTmp:
         indLabel += [ind1, ind2]
     else:
         indLabel.append(ind1)
+        
+
 # Get Discontinuity Indicies
 tol = 10e-6
 force2D = force.reshape(-1,2)
@@ -104,50 +106,50 @@ for ind in pointsOfInterestInd:
     # ax.text(xlabel, ylabel, text, fontsize=6)
 
 
-ta.allocate_text(fig, ax, labelX, labelY, labelText,textsize=6,x_scatter=labelX, y_scatter=labelY)
+ta.allocate_text(fig, ax, labelX, labelY, labelText,textsize=8,x_scatter=labelX, y_scatter=labelY)
 
 pointsOfInterestInd = np.array(list((pointsOfInterestInd)))
 # plt.plot(xcoords[pointsOfInterestInd], force[pointsOfInterestInd], marker='x', linewidth=0)
 
-class PlotPointOfInterest:
+# class PlotPointOfInterest:
     
-    pointTypes  = ['label', 'globalMax', 'discontinuity']
-    def __init__(self, ind, offsets):
-        self.ind = ind
-        self.labelOffsets = []
+#     pointTypes  = ['label', 'globalMax', 'discontinuity']
+#     def __init__(self, ind, offsets):
+#         self.ind = ind
+#         self.labelOffsets = []
         
-    def plot():
-        pass
+#     def plot():
+#         pass
 
 
 
-class POIFactory():
+# class POIFactory():
     
-    def __init__(self, xcoords, ycoords, setLabels= True, setMax=True, 
-                 setDiscontinuity = True):
-        self.set_offsets(xcoords, ycoords)
+#     def __init__(self, xcoords, ycoords, setLabels= True, setMax=True, 
+#                  setDiscontinuity = True):
+#         self.set_offsets(xcoords, ycoords)
         
-    def _set_offsets(self, x, y):
-        pass
+#     def _set_offsets(self, x, y):
+#         pass
 
-    def setPOI(self):
+#     def setPOI(self):
         
-        pass
+#         pass
         
 
-class POILabel(PlotPointOfInterest):
+# class POILabel(PlotPointOfInterest):
     
-    def __init__(self, ind, offsets):
-        pass
+#     def __init__(self, ind, offsets):
+#         pass
 
 
-class POIMax(PlotPointOfInterest):
+# class POIMax(PlotPointOfInterest):
     
-    def __init__(self, ind, offsets):
-        pass
+#     def __init__(self, ind, offsets):
+#         pass
     
 
-class POIDiscontinuity(PlotPointOfInterest):
-    pass
+# class POIDiscontinuity(PlotPointOfInterest):
+#     pass
     
 

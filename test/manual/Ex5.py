@@ -4,8 +4,8 @@ Created on Sun May 23 01:00:41 2021
 
 @author: Christian
 
-
-Showcases two linear loads plotted on top of eachother.
+Checks if negative and positive element loads with values on the same side
+plot similarly
 
 """
 
@@ -27,14 +27,9 @@ beam.setFixity(L, pinned, label = 'C')
 
 P = -2*kN
 M = 5*kN*m
-q = np.array([0., kN/m])
+q = np.array([0.5*kN/m, kN/m])
 
 beam.addLinLoadVertical(0, 4.5, -q)
-beam.addLinLoadVertical(0, 5, -q[::-1]*2)
+beam.addLinLoadVertical(0, 4.5, q)
 
-import time
-t1 = time.time()
 ps.plotBeamDiagram(beam)
-t2 = time.time()
-
-print(t2-t1)

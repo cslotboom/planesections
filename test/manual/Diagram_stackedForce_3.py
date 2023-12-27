@@ -28,15 +28,19 @@ beam.setFixity(L, fixed, label = 'B')
 
 P = -2*kN
 M = 5*kN*m
-qDist = np.array([0., -kN/m])
-qLin = np.array([[0.,0.],[-kN/m, kN/m]])
-qLin2 = np.array([[0.,0.],[0.4*kN/m, -3*kN/m]])
-qLin3 = np.array([[0.,0.],[-1*kN/m, -3*kN/m]])
+qDist   = np.array([0., -kN/m])
+qLin    = np.array([[0.,0.], [-kN/m, kN/m]])
+qLin2   = np.array([[0.,0.], [kN/m, kN/m]])
+qLin3   = np.array([[0.,0.], [kN/m, 4*kN/m]])
+# qLin3 = np.array([[0.,0.], [-1*kN/m, -3*kN/m]])
 
 beam.addDistLoad(0, 2, qDist, label='test') 
 beam.addLinLoad(2, 3, qLin) 
-beam.addLinLoad(0, 1, qLin2)
-beam.addLinLoad(0, 1, qLin3) 
+beam.addLinLoad(3, 4, qLin2) 
+beam.addLinLoad(4, 5, qLin3) 
+
+# beam.addLinLoad(0, 1, qLin2)
+# beam.addLinLoad(0, 1, qLin3) 
 # beam.addLinLoad(0, 1, -qLin) 
 
 # beam.addDistLoad(2.8, 3.5, qDist)

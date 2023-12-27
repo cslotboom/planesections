@@ -3,10 +3,11 @@ R"""
 Created on Sun May 23 01:00:41 2021
 
 @author: Christian
+
+Tests a beam with loads close to the end and a pair of pins.
 """
 
 import planesections as ps
-# from planesections import EulerBeam
 import numpy as np
 
 import openseespy.opensees as op

@@ -3,9 +3,12 @@ R"""
 Created on Sun May 23 01:00:41 2021
 
 @author: Christian
+
+Tests a system with point loads and iniformly distributed loads
+
 """
 
-from planesections import (EulerBeam2D, OpenSeesAnalyzer2D, 
+from planesections import (EulerBeam2D, OpenSeesAnalyzer2D, PyNiteAnalyzer2D,
                            plotBeamDiagram, plotShear, plotMoment)
 
 # from planesections import EulerBeam
@@ -32,7 +35,7 @@ beam.setFixity(x1, fixed)
 beam.setFixity(x2, fixed)
 beam.setFixity(x2/3, roller)
 
-beam.addVerticalLoad(offset, -2000., label='C')
+beam.addVerticalLoad(offset, -4000., label='C')
 beam.addVerticalLoad(x2/2, -1000.)
 beam.addVerticalLoad(x2 - offset, -1000.)
 beam.addDistLoad(0, x2, q, label='D') 
