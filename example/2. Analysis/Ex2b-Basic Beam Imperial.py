@@ -59,7 +59,7 @@ ps.plotBeamDiagram(beam)
 """
 Run the analysis
 """
-analysis = ps.OpenSeesAnalyzer2D(beam)
+analysis = ps.PyNiteAnalyzer2D(beam)
 analysis.runAnalysis()
 
 """
@@ -69,7 +69,7 @@ ps.plotDisp(beam, scale=1/inch, yunit = 'in', xunit = 'ft')
 
 
 """
-We can also run the analysis in Pynite
+We can also run the analysis in OpenSees, this requires opensees is installed.
 """
 analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()

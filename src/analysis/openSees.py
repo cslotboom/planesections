@@ -71,7 +71,7 @@ class OutputRecorderOpenSees(OutputRecorder):
 class OutputRecorder2D(OutputRecorderOpenSees):
         
     def __post_init__(self):
-        print('OutputRecorder2D is depcricated and will be removed in a next release. Use OutputRecorder instead')
+        raise Exception('OutputRecorder2D is depcricated and will be removed in the next release. Use OutputRecorder instead')
         
 
 
