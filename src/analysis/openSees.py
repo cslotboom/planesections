@@ -1,6 +1,12 @@
-import openseespy.opensees as op
+
 import numpy as np
 import planesections.builder as bb 
+
+try:
+    import openseespy.opensees as op
+except:
+    raise Exception('OpenSeespy has not been installed. First include optional depependancy with "pip -m install planesections[opensees]"')
+
 
 from .recorder import OutputRecorder
         

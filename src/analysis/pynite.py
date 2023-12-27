@@ -199,9 +199,10 @@ class PyNiteAnalyzer2D:
     def _buildPointLoads(self, pointLoads):
         for load in pointLoads:
             node = 'N' + str(load.nodeID)
-            Fx, Fy, _ = load.P
+            Fx, Fy, M = load.P
             self.analysisBeam.add_node_load(node, 'FY', Fy)
             self.analysisBeam.add_node_load(node, 'FX', Fx)
+            self.analysisBeam.add_node_load(node, 'MZ', M)
             
     def buildPointLoads(self):
         """
@@ -215,6 +216,7 @@ class PyNiteAnalyzer2D:
         Analyzes the model once and records outputs.
         """
         self.analysisBeam.analyze(check_statics=False)
+        # self.analysisBeam.analyze_linear()
 
     
     def buildEleLoads(self):

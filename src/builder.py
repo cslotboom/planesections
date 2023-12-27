@@ -658,7 +658,8 @@ class Beam:
         else:
             self.addNode(x, fixity, label)        
                  
-    def addPointLoad(self, x:float, pointLoad:list, label:str = ''):
+    def addPointLoad(self, x:float, pointLoad:list, label:str = '', 
+                     labelNode=False):
         """
         Adds a load ot the model at location x.
         If a node exists at the current location, the old load value is overwritten.
@@ -699,14 +700,14 @@ class Beam:
             
         # index is what is used to look up, use one greater for the 
         self.nodes[nodeIndex].pointLoadIDs.append(loadID)
-        # if label:
-        #     self.nodes[nodeIndex].label = label
+        if labelNode:
+            self.nodes[nodeIndex].label = label
         
         nodeID = nodeIndex + 1    
         newLoad = PointLoad(pointLoad, x, nodeID, label)
         self.pointLoads.append(newLoad)                
          
-    def addVerticalLoad(self, x:float, Py:float, label:str=''):
+    def addVerticalLoad(self, x:float, Py:float, label:str='', labelNode=False):
         """
         Adds a vertical load to the model at location x. If no node
         exists at position x, a new node is added.
@@ -728,9 +729,9 @@ class Beam:
         elif self._ndf == 6:
             pointLoad = np.array([0., Py, 0., 0., 0., 0.])
             
-        self.addPointLoad(x, pointLoad, label)
+        self.addPointLoad(x, pointLoad, label, labelNode)
         
-    def addMoment(self, x:float, M:float, label:str=''):
+    def addMoment(self, x:float, M:float, label:str='', labelNode=False):
         """
         Adds a moment ot the model at location x. If no node
         exists at position x, a new node is added.
@@ -754,9 +755,9 @@ class Beam:
         elif self._ndf == 6:
             pointLoad = np.array([0., 0., 0., 0., 0., M])        
         
-        self.addPointLoad(x, pointLoad, label)     
+        self.addPointLoad(x, pointLoad, label, labelNode)     
         
-    def addHorizontalLoad(self, x:float, Px:float, label:str=''):
+    def addHorizontalLoad(self, x:float, Px:float, label:str='', labelNode=False):
         """
         Adds a horizontal point load at the model at location x. If no node
         exists at position x, a new node is added.
@@ -775,7 +776,7 @@ class Beam:
         elif self._ndf == 6:
             pointLoad = np.array([Px, 0., 0., 0., 0., 0.])              
         
-        self.addPointLoad(x, pointLoad, label)            
+        self.addPointLoad(x, pointLoad, label, labelNode)            
     
     #TODO: use a dictionary to speed this process up?!
     def _findNode(self, xInput:float):
@@ -934,7 +935,15 @@ class Beam:
         newEleLoad = EleLoadLinear(x1, x2, linLoad, label)
         self.eleLoads.append(newEleLoad)
 
-    def addLinLoadVertical(self, x1:float, x2:float, qy:list[float], label:str=''):
+    def _checkForOutOfDateKwargs(self, kwargs):
+        if 'isRightHigh' in kwargs:
+            error = ("The kwarg 'isRightHigh' is depricated and will return" 
+                + "an error in future versions. Instead pass a list of the two" 
+                +   "values of the linearly distributed laod as a list.")
+            raise Exception(error)
+
+    def addLinLoadVertical(self, x1:float, x2:float, qy:list[float], label:str='',
+                           **kwargs):
         """
         Adds a linear load to the model. The load is defined between two 
         locations in the model, x1 and x2. If nodes exist at these
@@ -954,6 +963,8 @@ class Beam:
         label : str
             A optional label for the force.        
         """
+
+        self._checkForOutOfDateKwargs(kwargs)
 
         if self._ndf == 3:
             linLoad = np.array([[0.,0.], qy])
@@ -1325,7 +1336,7 @@ class EulerBeam(Beam):
 
 class EulerBeam2D(EulerBeam):
     def __post_init__(self):
-        print('EulerBeam is depricated and will return an error in future version. Use EulerBeam instead.')
+        raise Exception('EulerBeam is depricated and will be removed in the next major update (1.3). Use EulerBeam instead.')
 
 
 # =============================================================================
@@ -1341,13 +1352,13 @@ class EleLoad:
     """    
     
     def __post_init__(self):
-        print('EleLoad is depricated and will return an error in future version. Use EleLoadDist instead.')
+        raise Exception('EleLoad is depricated and will be removed in the next major update (1.3). Use EleLoadDist instead.')
 
 
 @dataclass()
 class EleLoadDist:
     """
-    Representes a distrubted element load between two points x1 x2. 
+    Representes a constantly distrubted element load between two points x1 x2. 
     For 2D elements, distributed loads can either px or py.
 
     Parameters
