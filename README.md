@@ -38,7 +38,8 @@ pip -m install planesections[opensees]
 2D and 3D beams can be anayzed under the following force types:
 - Point loads
 - Point Moments
-- Line loads
+- Line Element loads
+- Linearly varying element loads (2D only).
 
 Diagrams can also be made of 2D beams, but the support types that can be plotted are limited.
 
@@ -111,5 +112,11 @@ Some restrictions exist for OpenSees license, so this library has been added as 
 ## Status
 The next development steps are to:
 - [] Add labels to diagrams.
+
+PlaneSections is almost "feature complete" in terms of it's analysis functionality. The only additional analysis features I might include are:
+- Spring supports
+- Internal hinges
+- Better cross section support
+These are not slated to be in the next release.
 
 
