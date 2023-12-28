@@ -1,12 +1,11 @@
-# PlaneSections
+![image](https://github.com/cslotboom/planesections/assets/50510141/24068be4-aabf-45ae-a641-9b65e20947d2)# PlaneSections
 <p align="center">
   <img src="doc/img/Beam Image.png" width="500">
 </p>
 
-A lightweight finite element beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
+A lightweight finite element beam bending library built on libraries like [PyNite](https://github.com/JWock82/PyNite) and [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
 The goal of PlaneSections is to make easy-to-use beam anayses, which can be used to quickly document structural calculations.
-Being built on OpenSees, the structural results are reliable, and there is lots of room to build more complex models.
-**Note, results are only stored at nodes specified by the user - all intermediate values are linearly interpolated**
+**Note, results are only stored at nodes specified by the user - all intermediate values in plots are linearly interpolated**
 
 
 **NOTE:**
@@ -24,9 +23,15 @@ PlaneSections has been design with Metric units in mind in terms of scaling diag
 
 
 ## Installation
-Package is installable through pip
+The default package is installable through pip.
 ```
-pip install planesections
+pip -m install planesections
+
+```
+The package with the optional OpenSeesPy dependancy is installable with 
+```
+pip -m install planesections[opensees]
+
 ```
 
 ## Features:
@@ -34,6 +39,8 @@ pip install planesections
 - Point loads
 - Point Moments
 - Line loads
+
+Diagrams can also be made of 2D beams, but the support types that can be plotted are limited.
 
 ## Documentation
 All major functions and classes are documented on read-the-docs: https://planesections.readthedocs.io/en/latest/
@@ -67,12 +74,12 @@ beam.addDistLoadVertical(1, L*0.3, 5*Pz)
 ps.plotBeamDiagram(beam)
 
 # Run the analysis
-analysis = ps.OpenSeesAnalyzer2D(beam)
+analysis = ps.PyNiteAnalyzer2D(beam)
 analysis.runAnalysis()
 
 # Plot the SFD and BMD
-ps.plotShear2D(beam)
-ps.plotMoment2D(beam)
+ps.plotShear(beam)
+ps.plotMoment(beam)
 ```
 
 <p align="center">
@@ -95,29 +102,14 @@ The coordinant system used for beams is as follows:
 ## Further Examples
 See the examples folder for more examples!
 
-## License:
-Some restrictions exist for OpenSees license, so this for now this libary is restricted for resale. 
-Basically, you are able to use the software for anything except commercial use external.
+## Solvers:
+The opensees solver is included as an optional dependancy. It is significantly faster than the PyNite solver (~100x), but the license is more limited in use. OpenSees allows commercial use of the package, but does not allow resale without permission, so use at your own risk! [OpenSees License.]([https://femci.gsfc.nasa.gov/units/index.html](https://opensees.github.io/OpenSeesDocumentation/developer/license.html)
 
-What you can do:
-- Use PlaneSections commercially to analyze/design beams on your building.
-- Develop an App that uses PlaneSections to analyze beams, and share that app within your comapny.
-
-What you can't do:
-- Use PlaneSections to develop an App, then sell that app externally to your company.
-
-If there is any demand for resale, please reach out to the developers. The OpenSees solver can be replaced with a custom one, however due to the time investment required this will only be done if there is demand for it.
+Some restrictions exist for OpenSees license, so this library has been added as an optional dependancy
 
 
 ## Status
 The next development steps are to:
 - [] Add labels to diagrams.
-- [] Finsih the readthedocs website.
-- [] Add custom solver for beams.
-- [] Add quadratic loads
 
-
-Future work:
- - Timoshenko beams
- - Nonlinear beam analysis / better section support.
 
