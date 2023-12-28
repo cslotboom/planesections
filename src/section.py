@@ -17,7 +17,7 @@ class SectionBasic(Section):
     """
     A basic section that contains the global propreties of the beam section,
     without any geometry. It's assume the section is elastic.
-    Basic sections aren't used to 
+    
     """
     E:float = 1
     G:float = 1
@@ -59,7 +59,7 @@ class Section2D(Section):
 
     def __post_init__(self):
         super().__post_init__()
-        print('Section2D is depricated, and will be removed in a future release. Use Section instead.')
+        raise Exception('Section2D is depricated, and will be removed in a future release. Use Section instead.')
     
 @dataclass
 class SectionBasic2D(SectionBasic):
@@ -70,5 +70,5 @@ class SectionBasic2D(SectionBasic):
 
     def __post_init__(self):
         super().__post_init__()
-        print('SectionBasic2D is depricated, and will be removed in a future release. Use SectionBasic instead.')    
+        raise Exception('SectionBasic2D is depricated, and will be removed in a future release. Use SectionBasic instead.')    
                 
