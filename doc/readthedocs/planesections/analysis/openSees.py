@@ -1,24 +1,15 @@
-import openseespy.opensees as op
-import numpy as np
-import matplotlib.pyplot as plt
 
+import numpy as np
 import planesections.builder as bb 
 
-from abc import ABC, abstractmethod
+try:
+    import openseespy.opensees as op
+except:
+    raise Exception('OpenSeespy has not been installed. First include optional depependancy with "pip -m install planesections[opensees]"')
 
 
-class OutputRecorder(ABC):
-    Nnodes:int
-    nodeID0:float
-    nodeIDEnd:int
-    ndf:int
-    node:list
-    
-    @abstractmethod
-    def getEleInteralForce():
-        pass
+from .recorder import OutputRecorder
         
-
 class OutputRecorderOpenSees(OutputRecorder):
     """
     An interface that can be used to get beam internal forces for each node
@@ -80,14 +71,11 @@ class OutputRecorderOpenSees(OutputRecorder):
 class OutputRecorder2D(OutputRecorderOpenSees):
         
     def __post_init__(self):
-        print('OutputRecorder2D is depcricated and will be removed in a future release. Use OutputRecorder instead')
+        raise Exception('OutputRecorder2D is depcricated and will be removed in the next release. Use OutputRecorder instead')
         
 
-class BeamAnalyzer:
-    pass
 
-        
-class OpenSeesAnalyzer2D(BeamAnalyzer):
+class OpenSeesAnalyzer2D:
     """
     This class is used to  can be used to create and run an analysis of an 
     input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
@@ -169,13 +157,14 @@ class OpenSeesAnalyzer2D(BeamAnalyzer):
         Creates an elastic Euler beam between each node in the model.
         """        
         beam = self.beam
-        matPropreties = beam.getMaterialPropreties()
+        E, G, A, Iz = beam.getMaterialPropreties()
         for ii in range(self.Nele):
             ID = ii + 1
             eleID = int(ID)
             Ni = int(ID)
             Nj = int(ID + 1)
-            op.element(beam.EleType,  eleID , Ni, Nj , *matPropreties, 1)
+            # elasticBeamColumn eleTag iNode $jNode $A $E $Iz $transfTag <-release $relcode> <-mass $massDens> <-cMass>
+            op.element(beam.EleType, eleID , Ni, Nj, A, E, Iz, 1)
            
     
     def _buildPointLoads(self, pointLoads):
@@ -277,7 +266,7 @@ class OpenSeesAnalyzer2D(BeamAnalyzer):
             self.recorder(self.beam)
 
                   
-class OpenSeesAnalyzer3D(BeamAnalyzer):
+class OpenSeesAnalyzer3D:
     """
     This class is used to  can be used to create and run an analysis of an 
     input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
@@ -361,14 +350,14 @@ class OpenSeesAnalyzer3D(BeamAnalyzer):
         Creates an elastic Euler beam between each node in the model.
         """        
         beam = self.beam
-        matPropreties = beam.getMaterialPropreties()
+        E, G, A, Iz, Iy, J = beam.getMaterialPropreties()
         for ii in range(self.Nele):
             ID = ii + 1
             eleID = int(ID)
             Ni = int(ID)
             Nj = int(ID + 1)
             # element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, G_mod, Jxx, Iy, Iz, transfTag, <'-mass', mass>, <'-cMass'>)
-            op.element(beam.EleType,  eleID , Ni, Nj , *matPropreties, 1)
+            op.element(beam.EleType,  eleID , Ni, Nj , A, E, G, J, Iy, Iz, 1)
     
     def buildPointLoads(self):
         """

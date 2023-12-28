@@ -39,9 +39,13 @@ class SectionRectangle(Section):
     E:float = 200*10**9
     d:float = 1
     w:float = 1
+    G:float = None
     units:str='m'
     
     def __post_init__(self):
+        if not self.G:
+            self.G = self.E/16
+        
         self.A = self.d*self.w
         self.Iz = self.d**3*self.w / 12
         self.Iy = self.w**3*self.d / 12
