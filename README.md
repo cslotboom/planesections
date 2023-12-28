@@ -48,8 +48,7 @@ Diagrams can also be made of 2D beams, but the support types that can be plotted
 All major functions and classes are documented on read-the-docs: https://planesections.readthedocs.io/en/latest/
 
 ## Demo
-The PlaneSections can plot beam representations that can be used in documentation.
-It's also possible to get the output bening moment, shear force, rotation, and deflection diagrams.
+The PlaneSections can analyze and document beam plots for calcualtions. Below we make a beam, create a diagram of it, then get the output bending moment and shear force diagrams. It's also possible to get rotation, and deflection diagrams but these are not shown here.
 
 ``` Python
 
