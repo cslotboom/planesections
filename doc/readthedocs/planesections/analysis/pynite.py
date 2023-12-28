@@ -1,6 +1,7 @@
-import PyNite as pn
 import numpy as np
 import planesections.builder as bb 
+
+from PyNite.FEModel3D import FEModel3D
 
 from abc import ABC, abstractmethod
 from .recorder import OutputRecorder
@@ -156,7 +157,7 @@ class PyNiteAnalyzer2D:
             Do not turn on unless you know what you're doing.
         """
         
-        self.analysisBeam = pn.FEModel3D()
+        self.analysisBeam = FEModel3D()
         
     
     def buildNodes(self):
