@@ -5,15 +5,16 @@
 
 PlaneSections Documentation
 ======================================
-PlaneSections is a lightweight beam bending library built on [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
+PlaneSections is a lightweight finite element beam bending library built on libraries like `OpenSeesPy <https://github.com/JWock82/PyNite>`_ or `OpenSeesPy <https://github.com/zhuminjie/OpenSeesPy>`_.
 The goal of PlaneSections is to quickly run beam anayses, and create outputs to document structural calculations.
+**Note, results are only stored at nodes specified by the user - all intermediate values in plots are linearly interpolated**
 
 The following website documents all classes and functions the user can access in PlaneSections.
 The core of the program is the beam class in the builder module. This classes will encapuslate all of the contains all information for loading serve as interfaces for class is the beam, 
 and the user interacts with this class to run their analysis.
 
-The Builder module is used to create the beam and 
-The Analysis module is used to analyze the beam using OpenSeesPy and document the results.
+The Builder module is used to create the beam and objects that interact with the beam (nodes, loads, etc.).
+The Analysis module is used to analyze the beam using PyNite or OpenSeesPy and document the results.
 The Diagram module is used to plot representations of the beam.
 The Postprocess module is used to plot outputs of the analysis, including force diagrams and deflections
 
@@ -24,13 +25,13 @@ Install using:
 
 .. code :: python
 
-	pip install planesections
+	pip -m install planesections
 
 Install with optional dependancies for opensees solver using:
 
 .. code :: python
 
-	pip install planesections[opensees]	
+	pip -m install planesections[opensees]	
 
 
 A simple script is shown below:
