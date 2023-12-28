@@ -2,24 +2,39 @@ import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
 
-from planesections.builder import Beam
+import planesections.builder as bb 
 
-class OutputRecorder():
+from abc import ABC, abstractmethod
 
-    def __init__(self, beam:Beam):
-        """
-        An interface that can be used to get beam internal forces for each node
-        in the model. 
-        When called on a beam, it will get all internal forces for that beam.
-        Information at each node in the model is stored in the beam.
-        The recorder is only is not instantiated at the time of recording. 
 
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
+class OutputRecorder(ABC):
+    Nnodes:int
+    nodeID0:float
+    nodeIDEnd:int
+    ndf:int
+    node:list
+    
+    @abstractmethod
+    def getEleInteralForce():
+        pass
+        
 
-        """
+class OutputRecorderOpenSees(OutputRecorder):
+    """
+    An interface that can be used to get beam internal forces for each node
+    in the model. 
+    When called on a beam, it will get all internal forces for that beam.
+    Information at each node in the model is stored in the beam.
+    The recorder is only is not instantiated at the time of recording. 
+
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+
+    """
+    def __init__(self, beam:bb.Beam):
+
         
         self.Nnodes = beam.Nnodes
         self.nodeID0 = 1
@@ -32,7 +47,7 @@ class OutputRecorder():
             node.rFrc  = np.array(op.nodeReaction(ID))
             node.Fint  = self.getEleInteralForce(ID)
 
-    def getEleInteralForce(self, nodID):
+    def getEleInteralForce(self, nodID:int):
         """
         Gets the internal force at the left and right side of a node.
         The left and right side forces represent internal force at either side
@@ -62,47 +77,50 @@ class OutputRecorder():
         return Fint
 
 
-class OutputRecorder2D(OutputRecorder):
+class OutputRecorder2D(OutputRecorderOpenSees):
         
     def __post_init__(self):
         print('OutputRecorder2D is depcricated and will be removed in a future release. Use OutputRecorder instead')
         
-        
-        
-class OpenSeesAnalyzer2D():
 
-    def __init__(self, beam2D:Beam, recorder = OutputRecorder, 
+class BeamAnalyzer:
+    pass
+
+        
+class OpenSeesAnalyzer2D(BeamAnalyzer):
+    """
+    This class is used to  can be used to create and run an analysis of an 
+    input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
+    forces for the beam are defined in the analysis model
+    
+    Note, nodes and elements will both start at 0 instead of 1.        
+    
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+    recorder : planesections Recorder
+        The recorder to use for the output beam.
+    geomTransform: str, optional
+        The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
+    clearOld : bool, optional
+        A flag that can be used to turn on or off clearing the old analysis
+        when the beam is created.
+        There are some very niche cases where users may want to have mutiple
+        beams at once in the OpenSees model.
+        However, this should remain true for nearly all analyses. 
+        Do not turn on unless you know what you're doing.
+        
+    """
+    def __init__(self, beam2D:bb.Beam, recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
-        """
-        This class is used to  can be used to create and run an analysis of an 
-        input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
-        forces for the beam are defined in the analysis model
-        
-        Note, nodes and elements will both start at 0 instead of 1.        
-        
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
-        recorder : planesections Recorder
-            The recorder to use for the output beam.
-        geomTransform: str, optional
-            The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
-        clearOld : bool, optional
-            A flag that can be used to turn on or off clearing the old analysis
-            when the beam is created.
-            There are some very niche cases where users may want to have mutiple
-            beams at once in the OpenSees model.
-            However, this should remain true for nearly all analyses. 
-            Do not turn on unless you know what you're doing.
-            
-        """
-        self.beam = beam2D
+
+        self.beam:bb.Beam = beam2D
         self._checkBeam(beam2D)
         
         self.Nnode = beam2D.Nnodes
         self.Nele = self.Nnode - 1
-        self.recorder = OutputRecorder
+        self.recorder = recorder
         self.geomTransform = geomTransform
         self.clearOld = clearOld
     
@@ -143,7 +161,7 @@ class OpenSeesAnalyzer2D():
             op.node(int(node.ID), float(node.x), 0.)
             
             # OpenSees is very finicky with these inputs, int them for saftey.
-            f1, f2, f3 = node.fixity
+            f1, f2, f3 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3))
         
     def buildEulerBeams(self):
@@ -160,15 +178,18 @@ class OpenSeesAnalyzer2D():
             op.element(beam.EleType,  eleID , Ni, Nj , *matPropreties, 1)
            
     
+    def _buildPointLoads(self, pointLoads):
+        for load in pointLoads:
+            op.load(int(load.nodeID), *load.P)
+            
+            
     def buildPointLoads(self):
         """
         Applies point loads to the appropriate nodes in the model.
         """        
         op.timeSeries('Linear',1)
         op.pattern('Plain', 1, 1)
-        for load in self.beam.pointLoads:
-            op.load(int(load.nodeID), *load.P)            
-            
+        self._buildPointLoads(self.beam.pointLoads)       
     
     def buildAnalysisPropreties(self):
         """
@@ -191,7 +212,7 @@ class OpenSeesAnalyzer2D():
         """
         ok = op.analyze(1)
         op.reactions()   
-        
+        return ok
     
     def buildEleLoads(self):
         """
@@ -203,10 +224,36 @@ class OpenSeesAnalyzer2D():
         for eleload in self.beam.eleLoads:
             N1 = self.beam._findNode(eleload.x1) + 1
             N2 = self.beam._findNode(eleload.x2) + 1
-            load = eleload.P
+            build = self._selectLoad(eleload)
+            build([N1, N2], eleload)
             
-            for ii in range(N1, N2):                
-                op.eleLoad('-ele', int(ii), '-type', '-beamUniform', load[1], load[0])   
+    def _selectLoad(self, eleload):
+        if isinstance(eleload, bb.EleLoadDist):
+            return self._buildDistLoad
+        if isinstance(eleload, bb.EleLoadLinear):
+            return self._buildLinLoad
+    
+    def _buildDistLoad(self, Nodes:list[int], eleload:bb.EleLoadLinear):
+        load = eleload.P
+        N1, N2 = Nodes[0], Nodes[1]
+        for ii in range(N1, N2):                
+            op.eleLoad('-ele', int(ii), 
+                       '-type', '-beamUniform', load[1], load[0])   
+    
+    def _buildLinLoad(self, Nodes:list[int], eleload:bb.EleLoadLinear):
+        load = eleload.P
+        N1, N2 = Nodes[0], Nodes[1]
+        for ii in range(N1, N2):                
+            Node1 = self.beam.nodes[ii - 1]
+            Node2 = self.beam.nodes[ii]
+            qx1, qx2 = eleload.getLoadComponents(Node1.x, Node2.x, load[0])
+            qy1, qy2 = eleload.getLoadComponents(Node1.x, Node2.x, load[1]) 
+
+            aOverL = 0.
+            bOverL = 1.
+            op.eleLoad('-ele',int(ii),
+                        '-type','beamUniform',
+                        qy1, qx1, aOverL, bOverL, qy2, qx2)       
     
     def runAnalysis(self, recordOutput = True):
         """
@@ -229,42 +276,42 @@ class OpenSeesAnalyzer2D():
         if recordOutput == True:
             self.recorder(self.beam)
 
-
                   
-class OpenSeesAnalyzer3D():
+class OpenSeesAnalyzer3D(BeamAnalyzer):
+    """
+    This class is used to  can be used to create and run an analysis of an 
+    input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
+    forces for the beam are defined in the analysis model
+    
+    Note, nodes and elements will both start at 0 instead of 1.        
+    
+    Parameters
+    ----------
+    beam : planesections Beam2D
+        The beam whose data is being recorded.
+    recorder : planesections Recorder
+        The recorder to use for the output beam.
+    geomTransform: str, optional
+        The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
+    clearOld : bool, optional
+        A flag that can be used to turn on or off clearing the old analysis
+        when the beam is created.
+        There are some very niche cases where users may want to have mutiple
+        beams at once in the OpenSees model.
+        However, this should remain true for nearly all analyses. 
+        Do not turn on unless you know what you're doing.
+        
+    """ 
 
-    def __init__(self, beam3D:Beam, recorder = OutputRecorder, 
+    def __init__(self, beam3D:bb.Beam, recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
-        """
-        This class is used to  can be used to create and run an analysis of an 
-        input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
-        forces for the beam are defined in the analysis model
-        
-        Note, nodes and elements will both start at 0 instead of 1.        
-        
-        Parameters
-        ----------
-        beam : planesections Beam2D
-            The beam whose data is being recorded.
-        recorder : planesections Recorder
-            The recorder to use for the output beam.
-        geomTransform: str, optional
-            The OpenSees Geometry transform to use. Can be "Linear" or "PDelta"
-        clearOld : bool, optional
-            A flag that can be used to turn on or off clearing the old analysis
-            when the beam is created.
-            There are some very niche cases where users may want to have mutiple
-            beams at once in the OpenSees model.
-            However, this should remain true for nearly all analyses. 
-            Do not turn on unless you know what you're doing.
-            
-        """
+
         self.beam = beam3D
         self._checkBeam(beam3D)
         
         self.Nnode = beam3D.Nnodes
         self.Nele = self.Nnode - 1
-        self.recorder = OutputRecorder
+        self.recorder = OutputRecorderOpenSees
         self.geomTransform = geomTransform
         self.clearOld = clearOld
     
@@ -294,7 +341,6 @@ class OpenSeesAnalyzer3D():
         op.model('Basic' , '-ndm',  3)
         # see https://opensees.berkeley.edu/wiki/index.php/PDelta_Transformation
         op.geomTransf(self.geomTransform, 1, *[0, 0, 1])
-        # op.geomTransf(self.geomTransform, 1, *[0, 1, 0])
         
     
     def buildNodes(self):
@@ -307,7 +353,7 @@ class OpenSeesAnalyzer3D():
             op.node(int(node.ID), float(node.x), 0., 0.)
             
             # OpenSees is very finicky with these inputs, int them for saftey.
-            f1, f2, f3, f4, f5, f6 = node.fixity
+            f1, f2, f3, f4, f5, f6 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3), int(f4), int(f5), int(f6))
         
     def buildEulerBeams(self):
@@ -322,7 +368,6 @@ class OpenSeesAnalyzer3D():
             Ni = int(ID)
             Nj = int(ID + 1)
             # element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, G_mod, Jxx, Iy, Iz, transfTag, <'-mass', mass>, <'-cMass'>)
-
             op.element(beam.EleType,  eleID , Ni, Nj , *matPropreties, 1)
     
     def buildPointLoads(self):

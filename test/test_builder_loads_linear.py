@@ -17,17 +17,17 @@ q = 1
 beam = ps.newEulerBeam(x2)
 
 Lnet = x2-x1
-distLoad = [0,q]
+distLoad = [0, q]
 
-beam.addLinLoadVertical(x1, x2, q)
-beam.addLinLoadHorizontal(x1, x2, q)
+beam.addLinLoadVertical(x1, x2, distLoad)
+beam.addLinLoadHorizontal(x1, x2, distLoad)
 
 
 def test_addition():
     assert len(beam.eleLoads) == 2
     
 def test_parameter_retreval():
-    s1, s2 = beam.eleLoads[0].getLoadComponents(1,3, q)
+    s1, s2 = beam.eleLoads[0].getLoadComponents(1,3, distLoad)
     assert s1 == 0.25 and s2 == 0.75
     
 if __name__ == "__main__":

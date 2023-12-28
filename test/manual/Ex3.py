@@ -3,6 +3,8 @@ R"""
 Created on Sun May 23 01:00:41 2021
 
 @author: Christian
+
+tests a beam with a weird scale between zero and 1
 """
 
 import planesections as ps

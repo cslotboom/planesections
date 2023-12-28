@@ -1,15 +1,17 @@
 Beam Loads
 ==========
 
-These classes store information about beam loads. Only point or line loads are supported.
+These classes store information about beam loads. Only point loads, line loads, and linearly varying loads are supported.
 
-#. :doc:`builder-load-eleLoad`
 #. :doc:`builder-load-pointLoad`
+#. :doc:`builder-load-eleLoadDist`
+#. :doc:`builder-load-eleLoadLinear`
 
 
 .. toctree::
    :maxdepth: 1
    :hidden:
    
-   builder-load-eleLoad.rst
    builder-load-pointLoad.rst
+   builder-load-eleLoadDist.rst
+   builder-load-eleLoadLinear.rst

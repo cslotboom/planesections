@@ -1,8 +1,6 @@
-import openseespy.opensees as op
 import numpy as np
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
-from planesections.builder import Node2D, Beam
+from planesections import Node2D, Beam
 
 
 # =============================================================================
@@ -133,7 +131,6 @@ def _initOutputFig(showAxis, showGrid):
         ax.grid(which='major', axis='both', c= 'black', linewidth = 0.4)
         ax.minorticks_on()
         ax.tick_params(axis='y', which='minor', colors='grey')
-        # ax.tick_params(axis='y', which='minor', colors='grey')
         ax.grid(which='minor', axis='both', c='grey')
     
     
@@ -178,7 +175,7 @@ def plotMoment(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
     beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
     yunit : str, optional
         The yunit for the plot labels. The default is Nm.
         
@@ -243,7 +240,7 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     beam : Beam
         The beam to plot internal forces with. The analysis must be run.
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
         
     Kwarg Parameters
     ----------        
@@ -274,6 +271,22 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     
     return plotInternalForce(beam, 1, scale, **kwargs)
 
+
+def _getForceValues(beam, index):
+    Nnodes = len(beam.nodes)
+    xcoords = np.zeros(Nnodes*2)
+    force = np.zeros(Nnodes*2)
+    labels = [None]*Nnodes
+    for ii, node in enumerate(beam.nodes):
+        ind1 = 2*ii
+        ind2 = ind1 + 2        
+        xcoords[ind1:ind2]       = node.x        
+        force[ind1:ind2] = node.getInternalForces(index)
+        labels[ii] = node.label
+        
+    return xcoords, force, labels
+
+
 def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
                         showAxis = True, showGrid = False, labelPlot = True):
     """
@@ -298,7 +311,7 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
             [0:Fx, 1: Fy, 2: Fz, 3: Mx, 4: Mx, 5: Mz]
             
     scale : float, optional
-        The scale to apply to the plot. The default is 1.
+        The scale to apply to y values of the plot. The default is 1.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
@@ -320,17 +333,7 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
         the plotted line.
 
     """
-    
-    Nnodes = len(beam.nodes)
-    xcoords = np.zeros(Nnodes*2)
-    force = np.zeros(Nnodes*2)
-    labels = [None]*Nnodes
-    for ii, node in enumerate(beam.nodes):
-        ind1 = 2*ii
-        ind2 = ind1 + 2        
-        xcoords[ind1:ind2]       = node.x        
-        force[ind1:ind2] = node.getInternalForces(index)
-        labels[ii] = node.label
+    xcoords, force, labels = _getForceValues(beam, index)
         
     fig, ax = _initOutputFig(showAxis, showGrid)
     _plotAxis(ax, xcoords, xunit, yunit)
@@ -351,8 +354,6 @@ def plotInternalForce2D(beam:Beam, index:int, scale:float, xunit= 'm', yunit = '
                             True, False, True)
     
 
-    
-
 def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     """
     Plots the rotation of a beam. Each node will contain the
@@ -370,7 +371,7 @@ def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
-        The yunit for the plot labels. The default is mm.
+        The scale to apply to y values of the plot. The default is mm.
     showAxis : bool, optional
         Turns on or off the axis.
     showGrid : bool, optional
@@ -404,7 +405,7 @@ def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
     scale : float, optional
-        The scale to apply to the plot. The default is 0.001.
+        The scale to apply to y values of the plot. The default is 0.001.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
@@ -449,7 +450,7 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     index : int
         The type of response to plot, can have value 0:ux, 1: uy 2: rotation.
     scale : float, optional
-        The scale to apply to the plot. The default is 0.001.
+        The scale to apply to y values of the plot. The default is 0.001.
     xunit : str, optional
         The xunit for the plot labels. The default is m.
     yunit : str, optional
@@ -491,11 +492,6 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     line = plt.plot(xcoords, disp*scale)     
 
     return fig, ax, line 
-
-
-
-
-
 
 
  

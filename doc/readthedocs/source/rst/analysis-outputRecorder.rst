@@ -1,7 +1,7 @@
 outputRecorder
 ==============
 
-.. autoclass:: planesections.analysis.OutputRecorder
+.. autoclass:: planesections.analysis.opensees.OutputRecorder
    :members:
    :undoc-members:
    :show-inheritance:

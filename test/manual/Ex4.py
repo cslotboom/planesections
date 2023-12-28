@@ -5,6 +5,8 @@ Created on Sun May 23 01:00:41 2021
 @author: Christian
 
 
+Showcases two linear loads plotted on top of eachother.
+
 """
 
 import planesections as ps
@@ -25,10 +27,10 @@ beam.setFixity(L, pinned, label = 'C')
 
 P = -2*kN
 M = 5*kN*m
-q = np.array([0.,kN/m])
+q = np.array([0., kN/m])
 
-beam.addLinLoadVertical(0, 4.5, -q[1], isRightHigh=False)
-beam.addLinLoadVertical(0, 5, -q[1]*2, isRightHigh=True)
+beam.addLinLoadVertical(0, 4.5, -q)
+beam.addLinLoadVertical(0, 5, -q[::-1]*2)
 
 import time
 t1 = time.time()

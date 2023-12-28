@@ -14,8 +14,8 @@ import numpy as np
 # import pytest
 
 x = np.array([0,5])
-labels = ['A', 'B']
-fixities = [np.array([1,1,1]), np.array([1,1,1])]
+labels      = ['A', 'B']
+fixities    = [np.array([1,1,1]), np.array([1,1,1])]
 
 L       = 5*m
 x       = np.linspace(0, L, 80)
@@ -33,15 +33,15 @@ beam.addVerticalLoad(0, P, label = 'C')
 beam.addVerticalLoad(2.5, P, label = 'D')
 beam.addVerticalLoad(4, -P, label = 'E')
 
-beam.addMoment(3, M)
+# beam.addMoment(3, M)
 beam.addDistLoad(0, 3, -q) 
 beam.addDistLoad(0, 2, -q) 
 beam.addDistLoad(0.2,1, q*2)
 
 beam.addDistLoad(2.8,3.5, q)
 
-beam.addLinLoadVertical(3, 4.5, q[1]*2, isRightHigh=False)
-beam.addLinLoadVertical(3, 4.5, q[1]*2, isRightHigh=True)
+beam.addLinLoadVertical(3, 4.5, q[::-1]*2)
+beam.addLinLoadVertical(3, 4.5, q*2)
 
 ps.plotBeamDiagram(beam)
 
