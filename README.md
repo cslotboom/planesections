@@ -18,7 +18,7 @@ PlaneSections has been design with Metric units in mind in terms of scaling diag
 * [Documentation](https://github.com/cslotboom/planesections#Documentation)
 * [Demo](https://github.com/cslotboom/planesections#Demo)
 * [Coordinates](https://github.com/cslotboom/planesections#Coordinates)
-* [Solvers](https://github.com/cslotboom/planesections#Solver)
+* [Solvers](https://github.com/cslotboom/planesections#Solvers)
 * [Work Status](https://github.com/cslotboom/planesections#Status)
 
 
