@@ -103,7 +103,7 @@ The coordinant system used for beams is as follows:
 ## Further Examples
 See the examples folder for more examples!
 
-## Solvers:
+## Solvers
 The opensees solver is included as an optional dependancy. It is significantly faster than the PyNite solver (~100x), but the license is more limited in use. OpenSees allows commercial use of the package, but does not allow resale without permission, so use at your own risk! [OpenSees License.]([https://femci.gsfc.nasa.gov/units/index.html](https://opensees.github.io/OpenSeesDocumentation/developer/license.html)
 
 Some restrictions exist for OpenSees license, so this library has been added as an optional dependancy
