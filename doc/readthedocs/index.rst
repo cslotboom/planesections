@@ -26,6 +26,13 @@ Install using:
 
 	pip install planesections
 
+Install with optional dependancies for opensees solver using:
+
+.. code :: python
+
+	pip install planesections[opensees]	
+
+
 A simple script is shown below:
 
 .. code :: python
@@ -54,12 +61,12 @@ A simple script is shown below:
 	ps.plotBeamDiagram(beam)
 
 	# Run the analysis
-	analysis = ps.OpenSeesAnalyzer2D(beam)
+	analysis = ps.PyNiteAnalyzer2D(beam)
 	analysis.runAnalysis()
 
 	# Plot the SFD and BMD
-	ps.plotShear2D(beam)
-	ps.plotMoment2D(beam)
+	ps.plotShear(beam)
+	ps.plotMoment(beam)
 
 
 .. toctree::

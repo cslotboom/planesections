@@ -26,7 +26,7 @@ copyright = '2020, CSlotboom'
 author = 'CSlotboom'
 
 # The full version, including alpha/beta/rc tags
-release = '0.6.0'
+release = '1.2.0'
 
 
 # -- General configuration ---------------------------------------------------
