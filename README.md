@@ -1,4 +1,4 @@
-![image](https://github.com/cslotboom/planesections/assets/50510141/24068be4-aabf-45ae-a641-9b65e20947d2)# PlaneSections
+# PlaneSections
 <p align="center">
   <img src="doc/img/Beam Image.png" width="500">
 </p>
