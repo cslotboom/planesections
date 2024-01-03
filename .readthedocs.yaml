@@ -15,8 +15,6 @@ build:
 #sphinx:
 #   configuration: doc/readthedocs/source/conf.py
 
-sphinx:
-  configuration: doc/readthedocs/source/conf.py
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 formats:
