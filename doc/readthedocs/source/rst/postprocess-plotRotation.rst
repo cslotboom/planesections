@@ -1,4 +1,4 @@
 Plot Vertical Displacement
 ==========================
 
-.. autofunction:: planesections.postprocess.plotRotation
+.. autofunction:: planesections.postprocess.plot.plotRotation

@@ -1,4 +1,4 @@
 Plot Internal Forces
 ====================
 
-.. autofunction:: planesections.postprocess.plotInternalForce
+.. autofunction:: planesections.postprocess.plot.plotInternalForce

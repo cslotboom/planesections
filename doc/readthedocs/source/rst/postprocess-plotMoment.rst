@@ -1,4 +1,4 @@
 Plot Moment
 ===========
 
-.. autofunction:: planesections.postprocess.plotMoment
+.. autofunction:: planesections.postprocess.plot.plotMoment

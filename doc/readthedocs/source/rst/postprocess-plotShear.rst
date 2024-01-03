@@ -1,4 +1,4 @@
 Plot Shear Force
 ================
 
-.. autofunction:: planesections.postprocess.plotShear
+.. autofunction:: planesections.postprocess.plot.plotShear

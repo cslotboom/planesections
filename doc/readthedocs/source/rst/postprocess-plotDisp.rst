@@ -1,4 +1,4 @@
 Plot Displacement
 =================
 
-.. autofunction:: planesections.postprocess.plotDisp
+.. autofunction:: planesections.postprocess.plot.plotDisp

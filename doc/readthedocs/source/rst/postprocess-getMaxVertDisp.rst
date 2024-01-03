@@ -1,4 +1,4 @@
 Get Beam Maximum Vertical Displacement
 ======================================
 
-.. autofunction:: planesections.postprocess.getMaxVertDisp
+.. autofunction:: planesections.postprocess.plot.getMaxVertDisp
