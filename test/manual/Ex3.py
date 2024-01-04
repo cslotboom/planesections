@@ -41,7 +41,7 @@ beam.addLabel(x2, label='B')
 
 ps.plotBeamDiagram(beam)
 
-analysis = ps.OpenSeesAnalyzer2D(beam)
+analysis = ps.PyNiteAnalyzer2D(beam)
 analysis.runAnalysis()
 
 x,y = beam.getSFD()

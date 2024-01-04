@@ -4,8 +4,13 @@ from .builder import (Node2D, Node3D, Beam, newEulerBeam, newSimpleEulerBeam,
                       EulerBeam, EleLoad, EleLoadDist, EleLoadLinear, PointLoad,
                       Beam2D, newEulerBeam2D, newSimpleEulerBeam2D, 
                       EulerBeam2D, FixityTypes2D, NAMED_RELEASES_2D)
-from .analysis import (OutputRecorder, OpenSeesAnalyzer2D, OpenSeesAnalyzer3D,
-                       OutputRecorder2D, PyNiteAnalyzer2D)
+from .analysis import (PyNiteAnalyzer2D)
+try:
+    from .analysis import (OutputRecorder2D, OutputRecorder, 
+                           OpenSeesAnalyzer2D, OpenSeesAnalyzer3D)
+except:
+    pass
+
 from .postprocess import (getDisp, getVertDisp, getMaxVertDisp,
                           plotInternalForce, plotShear, plotMoment, 
                        plotDisp, plotVertDisp, plotRotation,

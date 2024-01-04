@@ -24,12 +24,16 @@ def test_builder():
 def test_diagram():
     from planesections import plotBeamDiagram, BeamPlotter2D
     assert True
-    
-def test_Analysis():
-    from planesections import (OutputRecorder, OpenSeesAnalyzer2D)
-    assert True
 
-# test_section()
-# test_builder()
-# test_Analysis()
-# test_diagram()
+def _OpenseesInstalled():
+    try:
+        import openseespy.opensees as op
+    except:
+        return False
+    return True
+
+def test_Analysis():
+    if _OpenseesInstalled():
+        from planesections import (OutputRecorder, OpenSeesAnalyzer2D)
+        
+    assert True
