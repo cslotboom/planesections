@@ -1,4 +1,5 @@
 matplotlib
 numpy
 openseespy
+PyNite
 sphinx-rtd-theme
