@@ -1412,6 +1412,9 @@ class EleLoadLinear:
         self.Lnet = x2 - x1
         
     def checkInRange(self, s):
+        """
+        Checks if a x value is in the range x1/x2 of the force.
+        """
         
         if s < self.x1:
             raise Exception(r'First point range, must be greater than {x1}')

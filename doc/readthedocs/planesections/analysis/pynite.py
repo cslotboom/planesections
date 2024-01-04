@@ -3,9 +3,7 @@ import planesections.builder as bb
 
 from PyNite.FEModel3D import FEModel3D
 
-from abc import ABC, abstractmethod
 from .recorder import OutputRecorder
-
 
 class OutputRecorderPyNite2D(OutputRecorder):
     """
@@ -211,14 +209,11 @@ class PyNiteAnalyzer2D:
         """        
         self._buildPointLoads(self.beam.pointLoads)       
     
-
     def analyze(self):
         """
         Analyzes the model once and records outputs.
         """
         self.analysisBeam.analyze(check_statics=False)
-        # self.analysisBeam.analyze_linear()
-
     
     def buildEleLoads(self):
         """
@@ -286,6 +281,5 @@ class PyNiteAnalyzer2D:
                 
         if recordOutput == True:
             self.recorder(self.beam, self.analysisBeam)
-
 
 

@@ -6,13 +6,9 @@ Created on Sat Mar  5 20:57:19 2022
 
 """
 
-# import matplotlib.pyplot as plt
-# from matplotlib.patches import Rectangle, Polygon, Circle, FancyArrowPatch
 import numpy as np
-from dataclasses import dataclass
 from planesections import diagramUnits
 from planesections.builder import EleLoadDist, EleLoadLinear
-
 
 from .components import basic as basic
 
@@ -62,7 +58,6 @@ class EleLoadBox:
         self.fint = fint
         self.fout = [self._interpolate(fint[0]), self._interpolate(fint[1])]
         
-        
         # If the internal datum is manually set
         if intDatum:
             self.intDatum = intDatum
@@ -78,7 +73,6 @@ class EleLoadBox:
         # If there is no internal datum, this is the typical case.
         else:    
             self._initInternalDatum()
-        # self.datum = 0
     
     def setDatum(self, datum):
         dy = datum - self.datum
@@ -95,10 +89,8 @@ class EleLoadBox:
         fint = self.fint
         self.fout = [self._interpolate(fint[0]), self._interpolate(fint[1])]
 
-        
     def getInternalDatum(self):
         return self.datum
-
     
     def _interpolate(self, fint):
         return (self.y[1] - self.y[0])*fint + self.y[0]
@@ -129,19 +121,6 @@ class EleLoadBox:
     def isConstant(self):
         return self.fint[0] == self.fint[1]
         
-    
-@dataclass
-class DiagramEleLoad:
-    loadBox:EleLoadBox
-    
-
-
-
-
-
-
-
-
 def _checkInRange(xrange1, xrange2):
     """
     Checks if either point of xrange1 is in xrange2
@@ -158,9 +137,9 @@ def checkBoxesForOverlap(box1:EleLoadBox, box2:EleLoadBox):
     Parameters
     ----------
     box1 : EleLoadBox
-        DESCRIPTION.
+        The first Box.
     box2 : EleLoadBox
-        DESCRIPTION.
+        The second Box.
 
     Returns
     -------
@@ -173,10 +152,22 @@ def checkBoxesForOverlap(box1:EleLoadBox, box2:EleLoadBox):
     else:
         return False
 
-
 class Boxstacker:
     
     def __init__(self, boxes:list[EleLoadBox]):
+        """
+        A class that can be used to stack a series of element boxes.
+
+        Parameters
+        ----------
+        boxes : list[EleLoadBox]
+            The list of boxes to stack.
+
+        Returns
+        -------
+        None.
+
+        """
         self.boxes = boxes
 
     def setStackedDatums(self):
@@ -195,17 +186,12 @@ class Boxstacker:
         # Get the lengths, the start with the longest and go to shortest
         lengths = xcoords[:,1] - xcoords[:,0]
         sortedInds = np.argsort(lengths)[::-1]
-        
-        # Make a copy of the plot.
-        # yPlotOut = np.zeros_like(ycoords)
-        # yPlotOut[:] = ycoords
 
         # the current x and y points being plotted.    
         posStackx = []
         posStackTop = []
         negStackx = []
         negStackTop = []
-        
         
         # start at the widest items and plot them first
         for ind in sortedInds:
@@ -270,7 +256,6 @@ class Boxstacker:
                         
         return boxes
      
-     
     def _checkIfInRange(self, xtest, x1,x2):
         if (x1 < xtest) and (xtest < x2):
             return True
@@ -306,7 +291,6 @@ class Boxstacker:
                 return  True, localInd
         return inStack, None         
                 
-    
     def _getStackTop(self,   xCurrent     :list[float, float], 
                              stackRanges  :list[list[float, float]], 
                              currentY     :list[list[float, float]]):
@@ -323,8 +307,6 @@ class Boxstacker:
         
         return 0
 
-
-
 def _getSigns(forces):
     """
     Safely gets the signs in a way that won't result in dividing by zero.
@@ -338,9 +320,7 @@ def _getSigns(forces):
     inds = np.where(tmpForces == 0)
     tmpForces[inds] = 1 
     signs = forces / np.abs(tmpForces)
-    return signs
-    
-    
+    return signs   
     
 def _setForceVectorLengthEle(boxes:list[EleLoadBox], vectScale = 1):
     """
@@ -385,9 +365,6 @@ def _setForceVectorLengthEle(boxes:list[EleLoadBox], vectScale = 1):
         boxesOut[ii] = EleLoadBox(boxOld.x, fplot[ii], list(fint))
     
     return boxesOut       
-
-
-
 
 class BeamPlotter2D:
         
@@ -606,7 +583,6 @@ class BeamPlotter2D:
             if label and self._checkIfLabelPlotted(force.nodeID) != True:
                 self.plotter.plotLabel(self.ax, xy, label)
                 self._addLabelToPlotted(force.nodeID)
-                                        
                             
     def plotDistForceLables(self, fplot, xcoords, labelForce, plotForceValue):
         """
@@ -669,7 +645,6 @@ class BeamPlotter2D:
         
         return fplot*vectScale
     
-    
     def plotPointForces(self):
         """
         Plots all point forces.
@@ -712,11 +687,9 @@ class BeamPlotter2D:
             self.plotter.plotElementDistributedForce(self.ax, box)
         else:
             self.plotter.plotElementLinearForce(self.ax, box)
-   
     
     def normalizeData(self, data):
         return (data - np.min(data)) / (np.max(data) - np.min(data))
-    
     
     def _getLinFint(self, Ptmp):
         """
@@ -752,7 +725,6 @@ class BeamPlotter2D:
             fintTemp = list(self.normalizeData(Ptmp))   
         return Ptmp, fintTemp
                     
-                    
     def _getEleForceBoxes(self):
         """
         Handles all the logic of generating stacked object positions.
@@ -780,7 +752,6 @@ class BeamPlotter2D:
                 Ptmp, fintTemp = self._getLinFint(Ptmp)               
                 eleBoxes.append(EleLoadBox(xDiagram, Ptmp, fintTemp))
         
-        
         eleBoxes    = _setForceVectorLengthEle(eleBoxes, vectScale = 0.4)
         stacker     = Boxstacker(eleBoxes)
         eleBoxes    = stacker.setStackedDatums()
@@ -801,10 +772,7 @@ class BeamPlotter2D:
         fplot       = [box.y for box in eleBoxes]
         xcoords     = [box.x for box in eleBoxes]
                         
-        return fplot, xcoords
-    
-
-                       
+        return fplot, xcoords                     
 
 def plotBeamDiagram(beam, plotLabel = True, labelForce = False, 
                     plotForceValue = False, units = 'environment'):
