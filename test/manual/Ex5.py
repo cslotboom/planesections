@@ -27,7 +27,7 @@ beam.setFixity(L, pinned, label = 'C')
 
 P = -2*kN
 M = 5*kN*m
-q = np.array([0.5*kN/m, kN/m])
+q = np.array([0.2*kN/m, kN/m])
 
 beam.addLinLoadVertical(0, 4.5, -q)
 beam.addLinLoadVertical(0, 4.5, q)
