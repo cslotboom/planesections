@@ -679,15 +679,20 @@ class Beam:
                 A vertical load of 10 is applied in beam units.
             New Load 2:
                [0., 0., 13]
-               New node 2: A moment of 13 is applied in beam units.
+               A moment of 13 is applied in beam units.
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.        
         
         """
         
+        # Catch incorrectly given types.
         if hasattr(pointLoad, '__iter__') == False:
             raise Exception('Point load vector must be a list or Numpy array.')
+        
+        # Converty to np array. We do vector operations on data downstream
+        if isinstance(pointLoad, list):
+            pointLoad = np.array(pointLoad)
             
         loadID = len(self.pointLoads) + 1
         

@@ -1,108 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from planesections import Node2D, Beam
+import textalloc as ta
 
+from dataclasses import dataclass
 
-# =============================================================================
-# 
-# =============================================================================
-
-
-def getDisp(beam: Beam, ind: int):
-    """
-    Gets the beam displacement along the axis specified for the index.
-
-    Parameters
-    ----------
-    beam : Beam
-        The beam to read displacement from. The beam must be analyzed to get data.
-    ind : int
-        The index of the axis to read from. Can have value 0: horizontal displacement
-        1: vertical displacement 
-        2: rotation.
-
-    Returns
-    -------
-    disp : numpy array
-        The displacement at each x coordinant.
-    xcoords : numpy array
-        The x coordinants.
-    """
-    
-    xcoords = np.zeros(beam.Nnodes)
-    disp = np.zeros(beam.Nnodes)   
-    for ii, node in enumerate(beam.nodes):
-        xcoords[ii] = node.x
-        disp[ii] = node.disps[ind]
-    return  disp, xcoords
-
-
-
-def getVertDisp(beam: Beam):
-    """
-    Gets the beam vertical displacement for the beam
-
-    Parameters
-    ----------
-    beam : Beam
-        The beam to read displacement from. The beam must be analyzed to get data.
-
-    Returns
-    -------
-    disp : numpy array
-        The displacement at each x coordinant.
-    xcoords : numpy array
-        The x coordinants.
-    """
-    return getDisp(beam, 1)
-
-
-def getMaxVertDisp(beam: Beam):
-    """
-    Gets the absolute value of beam vertical displacement and it's location.
-
-    Parameters
-    ----------
-    beam : Beam
-        The beam to read displacement from. The beam must be analyzed to get data.
-
-    Returns
-    -------
-    dispMax : float
-        The displacement at each x coordinant.
-    xcoords : numpy array
-        The x coordinants.
-    """
-    disp, x  = getVertDisp(beam)
-    dispAbs = np.abs(disp)
-    ind = np.argmax(dispAbs)
-    return disp[ind], x[ind]
+from .parse import _getForceValues
+from .poi import findAllPOI, removeFalsePOI
 
    
-
-
-
-
-
-    
-# def getMaxBeamDisp(beam: Beam, ind: int):
-#     """
-#     Gets the beam displacement along the axis specified for the index.
-
-#     Parameters
-#     ----------
-#     beam : Beam
-#         DESCRIPTION.
-#     ind : TYPE
-#         DESCRIPTION.
-
-#     Returns
-#     -------
-#     None.
-
-#     """    
-
-
 # =============================================================================
 # Plotting
 # =============================================================================
@@ -191,7 +97,22 @@ def plotMoment(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
         Turns on or off the grid.        
     labelPlot : bool, optional
         Turns on or off the plot labels.    
+    labelPOI : bool, optional
+        Turns on or off the plot point of interst labels.    
+    POIOptions : dict, optional
+        The options to use for the POI labels. There are several flags that 
+        have values true or false which can be used to turn on or off certain
+        points of interst. Notably:
+            
+            showLabels: this flag turns on or off 
+            
+            showDiscontinutiy: this flag turns on labeling points of discontinuity
+            
+            showMax: this turns on or off
         
+        The default is None, which sets all flags to true    
+
+
     Returns
     -------
     fig : matplotlib fig
@@ -245,7 +166,7 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     Kwarg Parameters
     ----------        
     
-    These are possible Kwarg parameters that will be passed to plotInternalForce2D.
+    These are possible Kwarg parameters that will be passed to plotInternalForce.
     
     xunit : str, optional
         The xunit for the plot labels. The default is m.
@@ -257,6 +178,21 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
         Turns on or off the grid.        
     labelPlot : bool, optional
         Turns on or off the plot labels.        
+    labelPOI : bool, optional
+        Turns on or off the plot point of interst labels.    
+    POIOptions : dict, optional
+        The options to use for the POI labels. There are several flags that 
+        have values true or false which can be used to turn on or off certain
+        points of interst. Notably:
+            
+            showLabels: this flag turns on or off 
+            
+            showDiscontinutiy: this flag turns on labeling points of discontinuity
+            
+            showMax: this turns on or off
+        
+        The default is None, which sets all flags to true    
+
 
     Returns
     -------
@@ -265,30 +201,22 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
     ax : matplotlib ax
     
     line : matplotlib line
-        the plotted line.
+        The plotted line.
 
     """    
     
     return plotInternalForce(beam, 1, scale, **kwargs)
 
-
-def _getForceValues(beam, index):
-    Nnodes = len(beam.nodes)
-    xcoords = np.zeros(Nnodes*2)
-    force = np.zeros(Nnodes*2)
-    labels = [None]*Nnodes
-    for ii, node in enumerate(beam.nodes):
-        ind1 = 2*ii
-        ind2 = ind1 + 2        
-        xcoords[ind1:ind2]       = node.x        
-        force[ind1:ind2] = node.getInternalForces(index)
-        labels[ii] = node.label
-        
-    return xcoords, force, labels
+@dataclass
+class _NodeOutputs:
+    xcoords:list[float]
+    force:list[float]
+    labels:list[str]
 
 
 def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
-                        showAxis = True, showGrid = False, labelPlot = True):
+                      showAxis = True, showGrid = False, labelPlot = True,
+                      labelPOI = False, POIOptions = None):
     """
     Plots the internal forces within a beam. 
     Two values are given for each point, one at the left side, one at the right
@@ -322,7 +250,20 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
         Turns on or off the grid.        
     labelPlot : bool, optional
         Turns on or off the plot labels.        
-
+    labelPOI : bool, optional
+        Turns on or off the plot point of interst labels.    
+    POIOptions : dict, optional
+        The options to use for the POI labels. There are several flags that 
+        have values true or false which can be used to turn on or off certain
+        points of interst. Notably:
+            showLabels: this flag turns on or off POI label on points with user labels.
+            
+            showDiscontinutiy: this flag turns on POI labels on points of discontinuity.
+            
+            showMax: this turns on or off POI at maximum points.
+        
+        The default is None, which sets all flags to true          
+        
     Returns
     -------
     fig : matplotlib fig
@@ -334,24 +275,30 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
 
     """
     xcoords, force, labels = _getForceValues(beam, index)
-        
+    forceScaled = force*scale
+    
     fig, ax = _initOutputFig(showAxis, showGrid)
     _plotAxis(ax, xcoords, xunit, yunit)
     
     if labelPlot:
-        _plotLabels(ax, xcoords[::2], force*scale, labels)
+        _plotLabels(ax, xcoords[::2], forceScaled, labels)
+    line = plt.plot(xcoords, forceScaled)
     
-    line = plt.plot(xcoords, force*scale)     
+    if labelPOI:
+        shear = None
+        if index ==2:
+            _, shear, _ = _getForceValues(beam, index)
+        candidatePOI    = findAllPOI(xcoords, forceScaled, labels, shear, POIOptions)
+        filteredPoiInd  = removeFalsePOI(candidatePOI, force)
+        plotPOI(fig, ax, xcoords, forceScaled, labels, filteredPoiInd)
     
     return fig, ax, line
 
 
 def plotInternalForce2D(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
                         showAxis = True, showGrid = False, labelPlot = True):
-    print('All 2D plot functions are depricated and will return an error in future releases. \
+    raise Exception('All 2D plot functions are depricated and will be removed in future releases. \
           Use the generic plot functions instead, i.e. plotInternalForce instead of plotInternalForce2D' )
-    return plotInternalForce(beam, index, scale, 'm', 'N',
-                            True, False, True)
     
 
 def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
@@ -432,12 +379,9 @@ def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     return plotDisp(beam, ind, scale, yunit= yunit, **kwargs)
 
 
-
-
-
-
 def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
-                        showAxis = True, showGrid = False, labelPlot = True):
+             showAxis = True, showGrid = False, labelPlot = True,
+             labelPOI = False, POIOptions = None):
     """
     Plots the displacement of one dimension of the beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
@@ -485,15 +429,19 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
         
     fig, ax = _initOutputFig(showAxis, showGrid)
     _plotAxis(ax, xcoords, xunit, yunit, 'Displacement')
-    
+    disp = disp*scale
+
     if labelPlot:
-        _plotLabels(ax, xcoords, disp*scale, labels)
+        _plotLabels(ax, xcoords, disp, labels)
         
-    line = plt.plot(xcoords, disp*scale)     
+    line = plt.plot(xcoords, disp)     
+
+    if labelPOI:
+        candidatePOI = findAllPOI(xcoords, disp, labels, POIOptions = POIOptions)
+        filteredPoiInd = removeFalsePOI(candidatePOI, disp)
+        plotPOI(fig, ax, xcoords, disp, labels, filteredPoiInd)
 
     return fig, ax, line 
-
-
  
 def plotDisp2D(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
                         showAxis = True, showGrid = False, labelPlot = True):
@@ -509,7 +457,6 @@ def plotVertDisp2D(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     
     return plotDisp2D(beam, 1, scale, yunit= yunit, **kwargs) 
 
-
 def plotRotation2D(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     """
     Depricated, instead use plotRotation
@@ -520,3 +467,31 @@ def plotRotation2D(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     return plotDisp2D(beam, ind, scale, yunit= yunit, **kwargs)
 
 
+
+def plotPOI(fig, ax, xcoords, force, labels, filteredPoiInd):
+    
+    labelX = []
+    labelY = []
+    labelText = []
+    for ind in filteredPoiInd:
+        labelName = labels[int((ind+1)/2)]
+        x0 = xcoords[ind]
+        y0 = force[ind]
+        xOut = round(x0,2)
+        yOut = round(y0,1)
+        base = ''
+        if labelName:
+            base = ' Point ' + labelName + ' \n'
+        textX = f' x = {xOut} \n'
+        textY = f' y = {yOut} '
+        text = base + textX + textY
+        labelX.append(x0)
+        labelY.append(y0)
+        labelText.append(text)
+
+    ta.allocate_text(fig, ax, labelX, labelY, labelText, textsize=8,
+                     x_scatter=labelX, y_scatter=labelY,
+                     x_lines=[xcoords], y_lines=[force], 
+                     linecolor='grey', linewidth=0.5,
+                     max_distance = 0.5, min_distance = 0.02, 
+                     seed  =1,)
