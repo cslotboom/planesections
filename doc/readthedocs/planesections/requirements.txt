@@ -1,0 +1,5 @@
+matplotlib
+numpy
+openseespy
+pynite
+textalloc>=0.0.6

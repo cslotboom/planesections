@@ -1,4 +1,4 @@
 Get Beam Displacement
 =====================
 
-.. autofunction:: planesections.postprocess.plot.getDisp
+.. autofunction:: planesections.postprocess.parse.getDisp
