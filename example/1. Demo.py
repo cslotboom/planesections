@@ -32,5 +32,5 @@ analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
 
 # Plot the SFD and BMD
-ps.plotShear(beam, scale = 0.001, yunit = 'kN',labelPOI=True)
-ps.plotMoment(beam, scale = 0.001, yunit = 'kNm',labelPOI=True)
+ps.plotShear(beam, scale = 0.001, yunit = 'kN')
+ps.plotMoment(beam, scale = 0.001, yunit = 'kNm')
