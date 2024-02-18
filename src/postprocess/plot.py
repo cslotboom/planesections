@@ -466,8 +466,6 @@ def plotRotation2D(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
     
     return plotDisp2D(beam, ind, scale, yunit= yunit, **kwargs)
 
-
-
 def plotPOI(fig, ax, xcoords, force, labels, filteredPoiInd):
     
     labelX = []

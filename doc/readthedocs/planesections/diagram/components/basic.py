@@ -532,6 +532,7 @@ class DiagramEleLoadDistributed(AbstractDiagramElement):
         # self.pointUp = loadBox.pointUp
         self.options = diagramOptions
         self.plOptions = plOptions
+        self.minNbar = 3
 
     def plot(self, ax):
 
@@ -547,7 +548,7 @@ class DiagramEleLoadDistributed(AbstractDiagramElement):
         x1, x2 = self.loadBox.x
         y1, y2 = self.loadBox.y
         
-        N = int((x2 - x1) / spacing) + 1
+        N = max(int((x2 - x1) / spacing) + 1, self.minNbar)
         xVals = np.linspace(x1, x2, N)
         
         ystart = self.loadBox.fout[0]
@@ -574,6 +575,7 @@ class DiagramEleLoadLinear(AbstractDiagramElement):
         self.loadBox = loadBox
         self.options = diagramOptions
         self.plOptions = plOptions
+        self.minNbar = 3
 
     def plot(self, ax):
 
@@ -592,7 +594,8 @@ class DiagramEleLoadLinear(AbstractDiagramElement):
         
         # baseLineWidth = 0.015
         
-        Nlines = int((x2 - x1) / spacing) + 1
+        Nlines = max(int((x2 - x1) / spacing) + 1, self.minNbar)
+
         xVals = np.linspace(x1, x2, Nlines)
         
         q1, q2 = self.loadBox.fout

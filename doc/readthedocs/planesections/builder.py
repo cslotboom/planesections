@@ -340,7 +340,6 @@ class Beam:
         """
         return self._ndf
 
-
     def _initArrays(self):
         self.nodeLabels = {}
         self.nodes:list[Node] = []

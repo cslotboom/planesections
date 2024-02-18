@@ -63,4 +63,8 @@ Plot results
 ps.plotDisp(beam, scale=1000, yunit = 'mm')
 ps.plotRotation(beam, scale=1000, yunit = 'mrad')
 
+"""
+Plot the shear force, and show labeling.
+"""
 ps.plotVertDisp(beam)
+ps.plotShear(beam,labelPOI=True)
