@@ -110,9 +110,6 @@ Some restrictions exist for OpenSees license, so this library has been added as 
 
 
 ## Status
-The next development steps are to:
-- [] Add labels to diagrams.
-
 PlaneSections is almost "feature complete" in terms of it's analysis functionality. The only additional analysis features I might include are:
 - Spring supports
 - Internal hinges
