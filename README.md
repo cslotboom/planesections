@@ -84,14 +84,14 @@ ps.plotMoment(beam)
 ```
 
 <p align="center">
-  <img src="doc/img/Beam-Image-2.png" width="500">
+  <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/Beam-Image-2.png" width="500">
 </p>
 <p align="center">
-  <img src="doc/img/Beam-Image-2-SFD.png" width="500">
+  <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/Beam-Image-2-SFD.png" width="500">
 </p>  
 <p align="center">
-  <img src="doc/img/Beam-Image-2-BMD.png" width="500">
-</p>  
+  <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/Beam-Image-2-BMD.png" width="500">
+</p> 
 
 ## Coordinates
 The coordinant system used for beams is as follows:
