@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools >= 52.0.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "planesections"
+version = "1.3.5"
+authors = [{name = "Christian Slotboom", email = "christian.slotboom@gmail.com"}]
+requires-python = ">=3.9"
+description = "A light-weight FEM beam analyzer."
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = ["FEM", "structures", "beams", "diagrams"] 
+dependencies = [
+  "numpy",
+  "matplotlib",
+  "PyniteFEA",
+  "textalloc>=0.0.6",
+]
+classifiers = [
+	'Development Status :: 5 - Production/Stable',
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+    'Programming Language :: Python :: 3 :: Only',
+    'Topic :: Software Development',
+    'Topic :: Scientific/Engineering',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Operating System :: MacOS',
+]
+
+[project.optional-dependencies]
+opensees = ["openseespy"]
+
+[project.urls]
+Homepage = "https://github.com/cslotboom/planesections"
+Documentation = "https://planesections.readthedocs.io/en/latest/"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+

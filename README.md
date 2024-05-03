@@ -1,6 +1,6 @@
 # PlaneSections
 <p align="center">
-  <img src="doc/img/Beam Image.png" width="500">
+  <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/Beam Image.png" width="500">
 </p>
 
 A lightweight finite element beam bending library built on libraries like [PyNite](https://github.com/JWock82/PyNite) and [OpenSeesPy](https://github.com/zhuminjie/OpenSeesPy).
@@ -96,7 +96,7 @@ ps.plotMoment(beam)
 ## Coordinates
 The coordinant system used for beams is as follows:
 <p align="center">
-  <img src="doc/img/coords/forces.JPG" width="700">
+  <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/coords/forces.JPG" width="700">
 </p>
 
 
