@@ -91,7 +91,7 @@ ps.plotMoment(beam)
 </p>  
 <p align="center">
   <img src="https://github.com/cslotboom/planesections/raw/main/doc/img/Beam-Image-2-BMD.png" width="500">
-</p>  
+</p> 
 
 ## Coordinates
 The coordinant system used for beams is as follows:
