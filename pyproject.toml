@@ -37,7 +37,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-opensees = ["openseespy"]
+opensees = ["opensees[py]"]
 
 [project.urls]
 Homepage = "https://github.com/cslotboom/planesections"

@@ -1,5 +1,5 @@
 matplotlib
 numpy
-openseespy
+opensees[py]
 PyniteFEA
 sphinx-rtd-theme
