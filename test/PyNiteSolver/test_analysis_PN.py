@@ -36,8 +36,8 @@ def test_nodes():
     pointBeamAnalysis  = ps.PyNiteAnalyzer2D(pointBeam)
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
-    out = pointBeamAnalysis.analysisBeam.Nodes['N1'].X 
-    out2 = pointBeamAnalysis.analysisBeam.Nodes['N3'].X 
+    out = pointBeamAnalysis.analysisBeam.nodes['N1'].X 
+    out2 = pointBeamAnalysis.analysisBeam.nodes['N3'].X 
     
     assert out == 0
     assert out2 == 5
@@ -51,8 +51,8 @@ def test_EulerElements():
     pointBeamAnalysis.initModel()
     pointBeamAnalysis.buildNodes()
     pointBeamAnalysis.buildEulerBeams()
-    out1 = pointBeamAnalysis.analysisBeam.Members['M1'].i_node.name
-    out2 = pointBeamAnalysis.analysisBeam.Members['M1'].j_node.name
+    out1 = pointBeamAnalysis.analysisBeam.members['M1'].i_node.name
+    out2 = pointBeamAnalysis.analysisBeam.members['M1'].j_node.name
     
     assert out1 == 'N1'
     assert out2 == 'N2'
@@ -66,9 +66,9 @@ def test_node_loads():
     pointBeamAnalysis.buildPointLoads()   
     pointBeamAnalysis.analyze()
     
-    Rx = pointBeamAnalysis.analysisBeam.Nodes['N3'].RxnFX['Combo 1']
-    Ry = pointBeamAnalysis.analysisBeam.Nodes['N3'].RxnFY['Combo 1']
-    M = pointBeamAnalysis.analysisBeam.Nodes['N3'].RxnMZ['Combo 1']
+    Rx = pointBeamAnalysis.analysisBeam.nodes['N3'].RxnFX['Combo 1']
+    Ry = pointBeamAnalysis.analysisBeam.nodes['N3'].RxnFY['Combo 1']
+    M = pointBeamAnalysis.analysisBeam.nodes['N3'].RxnMZ['Combo 1']
     
     assert abs(Rx - 0) < 0.1
     assert abs(Ry - 500) < 0.1
@@ -82,9 +82,9 @@ def test_ele_loads():
     distBeamAnalysis.buildEleLoads()   
     distBeamAnalysis.analyze()
     
-    Rx  = distBeamAnalysis.analysisBeam.Nodes['N2'].RxnFX['Combo 1']
-    Ry  = distBeamAnalysis.analysisBeam.Nodes['N2'].RxnFY['Combo 1']
-    M   = distBeamAnalysis.analysisBeam.Nodes['N2'].RxnMZ['Combo 1']
+    Rx  = distBeamAnalysis.analysisBeam.nodes['N2'].RxnFX['Combo 1']
+    Ry  = distBeamAnalysis.analysisBeam.nodes['N2'].RxnFY['Combo 1']
+    M   = distBeamAnalysis.analysisBeam.nodes['N2'].RxnMZ['Combo 1']
     test = np.array([Rx, Ry,M]) 
 
     solution = np.array([0,2500,-2083.333333333])
@@ -97,9 +97,9 @@ def test_full_beam():
     solution2 = np.array([0,500,-625])
     solution = solution1 + solution2
     
-    Rx  = analysis.analysisBeam.Nodes['N3'].RxnFX['Combo 1']
-    Ry  = analysis.analysisBeam.Nodes['N3'].RxnFY['Combo 1']
-    M   = analysis.analysisBeam.Nodes['N3'].RxnMZ['Combo 1']
+    Rx  = analysis.analysisBeam.nodes['N3'].RxnFX['Combo 1']
+    Ry  = analysis.analysisBeam.nodes['N3'].RxnFY['Combo 1']
+    M   = analysis.analysisBeam.nodes['N3'].RxnMZ['Combo 1']
     test = np.array([Rx, Ry ,M]) 
     
     assert np.sum(np.abs(test - solution)) < 0.001

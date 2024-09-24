@@ -55,7 +55,7 @@ ps.plotBeamDiagram(beam)
 Run the analysis
 """
 analysis = ps.PyNiteAnalyzer2D(beam)
-analysis.runAnalysis()
+analysis.runAnalysis(recordOutput=True)
 
 """
 Plot results

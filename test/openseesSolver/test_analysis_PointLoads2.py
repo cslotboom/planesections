@@ -34,7 +34,7 @@ beam.setFixity(x1, fixed)
 beam.setFixity(x2, pinned)
 beam.addVerticalLoad(x3, Py)
 
-ps.plotBeamDiagram(beam)
+# ps.plotBeamDiagram(beam)
 
 analysis = ps.OpenSeesAnalyzer2D(beam)
 analysis.runAnalysis()
@@ -72,6 +72,9 @@ def test_maxDisp():
     assert (check1 and check2)
 
 
+if __name__ == "__main__":
+    test_Mmax()
+    test_maxDisp()
 
 # test_maxDisp()
     
