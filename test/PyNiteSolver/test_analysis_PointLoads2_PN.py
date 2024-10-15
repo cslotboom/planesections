@@ -78,8 +78,3 @@ if __name__ == "__main__":
     test_Mmax()
     test_maxDisp()
 
-
-# test_maxDisp()
-    
-    
-# xmax = ps.getMaxVertDisp(beam)

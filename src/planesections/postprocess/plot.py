@@ -286,8 +286,8 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
     
     if labelPOI:
         shear = None
-        if index ==2:
-            _, shear, _ = _getForceValues(beam, index)
+        if index == 2:
+            _, shear, _ = _getForceValues(beam, index-1)
         candidatePOI    = findAllPOI(xcoords, forceScaled, labels, shear, POIOptions)
         filteredPoiInd  = removeFalsePOI(candidatePOI, force)
         plotPOI(fig, ax, xcoords, forceScaled, labels, filteredPoiInd)

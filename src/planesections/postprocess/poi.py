@@ -1,10 +1,18 @@
 import numpy as np
 from .parse import _getForceValues
 
-def _get_discontinuity_inds(force, tol = 10e-6):
-    
+def _get_discontinuity_inds(force, tol = 1e-6):
+    """
+    Find a left and right point for each input in the force diagram
+    """
+    tolMin = 1e-6
     force2D = force.reshape(-1,2)
-    indDisTmp = np.where(tol < np.abs(np.diff(force2D)))[0]
+    absDiff = np.abs(np.diff(force2D))
+    # small changes won't be counted
+    # If there are no discontinities then cap the change to detect no points.
+    diffTol = max(np.max(absDiff) * tol, tol)  
+    
+    indDisTmp = np.where(diffTol < np.abs(np.diff(force2D)))[0]
     indDisTmp   = np.concatenate((indDisTmp*2, indDisTmp*2 + 1))
     # indDis      = indDisTmp[1:-1]
     return indDisTmp
@@ -209,8 +217,8 @@ def findAllPOI(xcoords, ycoords, labels, ysecondary=None, POIOptions:dict = None
     else:
         union = _getPOIIndsForce(xcoords, ycoords, labels, ysecondary, POIOptions)
     
-    poiInd  = list(union)
-    poiInd  = [int(ind) for ind in poiInd]
+    # poiInd  = list(union)
+    poiInd  = [int(ind) for ind in union]
     return poiInd
 
 # =============================================================================
@@ -239,17 +247,13 @@ def _findCloseDiscontinousPoints(force, ind, poiInd):
     else:
         return False
 
-def removeFalsePOI(candidatePOI, force):
+def removeFalsePOI(candidatePOI, force) -> list[int]:
     """
     Do a final pruning of points
 
 
     Parameters
     ----------
-    beam : TYPE
-        DESCRIPTION.
-    forceInd : TYPE
-        DESCRIPTION.
     candidatePOI : TYPE
         DESCRIPTION.
 
@@ -262,7 +266,7 @@ def removeFalsePOI(candidatePOI, force):
     # get the forces again
     absMax = np.max(np.abs(force))
 
-    # removeThe end points
+    # remove the end points. These aren't interesting 
     end = len(force) - 1
     start = 0
     if end in candidatePOI:

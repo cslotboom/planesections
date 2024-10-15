@@ -18,7 +18,25 @@ class SectionBasic(Section):
     A basic section that contains the global propreties of the beam section,
     without any geometry. It's assume the section is elastic.
     
+        
+    Parameters
+    ----------
+    E : float
+        The elastic modulus to use for the section.
+    G : float
+        The shear modulus to use for the section.
+    A : float
+        The section's area.
+    Iz : float
+        The section's second moment of ineria about the local z axis. 
+        (typically the strong axis)          
+    Iy : float
+        The section's second moment of ineria about the local z axis. 
+        (typically the weak axis)              
+    J : float
+        The units to use for the section.              
     """
+    
     E:float = 1
     G:float = 1
     A:float = 1
@@ -34,6 +52,21 @@ class SectionRectangle(Section):
     the beam width and height.
     
     https://www.structx.com/Shape_Formulas_024.html
+    
+    
+    Parameters
+    ----------
+    E : float
+        The elastic modulus to use for the section.
+    d : float
+        The section's height.
+    w : float
+        The section's width.            
+    G : float
+        The shear modulus to use for the section.
+    units : float
+        The units to use for the section.        
+        
     """
     
     E:float = 200*10**9

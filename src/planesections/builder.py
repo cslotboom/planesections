@@ -1245,7 +1245,7 @@ class EulerBeam(Beam):
         self.getBMD()
 
     
-    def getBMD(self):
+    def getBMD(self) -> list[list[float], list[float]]:
         """
         Returns the left and right bending moment at each node in the model. 
         Because the diagram is discrete, left and right forces must be used to 
