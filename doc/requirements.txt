@@ -3,3 +3,4 @@ numpy
 openseespy
 PyniteFEA
 sphinx-rtd-theme
+textalloc
