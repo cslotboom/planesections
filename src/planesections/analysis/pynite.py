@@ -26,8 +26,8 @@ class OutputRecorderPyNite2D(OutputRecorder):
         self.nodeIDEnd = self.Nnodes
         self.ndf = beam._ndf        
         self.analysisBeam = analysisBeam
-        for ii, ID in enumerate(analysisBeam.Nodes.keys()):
-            analysisNode = analysisBeam.Nodes[ID]
+        for ii, ID in enumerate(analysisBeam.nodes.keys()):
+            analysisNode = analysisBeam.nodes[ID]
             disps = [analysisNode.DX[self.lcName], analysisNode.DY[self.lcName], analysisNode.RZ[self.lcName]]
             rFrc  = [analysisNode.RxnFX[self.lcName], analysisNode.RxnFY[self.lcName], analysisNode.RxnMZ[self.lcName]]
             
@@ -58,7 +58,7 @@ class OutputRecorderPyNite2D(OutputRecorder):
         
         if nodeID == self.nodeID0: # Left most node
             eleRID = 'M' + str(nodeID)   
-            eleR = self.analysisBeam.Members[eleRID]
+            eleR = self.analysisBeam.members[eleRID]
             # 0 is used to so that the plot "closes", i.e. starts at zero the goes up
             Fint[:ndf] =  0    
 
@@ -67,7 +67,7 @@ class OutputRecorderPyNite2D(OutputRecorder):
                                     
         elif nodeID == self.nodeIDEnd: # right side node
             eleLID = 'M' + str(int(nodeID - 1))   
-            eleL = self.analysisBeam.Members[eleLID]
+            eleL = self.analysisBeam.members[eleLID]
 
             _, FeleL_R = self._getFint(eleL)
             Fint[:ndf] = FeleL_R # Right side forces
@@ -77,8 +77,8 @@ class OutputRecorderPyNite2D(OutputRecorder):
         
             eleLID = 'M' + str(int(nodeID - 1))   
             eleRID = 'M' + str(int(nodeID))
-            eleL = self.analysisBeam.Members[eleLID]
-            eleR = self.analysisBeam.Members[eleRID]
+            eleL = self.analysisBeam.members[eleLID]
+            eleR = self.analysisBeam.members[eleRID]
             _, FeleL_R = self._getFint(eleL)
             FeleR_L, _ = self._getFint(eleR)
 
