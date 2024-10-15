@@ -12,10 +12,8 @@
 #
 import os
 import sys
-#sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../source'))
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath(".."))
+sys.path.insert(0, os.path.abspath('../../../src'))
+
 
 
 import sphinx_rtd_theme
@@ -26,7 +24,7 @@ copyright = '2020, CSlotboom'
 author = 'CSlotboom'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.2'
+release = '1.3.7'
 
 
 # -- General configuration ---------------------------------------------------
