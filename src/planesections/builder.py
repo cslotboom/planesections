@@ -682,7 +682,9 @@ class Beam:
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.        
-        
+        labelNode : bool, optional
+            A label that specifies if the the node the force is assigned to 
+            should also be labeled.
         """
         
         # Catch incorrectly given types.
@@ -726,7 +728,9 @@ class Beam:
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.            
-            
+        labelNode : bool, optional
+            A label that specifies if the the node the force is assigned to 
+            should also be labeled.
         """   
         if self._ndf == 3:
             pointLoad = np.array([0., Py, 0.])
@@ -752,6 +756,9 @@ class Beam:
         label : str, optional
             The label of the input node. 
             labels are displayed in the plots. The default is ''.
+        labelNode : bool, optional
+            A label that specifies if the the node the force is assigned to 
+            should also be labeled.
         """        
         
         if self._ndf == 3:
@@ -772,7 +779,10 @@ class Beam:
             The magnitude of the vertical load to be added at x.        
         label : str, optional
             The label of the input node. 
-            labels are displayed in the plots. The default is ''.          
+            labels are displayed in the plots. The default is ''.
+        labelNode : bool, optional
+            A label that specifies if the the node the force is assigned to 
+            should also be labeled.
         """       
         
         if self._ndf == 3:
