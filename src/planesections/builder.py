@@ -293,6 +293,7 @@ class Node3D(Node):
         A pin conneciton that's fixed in x/y and fixed all in rotation DOF.
     label : str, optional
         A name for the node. This can be displayed in the plots. The default is ''.
+        
     """    
     
     _dimension = '3D'   # the number for forces that can be applied
@@ -738,14 +739,14 @@ class Beam:
             pointLoad = np.array([0., Py, 0., 0., 0., 0.])
             
         self.addPointLoad(x, pointLoad, label, labelNode)
-        
+    # !!! TODO:
+        # State which direction positive is.    
     def addMoment(self, x:float, M:float, label:str='', labelNode=False):
         """
         Adds a moment ot the model at location x. If no node
         exists at position x, a new node is added.
         Old loads at this point are deleted.
-        TODO:
-            State which direction positive is.
+
         
         Parameters
         ----------
@@ -773,6 +774,10 @@ class Beam:
         Adds a horizontal point load at the model at location x. If no node
         exists at position x, a new node is added.
         Old loads are deleted.
+
+        
+        Parameters
+        ----------
         x : float
             The x location to add force at.
         Px : float
@@ -932,10 +937,9 @@ class Beam:
                                 [qz_start, qz_end],]
             Where x is an axial force and y is shear force, and z is out of 
             plane shear force..
-            
-            
         label : str
             A optional label for the force.
+            
         """
         
         defaultFixity = np.zeros(self._ndf, int)
