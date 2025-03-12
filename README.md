@@ -26,12 +26,12 @@ PlaneSections is a FEM solver! Results are only stored at nodes specified by the
 ## Installation
 The default package is installable through pip.
 ```
-pip -m install planesections
+pip install planesections
 
 ```
 The package with the optional OpenSeesPy dependancy is installable with 
 ```
-pip -m install planesections[opensees]
+pip install planesections[opensees]
 
 ```
 
