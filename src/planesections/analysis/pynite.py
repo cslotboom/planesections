@@ -1,7 +1,7 @@
 import numpy as np
 import planesections.builder as bb 
 
-from PyNite.FEModel3D import FEModel3D
+from Pynite.FEModel3D import FEModel3D
 
 from .recorder import OutputRecorder
 
@@ -122,7 +122,7 @@ class PyNiteAnalyzer2D:
     def __init__(self, beam2D:bb.Beam, recorder = OutputRecorderPyNite2D):
 
         
-        self.beam:bb.Beam = beam2D
+        self.beam = beam2D
         self._checkBeam(beam2D)
         
         self.Nnode = beam2D.Nnodes
@@ -133,6 +133,7 @@ class PyNiteAnalyzer2D:
         self.memberNames = []
         
         self.matName = 'baseMat'
+        self.sectionName = 'baseSec'
     
     def _checkBeam(self, beam2D):
         if not beam2D._dimension:
@@ -179,18 +180,19 @@ class PyNiteAnalyzer2D:
         """
         Creates an elastic Euler beam between each node in the model.
         """        
-        beam = self.beam
         nodeAnalysisNames = self.nodeAnalysisNames
-        E, G, A, Iz = beam.getMaterialPropreties()
+        E, G, A, Iz = self.beam.getMaterialPropreties()
         
-        memberNames = []
-        # this is sloppy, we supply empty values
         self.analysisBeam.add_material(self.matName, E, G, 0.3, 8000)
+        # The section has it's weak axis propreties set to 1, these are not used.
+        self.analysisBeam.add_section(self.sectionName, A, 1., Iz, 1.)
+
+        memberNames = []
         for ii in range(self.Nele):
             memberName = 'M' + str(int(ii+1))
             N1 = nodeAnalysisNames[ii]
             N2 = nodeAnalysisNames[ii+1]            
-            self.analysisBeam.add_member(memberName, N1, N2, self.matName, 1., Iz, 1., A)
+            self.analysisBeam.add_member(memberName, N1, N2, self.matName, self.sectionName)
             memberNames.append(memberName)
         self.memberNames = memberNames
            

@@ -491,5 +491,4 @@ def plotPOI(fig, ax, xcoords, force, labels, filteredPoiInd):
                      x_scatter=labelX, y_scatter=labelY,
                      x_lines=[xcoords], y_lines=[force], 
                      linecolor='grey', linewidth=0.5,
-                     max_distance = 0.5, min_distance = 0.02, 
-                     seed  =1,)
+                     max_distance = 0.5, min_distance = 0.02)
