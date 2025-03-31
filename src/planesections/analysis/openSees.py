@@ -5,7 +5,12 @@ import planesections.builder as bb
 try:
     import openseespy.opensees as op
 except:
-    raise Exception('OpenSeespy has not been installed. First include optional depependancy with "pip -m install planesections[opensees]"')
+    raise Exception("""OpenSeespy import has failed. 
+                    Check that opensees has been installed, the optional 
+                    depependancy cn be uncluded using 
+                    'pip -m install planesections[opensees]'
+                    Opensees requires python 3.8
+                    """)
 
 
 from .recorder import OutputRecorder
@@ -73,9 +78,22 @@ class OutputRecorder2D(OutputRecorderOpenSees):
     def __post_init__(self):
         raise Exception('OutputRecorder2D is depcricated and will be removed in the next release. Use OutputRecorder instead')
         
+class OpenSeesAnalyzer:
+    _eleTypes = ['ElasticTimoshenkoBeam', 'elasticBeamColumn']
 
 
-class OpenSeesAnalyzer2D:
+    def _isTimoshenkoBeam(self):
+        return self.eleType == self._eleTypes[0]
+
+         
+    def _assignElementType(self, beam):
+        if isinstance(beam, bb.TimoshenkoBeam):
+            self.eleType = self._eleTypes[0]
+        else:
+            self.eleType = self._eleTypes[1]
+           
+
+class OpenSeesAnalyzer2D(OpenSeesAnalyzer):
     """
     This class is used to  can be used to create and run an analysis of an 
     input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
@@ -99,18 +117,23 @@ class OpenSeesAnalyzer2D:
         However, this should remain true for nearly all analyses. 
         Do not turn on unless you know what you're doing.
         
-    """
-    def __init__(self, beam2D:bb.Beam, recorder = OutputRecorderOpenSees, 
+    """    
+    
+    def __init__(self, beam2D:bb.EulerBeam|bb.TimoshenkoBeam, 
+                 recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
 
-        self.beam:bb.Beam = beam2D
+        self.beam = beam2D
         self._checkBeam(beam2D)
         
-        self.Nnode = beam2D.Nnodes
-        self.Nele = self.Nnode - 1
+        self.Nnodes = beam2D.Nnodes
+        self.Nele = self.Nnodes - 1
         self.recorder = recorder
         self.geomTransform = geomTransform
         self.clearOld = clearOld
+        
+        self._assignElementType(beam2D)
+        
     
     def _checkBeam(self, beam2D):
         if not beam2D._dimension:
@@ -152,19 +175,35 @@ class OpenSeesAnalyzer2D:
             f1, f2, f3 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3))
         
-    def buildEulerBeams(self):
+    def buildBeams(self):
         """
         Creates an elastic Euler beam between each node in the model.
         """        
-        beam = self.beam
-        E, G, A, Iz = beam.getMaterialPropreties()
+        E, G, A, Iz, Avx = self.beam.getMaterialPropreties()
+        isTimoshenkoBeam = self._isTimoshenkoBeam()
         for ii in range(self.Nele):
             ID = ii + 1
             eleID = int(ID)
             Ni = int(ID)
             Nj = int(ID + 1)
-            # elasticBeamColumn eleTag iNode $jNode $A $E $Iz $transfTag <-release $relcode> <-mass $massDens> <-cMass>
-            op.element(beam.EleType, eleID , Ni, Nj, A, E, Iz, 1)
+            if not isTimoshenkoBeam:
+                # elasticBeamColumn eleTag iNode $jNode $A $E $Iz $transfTag <-release $relcode> <-mass $massDens> <-cMass>
+                op.element(self.eleType, eleID , Ni, Nj, A, E, Iz, 1)
+            else:
+                # 'ElasticTimoshenkoBeam', eleTag, *eleNodes, E_mod, G_mod, Area, Iz, Avy, transfTag, <'-mass', massDens>, <'-cMass'>
+                op.element(self.eleType, eleID , Ni, Nj, E, G, A, Iz, Avx, 1)
+
+
+            
+        
+    def buildEulerBeams(self):
+        """
+        Creates an elastic Euler beam between each node in the model.
+        """      
+        print("""DEPRECATION WARNING: buildEulerBeams is being deprecated  
+              and will return an error in a future release. Use
+              buildBeams instead.""")
+        self.buildBeams()
            
     
     def _buildPointLoads(self, pointLoads):
@@ -256,7 +295,7 @@ class OpenSeesAnalyzer2D:
         
         self.initModel(self.clearOld)
         self.buildNodes()   
-        self.buildEulerBeams()
+        self.buildBeams()
         self.buildPointLoads()
         self.buildEleLoads()   
         self.buildAnalysisPropreties()
@@ -266,7 +305,7 @@ class OpenSeesAnalyzer2D:
             self.recorder(self.beam)
 
                   
-class OpenSeesAnalyzer3D:
+class OpenSeesAnalyzer3D(OpenSeesAnalyzer):
     """
     This class is used to  can be used to create and run an analysis of an 
     input 2D beam using OpenSeesPy. The nodes, elements, sections, and 
@@ -291,22 +330,25 @@ class OpenSeesAnalyzer3D:
         Do not turn on unless you know what you're doing.
         
     """ 
-
-    def __init__(self, beam3D:bb.Beam, recorder = OutputRecorderOpenSees, 
+    def __init__(self, beam3D:bb.EulerBeam|bb.TimoshenkoBeam, 
+                 recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
 
         self.beam = beam3D
         self._checkBeam(beam3D)
         
-        self.Nnode = beam3D.Nnodes
-        self.Nele = self.Nnode - 1
+        self.Nnodes = beam3D.Nnodes
+        self.Nele = self.Nnodes - 1
         self.recorder = OutputRecorderOpenSees
         self.geomTransform = geomTransform
         self.clearOld = clearOld
+
+        self._assignElementType(beam3D)
+
     
     def _checkBeam(self, beam3D):
         if not beam3D._dimension:
-            raise Exception("The beam has no dimension, something terible has happened.")
+            raise Exception("The beam has no dimension, something terrible has happened.")
         if beam3D._dimension != '3D':
             raise Exception(f"The beam has dimension of type {beam3D._dimension}, it should have type '3D'")
     
@@ -345,19 +387,39 @@ class OpenSeesAnalyzer3D:
             f1, f2, f3, f4, f5, f6 = node.fixity.fixityValues
             op.fix(node.ID, int(f1), int(f2), int(f3), int(f4), int(f5), int(f6))
         
-    def buildEulerBeams(self):
+    def buildBeams(self):
         """
         Creates an elastic Euler beam between each node in the model.
         """        
-        beam = self.beam
-        E, G, A, Iz, Iy, J = beam.getMaterialPropreties()
+        E, G, A, Iz, Iy, J, Avx, Avy = self.beam.getMaterialPropreties()
+        isTimoshenkoBeam = self._isTimoshenkoBeam()
+
         for ii in range(self.Nele):
             ID = ii + 1
             eleID = int(ID)
             Ni = int(ID)
             Nj = int(ID + 1)
-            # element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, G_mod, Jxx, Iy, Iz, transfTag, <'-mass', mass>, <'-cMass'>)
-            op.element(beam.EleType,  eleID , Ni, Nj , A, E, G, J, Iy, Iz, 1)
+            
+            if not isTimoshenkoBeam:
+                # element('elasticBeamColumn', eleTag, *eleNodes, Area, E_mod, G_mod, Jxx, Iy, Iz, transfTag, <'-mass', mass>, <'-cMass'>)
+                op.element(self.eleType,  eleID , Ni, Nj , A, E, G, J, Iy, Iz, 1)
+            else:
+                # element('ElasticTimoshenkoBeam', eleTag, *eleNodes, E_mod, G_mod, Area, Jxx, Iy, Iz, Avy, Avz, transfTag, <'-mass', massDens>, <'-cMass'>)
+                op.element(self.eleType,  eleID , Ni, Nj , E, G, A, J, Iy, Iz, Avx, Avy, 1)
+    
+
+
+    
+    
+    
+    def buildEulerBeams(self):
+        """
+        Creates an elastic Euler beam between each node in the model.
+        """      
+        print("""DEPRECATION WARNING: buildEulerBeams is being deprecated  
+              and will return an error in a future release. Use
+              buildBeams instead.""")
+        self.buildBeams()
     
     def buildPointLoads(self):
         """
@@ -420,7 +482,7 @@ class OpenSeesAnalyzer3D:
         
         self.initModel(self.clearOld)
         self.buildNodes()   
-        self.buildEulerBeams()
+        self.buildBeams()
         self.buildPointLoads()
         self.buildEleLoads()   
         self.buildAnalysisPropreties()

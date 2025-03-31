@@ -410,7 +410,7 @@ class BeamPlotter2D:
    
         xlims = beam.getxLims()
         self.xmin = xlims[0]
-        self.xmax = xlims[0]
+        self.xmax = xlims[1]
                 
         self.xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
         

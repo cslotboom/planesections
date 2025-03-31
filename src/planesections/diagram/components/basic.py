@@ -708,10 +708,12 @@ class BasicDiagramPlotter():
         pl.plot(ax)                
 
     def _initPlot(self, figSize, xlims, ylims, dpi = 300):
+        """
+        Note, the aspect ratio of the axes is not equal right now.
+        """
         
         dy = ylims[-1] - ylims[0]
         fig, ax = plt.subplots(constrained_layout=True, figsize=(figSize, dy), dpi=300)
-        ax.axis('equal')
         ax.axis('off')        
         ax.set_xlim(xlims)
         ax.set_ylim(ylims)

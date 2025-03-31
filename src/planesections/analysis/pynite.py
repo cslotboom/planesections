@@ -125,8 +125,8 @@ class PyNiteAnalyzer2D:
         self.beam = beam2D
         self._checkBeam(beam2D)
         
-        self.Nnode = beam2D.Nnodes
-        self.Nele = self.Nnode - 1
+        self.Nnodes = beam2D.Nnodes
+        self.Nele = self.Nnodes - 1
         self.recorder = recorder
         
         self.nodeAnalysisNames = []
@@ -176,12 +176,12 @@ class PyNiteAnalyzer2D:
                 f1, f2, f3 = node.fixity.fixityValues
                 analysisBeam.def_support(name, f1, f2, True, True, False, f3)
         
-    def buildEulerBeams(self):
+    def buildBeams(self):
         """
         Creates an elastic Euler beam between each node in the model.
         """        
         nodeAnalysisNames = self.nodeAnalysisNames
-        E, G, A, Iz = self.beam.getMaterialPropreties()
+        E, G, A, Iz, _ = self.beam.getMaterialPropreties()
         
         self.analysisBeam.add_material(self.matName, E, G, 0.3, 8000)
         # The section has it's weak axis propreties set to 1, these are not used.
@@ -195,7 +195,15 @@ class PyNiteAnalyzer2D:
             self.analysisBeam.add_member(memberName, N1, N2, self.matName, self.sectionName)
             memberNames.append(memberName)
         self.memberNames = memberNames
-           
+    
+    def buildEulerBeams(self):
+        """
+        Creates an elastic Euler beam between each node in the model.
+        """      
+        print("""DEPRECATION WARNING: buildEulerBeams is being deprecated  
+              and will return an error in a future release. Use
+              buildBeams instead.""")
+        self.buildBeams()
     
     def _buildPointLoads(self, pointLoads):
         for load in pointLoads:
@@ -276,7 +284,7 @@ class PyNiteAnalyzer2D:
         
         self.initModel()
         self.buildNodes()   
-        self.buildEulerBeams()
+        self.buildBeams()
         self.buildPointLoads()
         self.buildEleLoads()   
         self.analyze()

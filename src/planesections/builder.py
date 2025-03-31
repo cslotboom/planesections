@@ -551,8 +551,8 @@ class Beam:
             self._sortNodes()
 
     def addNodes(self, xCoords:list[float], 
-                 fixities:list[Union[list, str, Fixity]] = None, 
-                 labels:list[str] = None ):
+                 fixities:list[Union[list, str, Fixity]]|None = None, 
+                 labels:list[str]|None = None ):
         """
         Adds several new nodes to the beam at the same time.
         The nodes in question are added at the x coordinates in the model.
@@ -1044,6 +1044,32 @@ class Beam:
         return self.nodes
 
 
+
+    def getMaterialPropreties(self):
+        """
+        Returns the material properties of a section.
+        
+        In 2D returns E, G, A, Iz
+        
+        In 3D returns E, G, A, Iy, Iz, J
+
+        Returns
+        -------
+        list
+            DESCRIPTION.
+
+        """
+        if self._dimension == '2D':
+            return [self.section.E, self.section.G, 
+                    self.section.A, self.section.Iz, 
+                    self.section.Avx]    
+        elif self._dimension == '3D': 
+            # Area, E_mod, G_mod, Jxx, Iy, Iz,
+            return [self.section.E, self.section.G, self.section.A,
+                    self.section.Iz, self.section.Iy, self.section.J,
+                    self.section.Avx, self.section.Avy]    
+
+
 class Beam2D(Beam):
     def __post_init__(self):
         print('Beam2D is depricated and will return an error in future version. Use Beam instead.')
@@ -1206,7 +1232,6 @@ class EulerBeam(Beam):
         self.section = section
         self.d = 1
         self.plotter = None
-        self.EleType = 'elasticBeamColumn'
       
     def _parseCoords(self, xcoords):
         if type(xcoords) == float:
@@ -1221,28 +1246,6 @@ class EulerBeam(Beam):
         if len(fixities) != NnewNodes:
             raise Exception('A fixity must be provided for each node.')
         return fixities
-
-    def getMaterialPropreties(self):
-        """
-        Returns the material properties of a section.
-        
-        In 2D returns E, G, A, Iz
-        
-        In 3D returns E, G, A, Iy, Iz, J
-
-        Returns
-        -------
-        list
-            DESCRIPTION.
-
-        """
-        if self._dimension == '2D':
-            return [self.section.E, self.section.G, 
-                    self.section.A, self.section.Iz]    
-        elif self._dimension == '3D': 
-            # Area, E_mod, G_mod, Jxx, Iy, Iz,
-            return [self.section.E, self.section.G, self.section.A,
-                    self.section.Iz, self.section.Iy, self.section.J]    
 
     def getMoment(self):
         """
@@ -1351,6 +1354,41 @@ class EulerBeam(Beam):
         return reactions
 
 
+
+
+class TimoshenkoBeam(EulerBeam):
+    """
+    A creates a 2D/3D TimoshenkoBeam beam. Information about the beam is stored in a mesh
+    of nodes across the beam that are added by the user. Note that only output
+    information at the nodes will be contained in the analysis. 
+    
+    The units of the beam must form a consistent unit base for FEM
+    
+    Inherits from the base :py:class:`Beam` class.
+    
+    
+    Parameters
+    ----------
+    xcoords : list, optional
+        The x coodinates of nodes along the beam the beam. The default is [],
+        which starts with no nodes.
+    fixity : list of Fixity, or list of lists
+        A list of fixity objects, or A list of the input fixities for 
+        each possible degree of freedom. 
+        2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+        3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+        For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+        e.x. 
+        
+        [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+        
+        [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
+    labels : list, optional
+        A list of labels for each node. The default is [], which gives no label
+        to each node.
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+    """
 
 class EulerBeam2D(EulerBeam):
     def __post_init__(self):
