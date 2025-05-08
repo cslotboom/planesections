@@ -269,6 +269,11 @@ class OpenSeesAnalyzer2D(OpenSeesAnalyzer):
                        '-type', '-beamUniform', load[1], load[0])   
     
     def _buildLinLoad(self, Nodes:list[int], eleload:bb.EleLoadLinear):
+        
+        if isinstance(self.beam, bb.TimoshenkoBeam):
+            raise Exception("""Only Uniform loads and Point loads are 
+                            supported by OpenSees for Timoshenko Beams""")
+        
         load = eleload.P
         N1, N2 = Nodes[0], Nodes[1]
         for ii in range(N1, N2):                

@@ -4,7 +4,8 @@ from .builder import (Node2D, Node3D, Beam, newEulerBeam, newSimpleEulerBeam,
                       EulerBeam, TimoshenkoBeam, EleLoad, EleLoadDist, 
                       EleLoadLinear, PointLoad,
                       Beam2D, newEulerBeam2D, newSimpleEulerBeam2D, 
-                      EulerBeam2D, FixityTypes2D, NAMED_RELEASES_2D)
+                      EulerBeam2D, FixityTypes2D, NAMED_RELEASES_2D,
+                      newTimoshenkoBeam,newSimpleTimoshenkoBeam)
 
 from .analysis import (PyNiteAnalyzer2D)
 try:

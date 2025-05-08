@@ -1390,9 +1390,94 @@ class TimoshenkoBeam(EulerBeam):
         The section to use in the anaysis. The default uses SectionBasic2D().
     """
 
+
+
+
 class EulerBeam2D(EulerBeam):
     def __post_init__(self):
         raise Exception('EulerBeam is depricated and will be removed in the next major update (1.3). Use EulerBeam instead.')
+
+
+
+
+def newTimoshenkoBeam(x2, x1 = 0, meshSize = 101, 
+                      section=None, dimension = '2D'):
+    """
+    Initializes a new TimoshenkoBeam beam. 
+    The beam will have no fixities or labels.
+
+    Parameters
+    ----------
+    x2 : float
+        The end position of the beam. If no x1 is provided, this is also the
+        length of the beam
+    x1 : float, optional
+        The start position of the beam. The default is 0.
+    meshSize : int, optional
+        The mesh size for the beam. This many nodes will be added between the 
+        points x1 and x2. The default is 101, which divides the beam into
+        100 even sections..
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+
+    Returns
+    -------
+    EulerBeam2D : EulerBeam
+        The the beam intialized with the mesh of points between x1 and x2.
+    """
+    
+    if x2 <= x1:
+        raise Exception('x2 must be greater than x1')
+    if dimension != '2D':
+        raise Exception('The beam must be 2D.')
+    
+    x = np.linspace(x1, x2, meshSize)  
+    return TimoshenkoBeam(x, section=section, dimension = dimension)
+
+
+def newSimpleTimoshenkoBeam(x2, x1 = 0, meshSize = 101, q = 0, 
+                            section=None, dimension = '2D'):
+    """
+    Initializes a new simply supported Timoshenko beam with a distributed load. 
+    The beam will have no fixities or labels.
+
+    Parameters
+    ----------
+    x2 : float
+        The end position of the beam. If no x1 is provided, this is also the
+        length of the beam
+    x1 : float, optional
+        The start position of the beam. The default is 0.
+    meshSize : int, optional
+        The mesh size for the beam. This many nodes will be added between the 
+        points x1 and x2. The default is 101, which divides the beam into
+        100 even sections..
+    q : float, optional
+        The distributed load on the simply supported beam.
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+        
+    Returns
+    -------
+    EulerBeam2D : EulerBeam
+        The the beam intialized with the mesh of points between x1 and x2.
+    """
+    
+    if x2 <= x1:
+        raise Exception('x2 must be greater than x1')
+    if dimension != '2D':
+        raise Exception('The beam must be 2D.')
+    x = np.linspace(x1, x2, meshSize)  
+    
+    beam  = TimoshenkoBeam(x, dimension = '2D', section=section)
+    beam.addNode(x1, [1,1,0])
+    beam.addNode(x2, [0,1,0])
+    if q != 0:
+        beam.addDistLoadVertical(x1, x2, q)
+    return beam
+
+
+
 
 
 # =============================================================================
