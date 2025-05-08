@@ -111,7 +111,10 @@ def plotMoment(beam:Beam, scale:float=-1, yunit = 'Nm', **kwargs):
             showMax: this turns on or off
         
         The default is None, which sets all flags to true    
-
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
 
     Returns
     -------
@@ -192,7 +195,10 @@ def plotShear(beam:Beam, scale:float=1, **kwargs):
             showMax: this turns on or off
         
         The default is None, which sets all flags to true    
-
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
 
     Returns
     -------
@@ -216,7 +222,8 @@ class _NodeOutputs:
 
 def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N',
                       showAxis = True, showGrid = False, labelPlot = True,
-                      labelPOI = False, POIOptions = None):
+                      labelPOI = False, POIOptions = None, 
+                      fig = None, ax = None):
     """
     Plots the internal forces within a beam. 
     Two values are given for each point, one at the left side, one at the right
@@ -263,6 +270,10 @@ def plotInternalForce(beam:Beam, index:int, scale:float, xunit= 'm', yunit = 'N'
             showMax: this turns on or off POI at maximum points.
         
         The default is None, which sets all flags to true          
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
         
     Returns
     -------
@@ -324,7 +335,11 @@ def plotVertDisp(beam:Beam, scale=1000, yunit = 'mm', **kwargs):
     showGrid : bool, optional
         Turns on or off the grid.        
     labelPlot : bool, optional
-        Turns on or off the plot labels.        
+        Turns on or off the plot labels.   
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
         
     Returns
     -------
@@ -363,6 +378,10 @@ def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
         Turns on or off the grid.        
     labelPlot : bool, optional
         Turns on or off the plot labels.        
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
         
     Returns
     -------
@@ -381,7 +400,7 @@ def plotRotation(beam:Beam, scale=1000, yunit = 'mRad', **kwargs):
 
 def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
              showAxis = True, showGrid = False, labelPlot = True,
-             labelPOI = False, POIOptions = None):
+             labelPOI = False, POIOptions = None, fig = None, ax = None):
     """
     Plots the displacement of one dimension of the beam. Each node will contain the
     relevant dispancement information. Analysis must be run on the beam prior to 
@@ -405,6 +424,10 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
         Turns on or off the grid.        
     labelPlot : bool, optional
         Turns on or off the plot labels.        
+    fig : bool, optional
+        A existing figure to use in the plot.   
+    ax : bool, optional
+        A existing axis to use in the plot.   
         
     Returns
     -------
@@ -413,7 +436,7 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
     ax : matplotlib ax
     
     line : matplotlib line
-        the plotted line.
+        The plotted line.
 
     """
     
@@ -426,9 +449,11 @@ def plotDisp(beam:Beam, index=1, scale=1000, xunit= 'm', yunit = 'mm',
         xcoords[ii] = node.x
         disp[ii] = node.disps[index]
         labels[ii] = node.label
+    
+    if not fig and not ax:
+        fig, ax = _initOutputFig(showAxis, showGrid)
+        _plotAxis(ax, xcoords, xunit, yunit, 'Displacement')
         
-    fig, ax = _initOutputFig(showAxis, showGrid)
-    _plotAxis(ax, xcoords, xunit, yunit, 'Displacement')
     disp = disp*scale
 
     if labelPlot:
