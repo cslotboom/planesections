@@ -136,6 +136,10 @@ class PyNiteAnalyzer2D:
         self.sectionName = 'baseSec'
     
     def _checkBeam(self, beam2D):
+        
+        if isinstance(beam2D, bb.TimoshenkoBeam):
+            raise Exception("The pynite solver does not support timoshenko beams.")
+        
         if not beam2D._dimension:
             raise Exception("The beam has no dimension, something terrible has happened.")
         if beam2D._dimension != '2D':
