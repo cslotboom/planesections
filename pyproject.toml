@@ -4,12 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "planesections"
-version = "1.3.9"
+version = "1.4.0"
 authors = [{name = "Christian Slotboom", email = "christian.slotboom@gmail.com"}]
 requires-python = ">=3.9"
 description = "A light-weight FEM beam analyzer."
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "GPL-3.0-only"
+license-files = [
+    "LICENSE",
+]
 keywords = ["FEM", "structures", "beams", "diagrams"] 
 dependencies = [
   "numpy",
