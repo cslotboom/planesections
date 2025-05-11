@@ -14,8 +14,8 @@ keywords = ["FEM", "structures", "beams", "diagrams"]
 dependencies = [
   "numpy",
   "matplotlib",
-  "PyniteFEA==0.0.96",
-  "textalloc==0.0.10",
+  "PyniteFEA==1.0.1",
+  "textalloc==1.1.8",
 ]
 classifiers = [
 	'Development Status :: 5 - Production/Stable',

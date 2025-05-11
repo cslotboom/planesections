@@ -1,7 +1,7 @@
 import numpy as np
 import planesections.builder as bb 
 
-from PyNite.FEModel3D import FEModel3D
+from Pynite.FEModel3D import FEModel3D
 
 from .recorder import OutputRecorder
 
@@ -122,19 +122,24 @@ class PyNiteAnalyzer2D:
     def __init__(self, beam2D:bb.Beam, recorder = OutputRecorderPyNite2D):
 
         
-        self.beam:bb.Beam = beam2D
+        self.beam = beam2D
         self._checkBeam(beam2D)
         
-        self.Nnode = beam2D.Nnodes
-        self.Nele = self.Nnode - 1
+        self.Nnodes = beam2D.Nnodes
+        self.Nele = self.Nnodes - 1
         self.recorder = recorder
         
         self.nodeAnalysisNames = []
         self.memberNames = []
         
         self.matName = 'baseMat'
+        self.sectionName = 'baseSec'
     
     def _checkBeam(self, beam2D):
+        
+        if isinstance(beam2D, bb.TimoshenkoBeam):
+            raise Exception("The pynite solver does not support timoshenko beams.")
+        
         if not beam2D._dimension:
             raise Exception("The beam has no dimension, something terrible has happened.")
         if beam2D._dimension != '2D':
@@ -175,25 +180,34 @@ class PyNiteAnalyzer2D:
                 f1, f2, f3 = node.fixity.fixityValues
                 analysisBeam.def_support(name, f1, f2, True, True, False, f3)
         
-    def buildEulerBeams(self):
+    def buildBeams(self):
         """
         Creates an elastic Euler beam between each node in the model.
         """        
-        beam = self.beam
         nodeAnalysisNames = self.nodeAnalysisNames
-        E, G, A, Iz = beam.getMaterialPropreties()
+        E, G, A, Iz, _ = self.beam.getMaterialPropreties()
         
-        memberNames = []
-        # this is sloppy, we supply empty values
         self.analysisBeam.add_material(self.matName, E, G, 0.3, 8000)
+        # The section has it's weak axis propreties set to 1, these are not used.
+        self.analysisBeam.add_section(self.sectionName, A, 1., Iz, 1.)
+
+        memberNames = []
         for ii in range(self.Nele):
             memberName = 'M' + str(int(ii+1))
             N1 = nodeAnalysisNames[ii]
             N2 = nodeAnalysisNames[ii+1]            
-            self.analysisBeam.add_member(memberName, N1, N2, self.matName, 1., Iz, 1., A)
+            self.analysisBeam.add_member(memberName, N1, N2, self.matName, self.sectionName)
             memberNames.append(memberName)
         self.memberNames = memberNames
-           
+    
+    def buildEulerBeams(self):
+        """
+        Creates an elastic Euler beam between each node in the model.
+        """      
+        print("""DEPRECATION WARNING: buildEulerBeams is being deprecated  
+              and will return an error in a future release. Use
+              buildBeams instead.""")
+        self.buildBeams()
     
     def _buildPointLoads(self, pointLoads):
         for load in pointLoads:
@@ -274,7 +288,7 @@ class PyNiteAnalyzer2D:
         
         self.initModel()
         self.buildNodes()   
-        self.buildEulerBeams()
+        self.buildBeams()
         self.buildPointLoads()
         self.buildEleLoads()   
         self.analyze()

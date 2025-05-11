@@ -11,6 +11,7 @@ from planesections import diagramUnits
 from planesections.builder import EleLoadDist, EleLoadLinear
 
 from .components import basic as basic
+from matplotlib.pyplot import Figure, Axes
 
 """
 Not used properly right now, but ideally this is defined only in one place.
@@ -410,7 +411,7 @@ class BeamPlotter2D:
    
         xlims = beam.getxLims()
         self.xmin = xlims[0]
-        self.xmax = xlims[0]
+        self.xmax = xlims[1]
                 
         self.xlimsPlot = [(xlims[0] - L/20) / xscale, (xlims[1] + L/20) / xscale]
         
@@ -775,7 +776,8 @@ class BeamPlotter2D:
         return fplot, xcoords                     
 
 def plotBeamDiagram(beam, plotLabel = True, labelForce = False, 
-                    plotForceValue = False, units = 'environment'):
+                    plotForceValue = False, 
+                    units = 'environment') -> (Figure, Axes):
     """
     Creates a diagram of the created beam.
     Only certain fixities are supported for plotting, including free, roller 

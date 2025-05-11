@@ -5,6 +5,7 @@ propreties for the beam. Units are in imperial.
 """
 
 import planesections as ps
+from planesections.analysis.openSees import OpenSeesAnalyzer2D
 import numpy as np
 
 """

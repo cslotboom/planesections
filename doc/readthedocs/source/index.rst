@@ -1,8 +1,3 @@
-.. Hysteresis documentation master file, created by
-   sphinx-quickstart on Thu Dec 31 18:57:31 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 PlaneSections Documentation
 ======================================
 PlaneSections is a lightweight finite element beam bending library built on libraries like `PyNite <https://github.com/JWock82/PyNite>`_ or `OpenSeesPy <https://github.com/zhuminjie/OpenSeesPy>`_.
@@ -87,7 +82,7 @@ A simple script is shown below:
 *Christian Slotboom* `<https://github.com/cslotboom/planesections>`_.
 
 | M.A.Sc. Structural Engineering
-| Engineer in Training 
+| P.Eng.
 
 Indices and tables
 ==================

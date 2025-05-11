@@ -551,8 +551,8 @@ class Beam:
             self._sortNodes()
 
     def addNodes(self, xCoords:list[float], 
-                 fixities:list[Union[list, str, Fixity]] = None, 
-                 labels:list[str] = None ):
+                 fixities:list[Union[list, str, Fixity]]|None = None, 
+                 labels:list[str]|None = None ):
         """
         Adds several new nodes to the beam at the same time.
         The nodes in question are added at the x coordinates in the model.
@@ -622,7 +622,7 @@ class Beam:
     def setFixity(self, x:float, fixity:list[Union[list, Fixity]], 
                   label = None):
         """
-        Sets the the model fixity at locaiton x. If the node exists, update it. If the node doesn't
+        Sets the model fixity at locaiton x. If the node exists, update it. If the node doesn't
         exist, then a new node will be added
 
         Parameters
@@ -684,7 +684,7 @@ class Beam:
             The label of the input node. 
             labels are displayed in the plots. The default is ''.        
         labelNode : bool, optional
-            A label that specifies if the the node the force is assigned to 
+            A label that specifies if the node the force is assigned to 
             should also be labeled.
         """
         
@@ -730,7 +730,7 @@ class Beam:
             The label of the input node. 
             labels are displayed in the plots. The default is ''.            
         labelNode : bool, optional
-            A label that specifies if the the node the force is assigned to 
+            A label that specifies if the node the force is assigned to 
             should also be labeled.
         """   
         if self._ndf == 3:
@@ -758,7 +758,7 @@ class Beam:
             The label of the input node. 
             labels are displayed in the plots. The default is ''.
         labelNode : bool, optional
-            A label that specifies if the the node the force is assigned to 
+            A label that specifies if the node the force is assigned to 
             should also be labeled.
         """        
         
@@ -786,7 +786,7 @@ class Beam:
             The label of the input node. 
             labels are displayed in the plots. The default is ''.
         labelNode : bool, optional
-            A label that specifies if the the node the force is assigned to 
+            A label that specifies if the node the force is assigned to 
             should also be labeled.
         """       
         
@@ -1044,6 +1044,32 @@ class Beam:
         return self.nodes
 
 
+
+    def getMaterialPropreties(self):
+        """
+        Returns the material properties of a section.
+        
+        In 2D returns E, G, A, Iz
+        
+        In 3D returns E, G, A, Iy, Iz, J
+
+        Returns
+        -------
+        list
+            DESCRIPTION.
+
+        """
+        if self._dimension == '2D':
+            return [self.section.E, self.section.G, 
+                    self.section.A, self.section.Iz, 
+                    self.section.Avx]    
+        elif self._dimension == '3D': 
+            # Area, E_mod, G_mod, Jxx, Iy, Iz,
+            return [self.section.E, self.section.G, self.section.A,
+                    self.section.Iz, self.section.Iy, self.section.J,
+                    self.section.Avx, self.section.Avy]    
+
+
 class Beam2D(Beam):
     def __post_init__(self):
         print('Beam2D is depricated and will return an error in future version. Use Beam instead.')
@@ -1073,7 +1099,7 @@ def newEulerBeam(x2, x1 = 0, meshSize = 101, section=None, dimension = '2D'):
     Returns
     -------
     EulerBeam2D : EulerBeam
-        The the beam intialized with the mesh of points between x1 and x2.
+        The beam intialized with the mesh of points between x1 and x2.
     """
     
     if x2 <= x1:
@@ -1117,7 +1143,7 @@ def newSimpleEulerBeam(x2, x1 = 0, meshSize = 101, q = 0, section=None, dimensio
     Returns
     -------
     EulerBeam2D : EulerBeam
-        The the beam intialized with the mesh of points between x1 and x2.
+        The beam intialized with the mesh of points between x1 and x2.
     """
     
     if x2 <= x1:
@@ -1206,7 +1232,6 @@ class EulerBeam(Beam):
         self.section = section
         self.d = 1
         self.plotter = None
-        self.EleType = 'elasticBeamColumn'
       
     def _parseCoords(self, xcoords):
         if type(xcoords) == float:
@@ -1221,28 +1246,6 @@ class EulerBeam(Beam):
         if len(fixities) != NnewNodes:
             raise Exception('A fixity must be provided for each node.')
         return fixities
-
-    def getMaterialPropreties(self):
-        """
-        Returns the material properties of a section.
-        
-        In 2D returns E, G, A, Iz
-        
-        In 3D returns E, G, A, Iy, Iz, J
-
-        Returns
-        -------
-        list
-            DESCRIPTION.
-
-        """
-        if self._dimension == '2D':
-            return [self.section.E, self.section.G, 
-                    self.section.A, self.section.Iz]    
-        elif self._dimension == '3D': 
-            # Area, E_mod, G_mod, Jxx, Iy, Iz,
-            return [self.section.E, self.section.G, self.section.A,
-                    self.section.Iz, self.section.Iy, self.section.J]    
 
     def getMoment(self):
         """
@@ -1352,9 +1355,129 @@ class EulerBeam(Beam):
 
 
 
+
+class TimoshenkoBeam(EulerBeam):
+    """
+    A creates a 2D/3D TimoshenkoBeam beam. Information about the beam is stored in a mesh
+    of nodes across the beam that are added by the user. Note that only output
+    information at the nodes will be contained in the analysis. 
+    
+    The units of the beam must form a consistent unit base for FEM
+    
+    Inherits from the base :py:class:`Beam` class.
+    
+    
+    Parameters
+    ----------
+    xcoords : list, optional
+        The x coodinates of nodes along the beam the beam. The default is [],
+        which starts with no nodes.
+    fixity : list of Fixity, or list of lists
+        A list of fixity objects, or A list of the input fixities for 
+        each possible degree of freedom. 
+        2D nodes have three degree of freedoms; [x, y, :math:`\\theta`]
+        3D nodes have six degree of freedoms; [x, y, z, :math:`\\theta_x`, :math:`\\theta_y`, :math:`\\theta_z`]
+        For each degree of freedom, 1 represents a fixed condition, 0 represents a free conditon. 
+        e.x. 
+        
+        [1,1,0] - A 2D connection that's fixed in x/y but free in rotation.
+        
+        [1,1,0,0,0,1] - A 3D connection that's fixed in x/y and :math:`\\theta_z` .
+    labels : list, optional
+        A list of labels for each node. The default is [], which gives no label
+        to each node.
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+    """
+
+
+
+
 class EulerBeam2D(EulerBeam):
     def __post_init__(self):
         raise Exception('EulerBeam is depricated and will be removed in the next major update (1.3). Use EulerBeam instead.')
+
+
+
+
+def newTimoshenkoBeam(x2, x1 = 0, meshSize = 101, 
+                      section=None, dimension = '2D'):
+    """
+    Initializes a new TimoshenkoBeam beam. 
+    The beam will have no fixities or labels.
+
+    Parameters
+    ----------
+    x2 : float
+        The end position of the beam. If no x1 is provided, this is also the
+        length of the beam
+    x1 : float, optional
+        The start position of the beam. The default is 0.
+    meshSize : int, optional
+        The mesh size for the beam. This many nodes will be added between the 
+        points x1 and x2. The default is 101, which divides the beam into
+        100 even sections..
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+
+    Returns
+    -------
+    timoshenkobeam : TimoshenkoBeam
+        The beam intialized with the mesh of points between x1 and x2.
+    """
+    
+    if x2 <= x1:
+        raise Exception('x2 must be greater than x1')
+    if dimension != '2D':
+        raise Exception('The beam must be 2D.')
+    
+    x = np.linspace(x1, x2, meshSize)  
+    return TimoshenkoBeam(x, section=section, dimension = dimension)
+
+
+def newSimpleTimoshenkoBeam(x2, x1 = 0, meshSize = 101, q = 0, 
+                            section=None, dimension = '2D'):
+    """
+    Initializes a new simply supported Timoshenko beam with a distributed load. 
+    The beam will have no fixities or labels.
+
+    Parameters
+    ----------
+    x2 : float
+        The end position of the beam. If no x1 is provided, this is also the
+        length of the beam
+    x1 : float, optional
+        The start position of the beam. The default is 0.
+    meshSize : int, optional
+        The mesh size for the beam. This many nodes will be added between the 
+        points x1 and x2. The default is 101, which divides the beam into
+        100 even sections..
+    q : float, optional
+        The distributed load on the simply supported beam.
+    section : Section2D, optional
+        The section to use in the anaysis. The default uses SectionBasic2D().
+        
+    Returns
+    -------
+    timoshenkobeam : TimoshenkoBeam
+        The beam intialized with the mesh of points between x1 and x2.
+    """
+    
+    if x2 <= x1:
+        raise Exception('x2 must be greater than x1')
+    if dimension != '2D':
+        raise Exception('The beam must be 2D.')
+    x = np.linspace(x1, x2, meshSize)  
+    
+    beam  = TimoshenkoBeam(x, dimension = '2D', section=section)
+    beam.addNode(x1, [1,1,0])
+    beam.addNode(x2, [0,1,0])
+    if q != 0:
+        beam.addDistLoadVertical(x1, x2, q)
+    return beam
+
+
+
 
 
 # =============================================================================
