@@ -43,6 +43,8 @@ class SectionBasic(Section):
     Iz:float = 1
     Iy:float = 1
     J:float = 1
+    Avx:float = 1
+    Avy:float = 1
 
 
 @dataclass
@@ -82,6 +84,8 @@ class SectionRectangle(Section):
         self.A = self.d*self.w
         self.Iz = self.d**3*self.w / 12
         self.Iy = self.w**3*self.d / 12
+        self.Avx = self.A *(5/6)
+        self.Avy = self.A *(5/6)
         
         a = min(self.d, self.w)
         b = max(self.d, self.w)
