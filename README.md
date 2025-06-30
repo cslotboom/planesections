@@ -9,7 +9,7 @@ The goal of PlaneSections is to make easy-to-use beam anayses, which can be used
 
 **NOTE:**
 Units for force and length must be applied to the beam in a [consistent unit base for FEM](https://femci.gsfc.nasa.gov/units/index.html).
-PlaneSections has been design with Metric units in mind in terms of scaling diagrams. For those using imperial units, results will work with a consitent unit basis, but the scale of the digrams may be off.
+PlaneSections has been set up with Metric units in mind in terms of scaling diagrams. For those using imperial units, results will work with a consitent unit basis, but the scale of the digrams may be off.
 
 PlaneSections is a FEM solver! Results are only stored at nodes specified by the user - all intermediate values in plots are linearly interpolated.
 
