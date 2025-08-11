@@ -551,8 +551,8 @@ class Beam:
             self._sortNodes()
 
     def addNodes(self, xCoords:list[float], 
-                 fixities:list[Union[list, str, Fixity]]|None = None, 
-                 labels:list[str]|None = None ):
+                 fixities: Union[list[Union[list, str, Fixity]], None] = None, 
+                 labels: Union[list[str], None] = None ):
         """
         Adds several new nodes to the beam at the same time.
         The nodes in question are added at the x coordinates in the model.

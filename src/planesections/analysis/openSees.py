@@ -1,4 +1,4 @@
-
+from typing import Union
 import numpy as np
 import planesections.builder as bb 
 
@@ -119,7 +119,7 @@ class OpenSeesAnalyzer2D(OpenSeesAnalyzer):
         
     """    
     
-    def __init__(self, beam2D:bb.EulerBeam|bb.TimoshenkoBeam, 
+    def __init__(self, beam2D: Union[bb.EulerBeam, bb.TimoshenkoBeam], 
                  recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
 
@@ -137,7 +137,7 @@ class OpenSeesAnalyzer2D(OpenSeesAnalyzer):
     
     def _checkBeam(self, beam2D):
         if not beam2D._dimension:
-            raise Exception("The beam has no dimension, something terible has happened.")
+            raise Exception("The beam has no dimension, something terrible has happened.")
         if beam2D._dimension != '2D':
             raise Exception(f"The beam has dimension of type {beam2D._dimension}, it should have type '2D'")
     
@@ -335,7 +335,7 @@ class OpenSeesAnalyzer3D(OpenSeesAnalyzer):
         Do not turn on unless you know what you're doing.
         
     """ 
-    def __init__(self, beam3D:bb.EulerBeam|bb.TimoshenkoBeam, 
+    def __init__(self, Union[beam3D:bb.EulerBeam, bb.TimoshenkoBeam], 
                  recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
 

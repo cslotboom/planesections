@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "planesections"
-version = "1.4.0"
+version = "1.4.1"
 authors = [{name = "Christian Slotboom", email = "christian.slotboom@gmail.com"}]
 requires-python = ">=3.9"
 description = "A light-weight FEM beam analyzer."

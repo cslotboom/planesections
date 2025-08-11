@@ -27,5 +27,4 @@ python:
    - requirements: doc/requirements.txt
 
 sphinx:
-  # Path to your Sphinx configuration file.
   configuration: doc/readthedocs/source/conf.py
