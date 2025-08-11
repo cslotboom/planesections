@@ -11,6 +11,7 @@ except:
                     'pip -m install planesections[opensees]'
                     Opensees requires python 3.8
                     """)
+import openseespy.opensees as op
 
 
 from .recorder import OutputRecorder
@@ -335,7 +336,7 @@ class OpenSeesAnalyzer3D(OpenSeesAnalyzer):
         Do not turn on unless you know what you're doing.
         
     """ 
-    def __init__(self, Union[beam3D:bb.EulerBeam, bb.TimoshenkoBeam], 
+    def __init__(self, beam3D:Union[bb.EulerBeam, bb.TimoshenkoBeam], 
                  recorder = OutputRecorderOpenSees, 
                  geomTransform = 'Linear', clearOld = True):
 
