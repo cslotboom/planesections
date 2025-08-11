@@ -11,8 +11,6 @@ except:
                     'pip -m install planesections[opensees]'
                     Opensees requires python 3.8
                     """)
-import openseespy.opensees as op
-
 
 from .recorder import OutputRecorder
         
